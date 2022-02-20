@@ -30,8 +30,22 @@ function vertex(position: Point, direction: Angle): Vertex {
 }
 
 function advanceVertex(vertex: Vertex, amount: number) {
-  vertex.position.x += Math.cos(vertex.direction) * amount;
-  vertex.position.y += Math.sin(vertex.direction) * amount;
+  let x = vertex.position.x;
+  let y = vertex.position.y;
+
+  let xp = x + Math.cos(vertex.direction) * amount;
+  let yp = y + Math.sin(vertex.direction) * amount;
+
+  let oldDistFromOrigin = Math.sqrt(x * x + y * y);
+  let newDistFromOrigin = Math.sqrt(xp * xp + yp * yp);
+
+  let diffDist = newDistFromOrigin - oldDistFromOrigin;
+
+  if (diffDist > 0) {
+    vertex.position.x = xp;
+    vertex.position.y = yp;
+  } else {
+  }
 }
 
 function snowflake(): Vertex {

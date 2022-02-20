@@ -16,8 +16,19 @@ function vertex(position, direction) {
     };
 }
 function advanceVertex(vertex, amount) {
-    vertex.position.x += Math.cos(vertex.direction) * amount;
-    vertex.position.y += Math.sin(vertex.direction) * amount;
+    var x = vertex.position.x;
+    var y = vertex.position.y;
+    var xp = x + Math.cos(vertex.direction) * amount;
+    var yp = y + Math.sin(vertex.direction) * amount;
+    var oldDistFromOrigin = Math.sqrt(x * x + y * y);
+    var newDistFromOrigin = Math.sqrt(xp * xp + yp * yp);
+    var diffDist = newDistFromOrigin - oldDistFromOrigin;
+    if (diffDist > 0) {
+        vertex.position.x = xp;
+        vertex.position.y = yp;
+    }
+    else {
+    }
 }
 function snowflake() {
     return vertex(point(0, 0), 0);
