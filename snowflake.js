@@ -108,11 +108,13 @@ function createInitialSnowflake() {
         branches: []
     };
 }
-//function enlargeGrowingFaces(snowflake: Snowflake): void {
-//  snowflake.forEach(flakePart => {
-//
-//  })
-//}
+function enlargeGrowingFaces(snowflake) {
+    snowflake.faces.forEach(function (face) {
+        if (face.growing) {
+            face.size += 0.00005;
+        }
+    });
+}
 //function addBranchesToGrowingFaces(snowflake: Snowflake): void {
 //  snowflake.forEach(flakePart => {
 //    if (!flakePart.growing) {
@@ -122,7 +124,14 @@ function createInitialSnowflake() {
 //
 //  })
 //}
-drawSnowflake(createInitialSnowflake());
+var updateInterval = 1.6e-5;
+var snowflake = createInitialSnowflake();
+function update() {
+    enlargeGrowingFaces(snowflake);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawSnowflake(snowflake);
+}
+window.setInterval(update, updateInterval);
 //drawBranch({
 //  start: { x: 0.5, y: -0.5 },
 //  size: 0.1,

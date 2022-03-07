@@ -156,11 +156,13 @@ function createInitialSnowflake(): Snowflake {
   };
 }
 
-//function enlargeGrowingFaces(snowflake: Snowflake): void {
-//  snowflake.forEach(flakePart => {
-//
-//  })
-//}
+function enlargeGrowingFaces(snowflake: Snowflake): void {
+  snowflake.faces.forEach(face => {
+    if (face.growing) {
+      face.size += 0.00005;
+    }
+  })
+}
 
 //function addBranchesToGrowingFaces(snowflake: Snowflake): void {
 //  snowflake.forEach(flakePart => {
@@ -172,7 +174,16 @@ function createInitialSnowflake(): Snowflake {
 //  })
 //}
 
-drawSnowflake(createInitialSnowflake());
+const updateInterval = 1.6e-5;
+let snowflake = createInitialSnowflake();
+
+function update() {
+  enlargeGrowingFaces(snowflake);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawSnowflake(snowflake);
+}
+
+window.setInterval(update, updateInterval);
 
 //drawBranch({
 //  start: { x: 0.5, y: -0.5 },
