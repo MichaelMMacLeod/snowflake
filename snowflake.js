@@ -115,7 +115,7 @@ function createInitialSnowflake() {
     };
 }
 var growthScalar = 0.0001;
-var branchGrowthScalar = growthScalar * 0.5;
+var branchGrowthScalar = growthScalar * 0.3;
 function enlargeGrowingFaces(snowflake) {
     snowflake.faces.forEach(function (face) {
         if (face.growing) {
@@ -139,13 +139,20 @@ function addBranchesToGrowingFaces(snowflake) {
         }
     });
 }
+function addFacesToGrowingBranches(snowflake) {
+    snowflake.branches.forEach(function (branch) {
+        if (branch.growing) {
+            branch.growing = false;
+            addFaceToBranch(snowflake, branch);
+        }
+    });
+}
 function addBranchesToFace(snowflake, face) {
-    var initialFraction = 0.10;
+    var initialFraction = 0.01;
     var sizeOfNewBranches = face.size * initialFraction;
     var distFromCenter = 2 * face.size * (1 - initialFraction);
     var cx = face.center.x;
     var cy = face.center.y;
-    console.log(face.size, distFromCenter * Math.cos(directions[0]));
     for (var dir = 0; dir < directions.length; dir += 1) {
         var x = cx + distFromCenter * Math.cos(directions[dir]);
         var y = cy + distFromCenter * Math.sin(directions[dir]);
@@ -158,11 +165,20 @@ function addBranchesToFace(snowflake, face) {
         });
     }
 }
+function addFaceToBranch(snowflake, branch) {
+    snowflake.faces.push({
+        growing: true,
+        center: branchEnd(branch),
+        size: branch.size
+    });
+}
 var updateInterval = 10;
 var snowflake = createInitialSnowflake();
 var step = 0;
 var faces = true;
+var intervalId = undefined;
 function update() {
+    step += 1;
     if (faces) {
         enlargeGrowingFaces(snowflake);
     }
@@ -171,18 +187,21 @@ function update() {
     }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawSnowflake(snowflake);
-    if (step === 500) {
-        addBranchesToGrowingFaces(snowflake);
-        faces = false;
+    if (step % 700 === 0) {
+        if (faces) {
+            addBranchesToGrowingFaces(snowflake);
+        }
+        else {
+            addFacesToGrowingBranches(snowflake);
+        }
+        faces = !faces;
     }
-    step += 1;
+    if (step === 6000) {
+        window.clearInterval(intervalId);
+        console.log('done growing');
+    }
 }
-window.setInterval(update, updateInterval);
-//drawBranch({
-//  start: { x: 0.5, y: -0.5 },
-//  size: 0.1,
-//  length: 0.3,
-//});
+intervalId = window.setInterval(update, updateInterval);
 function testBuildGrowthFunction() {
     test(buildGrowthFunction([-1, 0.5, 0])(0.0).scale === 1, 'buildGrowthFunction1');
     test(buildGrowthFunction([-1, 0.5, 0])(0.32).scale === 1, 'buildGrowthFunction2');
