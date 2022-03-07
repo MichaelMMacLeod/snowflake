@@ -1,102 +1,164 @@
-const canvas = document.getElementById('canvas') as HTMLCanvasElement ;
+const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d');
 
 ctx.fillStyle = 'white';
 
-type Angle = number;
+const oneSixthCircle = Math.PI * 2 / 6;
+
+const directions = [
+  0 * oneSixthCircle,
+  1 * oneSixthCircle,
+  2 * oneSixthCircle,
+  3 * oneSixthCircle,
+  4 * oneSixthCircle,
+  5 * oneSixthCircle,
+];
+
+type Direction = 0 | 1 | 2 | 3 | 4 | 5;
+
 type Point = { x: number, y: number };
 
-const SPLIT: Angle = Math.PI * 2 / 6;
+type Snowflake = Array<FlakePart>;
 
-function point(x: number, y: number): Point {
-  return {
-    x: x,
-    y: y,
+type FlakePart = {
+  flakePartKind: FlakePartKind,
+  growing: boolean,
+};
+
+type FlakePartKind = Face | Branch;
+
+type Face = {
+  center: Point,
+  size: number,
+};
+
+type Branch = {
+  start: Point,
+  size: number,
+  length: number,
+  direction: Direction,
+}
+
+function branchEnd(branch: Branch): Point {
+  let d = directions[branch.direction];
+  let l = branch.length;
+  let x = branch.start.x + l * Math.cos(d);
+  let y = branch.start.y + l * Math.sin(d);
+  return { x, y };
+}
+
+function isFace(flakePartKind: FlakePartKind): flakePartKind is Face {
+  return (flakePartKind as Branch).start === undefined;
+}
+
+function isBranch(flakePartKind: FlakePartKind): flakePartKind is Branch {
+  return (flakePartKind as Branch).start !== undefined;
+}
+
+type GrowthFunction = (time: number) => Growth;
+
+type Growth = { scale: number, growthType: GrowthType };
+
+type GrowthType = 'branching' | 'faceting';
+
+function clamp(x: number, low: number, high: number): number {
+  return Math.min(Math.max(x, low), high);
+}
+
+type NonEmptyArray<T> = { 0: T } & Array<T>;
+
+function test(cond: boolean, name: string): void {
+  if (!cond) {
+    console.error(`Test failure: ${name}`);
+  } else {
+    console.log(`Test success: ${name}`);
   }
 }
 
-type Vertex = {
-  position: Point,
-  direction: Angle,
-  children: Array<Vertex>,
-};
-
-function vertex(position: Point, direction: Angle): Vertex {
-  return {
-    position,
-    direction,
-    children: [],
+function buildGrowthFunction(growthInput: NonEmptyArray<number>): GrowthFunction {
+  return t => {
+    let s = clamp(t, 0, 1) * growthInput.length;
+    let x = Math.floor(s);
+    let i = x === growthInput.length ? growthInput.length - 1 : x;
+    let signedScale = growthInput[i];
+    return {
+      scale: Math.abs(signedScale),
+      growthType: signedScale > 0.0 ? 'branching' : 'faceting',
+    };
   };
 }
 
-function advanceVertex(vertex: Vertex, amount: number) {
-  let x = vertex.position.x;
-  let y = vertex.position.y;
+function drawSnowflake(snowflake: Snowflake): void {
+  snowflake.forEach(flakePart => drawFlakePartKind(flakePart.flakePartKind));
+}
 
-  let xp = x + Math.cos(vertex.direction) * amount;
-  let yp = y + Math.sin(vertex.direction) * amount;
-
-  let oldDistFromOrigin = Math.sqrt(x * x + y * y);
-  let newDistFromOrigin = Math.sqrt(xp * xp + yp * yp);
-
-  let diffDist = newDistFromOrigin - oldDistFromOrigin;
-
-  if (diffDist > 0) {
-    vertex.position.x = xp;
-    vertex.position.y = yp;
+function drawFlakePartKind(flakePartKind: FlakePartKind): void {
+  if (isFace(flakePartKind)) {
+    drawFace(flakePartKind);
   } else {
+    drawBranch(flakePartKind);
   }
 }
 
-function snowflake(): Vertex {
-  return vertex(point(0, 0), 0);
-}
-
-function isEndpoint(v: Vertex): boolean {
-  return v.children.length === 0;
-}
-
-function endpoints(snowflake: Vertex): Array<Vertex> {
-  const vs = [];
-  const todo = [snowflake];
-
-  while (todo.length > 0) {
-    const v = todo.pop();
-    if (isEndpoint(v)) {
-      vs.push(v);
-    } else {
-      v.children.forEach(c => todo.push(c));
-    }
+function drawFace(face: Face): void {
+  const center = toCanvasPoint(face.center);
+  ctx.beginPath();
+  ctx.moveTo(center.x + face.size, center.y);
+  for (let dir: Direction = 1; dir < 6; dir += 1) {
+    const x = center.x + face.size * Math.cos(directions[dir]);
+    const y = center.y - face.size * Math.sin(directions[dir]);
+    ctx.lineTo(x, y);
   }
-
-  return vs;
+  ctx.closePath();
+  ctx.fill();
 }
 
-function splitEndpoints(snowflake: Vertex) {
-  const es = endpoints(snowflake);
-  es.forEach(endpoint => {
-    let direction = endpoint.direction;
-    for (let i = 0; i < 6; i += 1) {
-      endpoint.children.push(
-        vertex(
-          point(endpoint.position.x, endpoint.position.y),
-          direction
-        ));
-      direction += SPLIT;
-    }
-  });
+function drawBranch(branch: Branch): void {
+  const startCenter = toCanvasPoint(branch.start);
+  const endCenter = toCanvasPoint(branchEnd(branch));
+  let dir = branch.direction + 2 % directions.length;
+  ctx.beginPath();
+  {
+    const x = startCenter.x + branch.size * Math.cos(directions[dir]);
+    const y = startCenter.y - branch.size * Math.sin(directions[dir]);
+    console.log(x,y);
+    ctx.moveTo(x, y);
+  }
+  for (let i = 0; i < 2; i += 1) {
+    dir = (dir + 1) % directions.length;
+    const x = startCenter.x + branch.size * Math.cos(directions[dir]);
+    const y = startCenter.y - branch.size * Math.sin(directions[dir]);
+    console.log(x,y);
+    ctx.lineTo(x, y);
+  }
+  for (let i = 0; i < 3; i += 1) {
+    dir = (dir + 1) % directions.length;
+    const x = endCenter.x + branch.size * Math.cos(directions[dir]);
+    const y = endCenter.y - branch.size * Math.sin(directions[dir]);
+    console.log(x,y);
+    ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.fill();
 }
 
-function growEndpoints(snowflake: Vertex, amount: number) {
-  const es = endpoints(snowflake);
-  es.forEach(endpoint => advanceVertex(endpoint, amount));
-}
+//drawFace({
+//  center: {x: 0.7, y: 0.7},
+//  size: 100,
+//});
+
+drawBranch({
+  start: {x: 0, y: 0},
+  size: 100,
+  length: 0.3,
+  direction: 1,
+});
 
 function toCanvasPoint(p: Point): Point {
-  const result = point(p.x, p.y);
+  const result = { x: p.x, y: p.y };
 
-  result.x *= canvas.width;
-  result.y *= canvas.height;
+  result.x *= canvas.width / 2;
+  result.y *= -canvas.height / 2;
 
   result.x += canvas.width * 0.5;
   result.y += canvas.height * 0.5;
@@ -104,58 +166,207 @@ function toCanvasPoint(p: Point): Point {
   return result;
 }
 
-function drawSnowflake(snowflake: Vertex) {
-  const todo = [snowflake];
-  while (todo.length > 0) {
-    const v = todo.pop();
-    drawVertex(v);
-    v.children.forEach(c => todo.push(c));
-  }
+function testBuildGrowthFunction(): void {
+  test(buildGrowthFunction([-1, 0.5, 0])(0.0).scale === 1, 'buildGrowthFunction1');
+  test(buildGrowthFunction([-1, 0.5, 0])(0.32).scale === 1, 'buildGrowthFunction2');
+  test(buildGrowthFunction([-1, 0.5, 0])(0.34).scale === 0.5, 'buildGrowthFunction3');
+  test(buildGrowthFunction([-1, 0.5, 0])(0.65).scale === 0.5, 'buildGrowthFunction4');
+  test(buildGrowthFunction([-1, 0.5, 0])(0.67).scale === 0.0, 'buildGrowthFunction5');
+  test(buildGrowthFunction([-1, 0.5, 0])(1).scale === 0.0, 'buildGrowthFunction6');
+  test(buildGrowthFunction([-1, 0.5, 0])(100).scale === 0.0, 'buildGrowthFunction7');
+  test(buildGrowthFunction([-1, 0.5, 0])(-100).scale === 1, 'buildGrowthFunction8');
+
+  test(buildGrowthFunction([-1, 0.5, 0])(0.0).growthType === 'faceting', 'buildGrowthFunction9');
+  test(buildGrowthFunction([-1, 0.5, 0])(0.32).growthType === 'faceting', 'buildGrowthFunction10');
+  test(buildGrowthFunction([-1, 0.5, 0])(0.34).growthType === 'branching', 'buildGrowthFunction11');
 }
 
-function drawVertex(v: Vertex) {
-  ctx.fillStyle = 'white';
-  ctx.strokeStyle = 'white';
-  
-  const p = toCanvasPoint(v.position);
+function testTypePredicates(): void {
+  test(isFace({center: {x: 0, y: 0}, size: 1}), 'testTypePredicates1');
+  test(!isBranch({center: {x: 0, y: 0}, size: 1}), 'testTypePredicates2');
+  test(!isFace({start: {x: 0, y: 0}, length: 1, size: 1, direction: 0}), 'testTypePredicates3');
+  test(isBranch({start: {x: 0, y: 0}, length: 1, size: 1, direction: 0}), 'testTypePredicates4');
+}
 
-  v.children.forEach(child => {
-    let c = toCanvasPoint(child.position);
-
-    ctx.beginPath();
-    ctx.moveTo(p.x, p.y);
-    ctx.lineTo(c.x, c.y);
-    ctx.closePath();
-    ctx.stroke();
+function testBranchEnd(): void {
+  let r1 = branchEnd({
+      start: { x: 0, y: 0 },
+      size: 0.1,
+      length: 1,
+      direction: 0,
   });
+  test(
+    Math.abs(r1.x - 1) < 0.0001,
+    'testBranchEnd1',
+  );
+  test(
+    Math.abs(r1.y - 0) < 0.0001,
+    'testBranchEnd2',
+  );
 }
 
-ctx.globalAlpha = 0.15;
+testBuildGrowthFunction();
+testTypePredicates();
+testBranchEnd();
 
-const splitChance = 0.0025;
-const growAmount = 0.0005;
-const interval = 1.6e-5;
-const maxSteps = 1000;
-
-let steps = 0;
-
-const s = snowflake();
-splitEndpoints(s);
-
-let toClear;
-
-function update() {
-  if (steps < maxSteps) {
-    if (Math.floor(Math.random() / splitChance) === 0) {
-      splitEndpoints(s);
-    }
-    growEndpoints(s, growAmount);
-    drawSnowflake(s);
-
-    steps += 1;
-  } else {
-    window.clearInterval(toClear);
-  }
-}
-
-toClear = window.setInterval(update, interval);
+// const canvas = document.getElementById('canvas') as HTMLCanvasElement ;
+// const ctx = canvas.getContext('2d');
+// 
+// ctx.fillStyle = 'white';
+// 
+// type Angle = number;
+// type Point = { x: number, y: number };
+// 
+// const SPLIT: Angle = Math.PI * 2 / 6;
+// 
+// function point(x: number, y: number): Point {
+//   return {
+//     x: x,
+//     y: y,
+//   }
+// }
+// 
+// type Vertex = {
+//   position: Point,
+//   direction: Angle,
+//   children: Array<Vertex>,
+// };
+// 
+// function vertex(position: Point, direction: Angle): Vertex {
+//   return {
+//     position,
+//     direction,
+//     children: [],
+//   };
+// }
+// 
+// function advanceVertex(vertex: Vertex, amount: number) {
+//   let x = vertex.position.x;
+//   let y = vertex.position.y;
+// 
+//   let xp = x + Math.cos(vertex.direction) * amount;
+//   let yp = y + Math.sin(vertex.direction) * amount;
+// 
+//   let oldDistFromOrigin = Math.sqrt(x * x + y * y);
+//   let newDistFromOrigin = Math.sqrt(xp * xp + yp * yp);
+// 
+//   let diffDist = newDistFromOrigin - oldDistFromOrigin;
+// 
+//   if (diffDist > 0) {
+//     vertex.position.x = xp;
+//     vertex.position.y = yp;
+//   } else {
+//   }
+// }
+// 
+// function snowflake(): Vertex {
+//   return vertex(point(0, 0), 0);
+// }
+// 
+// function isEndpoint(v: Vertex): boolean {
+//   return v.children.length === 0;
+// }
+// 
+// function endpoints(snowflake: Vertex): Array<Vertex> {
+//   const vs = [];
+//   const todo = [snowflake];
+// 
+//   while (todo.length > 0) {
+//     const v = todo.pop();
+//     if (isEndpoint(v)) {
+//       vs.push(v);
+//     } else {
+//       v.children.forEach(c => todo.push(c));
+//     }
+//   }
+// 
+//   return vs;
+// }
+// 
+// function splitEndpoints(snowflake: Vertex) {
+//   const es = endpoints(snowflake);
+//   es.forEach(endpoint => {
+//     let direction = endpoint.direction;
+//     for (let i = 0; i < 6; i += 1) {
+//       endpoint.children.push(
+//         vertex(
+//           point(endpoint.position.x, endpoint.position.y),
+//           direction
+//         ));
+//       direction += SPLIT;
+//     }
+//   });
+// }
+// 
+// function growEndpoints(snowflake: Vertex, amount: number) {
+//   const es = endpoints(snowflake);
+//   es.forEach(endpoint => advanceVertex(endpoint, amount));
+// }
+// 
+// function toCanvasPoint(p: Point): Point {
+//   const result = point(p.x, p.y);
+// 
+//   result.x *= canvas.width;
+//   result.y *= canvas.height;
+// 
+//   result.x += canvas.width * 0.5;
+//   result.y += canvas.height * 0.5;
+// 
+//   return result;
+// }
+// 
+// function drawSnowflake(snowflake: Vertex) {
+//   const todo = [snowflake];
+//   while (todo.length > 0) {
+//     const v = todo.pop();
+//     drawVertex(v);
+//     v.children.forEach(c => todo.push(c));
+//   }
+// }
+// 
+// function drawVertex(v: Vertex) {
+//   ctx.fillStyle = 'white';
+//   ctx.strokeStyle = 'white';
+//   
+//   const p = toCanvasPoint(v.position);
+// 
+//   v.children.forEach(child => {
+//     let c = toCanvasPoint(child.position);
+// 
+//     ctx.beginPath();
+//     ctx.moveTo(p.x, p.y);
+//     ctx.lineTo(c.x, c.y);
+//     ctx.closePath();
+//     ctx.stroke();
+//   });
+// }
+// 
+// ctx.globalAlpha = 0.15;
+// 
+// const splitChance = 0.0025;
+// const growAmount = 0.0005;
+// const interval = 1.6e-5;
+// const maxSteps = 1000;
+// 
+// let steps = 0;
+// 
+// const s = snowflake();
+// splitEndpoints(s);
+// 
+// let toClear;
+// 
+// function update() {
+//   if (steps < maxSteps) {
+//     if (Math.floor(Math.random() / splitChance) === 0) {
+//       splitEndpoints(s);
+//     }
+//     growEndpoints(s, growAmount);
+//     drawSnowflake(s);
+// 
+//     steps += 1;
+//   } else {
+//     window.clearInterval(toClear);
+//   }
+// }
+// 
+// toClear = window.setInterval(update, interval);
