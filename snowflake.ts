@@ -102,11 +102,12 @@ function drawFlakePartKind(flakePartKind: FlakePartKind): void {
 
 function drawFace(face: Face): void {
   const center = toCanvasPoint(face.center);
+  const size = toCanvasSize(face.size);
   ctx.beginPath();
-  ctx.moveTo(center.x + face.size, center.y);
+  ctx.moveTo(center.x + size, center.y);
   for (let dir: Direction = 1; dir < 6; dir += 1) {
-    const x = center.x + face.size * Math.cos(directions[dir]);
-    const y = center.y - face.size * Math.sin(directions[dir]);
+    const x = center.x + size * Math.cos(directions[dir]);
+    const y = center.y - size * Math.sin(directions[dir]);
     ctx.lineTo(x, y);
   }
   ctx.closePath();
@@ -120,40 +121,34 @@ function rem(x: number, m: number): number {
 function drawBranch(branch: Branch): void {
   const startCenter = toCanvasPoint(branch.start);
   const endCenter = toCanvasPoint(branchEnd(branch));
+  const size = toCanvasSize(branch.size);
   let dir = rem(branch.direction - 2, directions.length);
   ctx.beginPath();
   {
-    const x = startCenter.x + branch.size * Math.cos(directions[dir]);
-    const y = startCenter.y - branch.size * Math.sin(directions[dir]);
+    const x = startCenter.x + size * Math.cos(directions[dir]);
+    const y = startCenter.y - size * Math.sin(directions[dir]);
     ctx.moveTo(x, y);
   }
   for (let i = 0; i < 2; i += 1) {
     dir = rem(dir - 1, directions.length);
-    const x = startCenter.x + branch.size * Math.cos(directions[dir]);
-    const y = startCenter.y - branch.size * Math.sin(directions[dir]);
+    const x = startCenter.x + size * Math.cos(directions[dir]);
+    const y = startCenter.y - size * Math.sin(directions[dir]);
     ctx.lineTo(x, y);
   }
   for (let i = 0; i < 3; i += 1) {
     dir = rem(dir - 1, directions.length);
-    const x = endCenter.x + branch.size * Math.cos(directions[dir]);
-    const y = endCenter.y - branch.size * Math.sin(directions[dir]);
+    const x = endCenter.x + size * Math.cos(directions[dir]);
+    const y = endCenter.y - size * Math.sin(directions[dir]);
     ctx.lineTo(x, y);
   }
   ctx.closePath();
   ctx.fill();
 }
 
-//drawFace({
-//  center: {x: 0.7, y: 0.7},
-//  size: 100,
-//});
-
-drawBranch({
-  start: {x: 0, y: 0},
-  size: 8,
-  length: 0.3,
-  direction: 5,
-});
+function toCanvasSize(n: number): number {
+  const smallestDimension = Math.min(canvas.width, canvas.height);
+  return n * smallestDimension;
+}
 
 function toCanvasPoint(p: Point): Point {
   const result = { x: p.x, y: p.y };
@@ -166,6 +161,40 @@ function toCanvasPoint(p: Point): Point {
 
   return result;
 }
+
+function createInitialSnowflake(): Snowflake {
+  return [{
+    flakePartKind: {
+      center: { x: 0, y: 0},
+      size: 0.0025,
+    },
+    growing: true,
+  }];
+}
+
+//function enlargeGrowingFaces(snowflake: Snowflake): void {
+//  snowflake.forEach(flakePart => {
+//
+//  })
+//}
+
+//function addBranchesToGrowingFaces(snowflake: Snowflake): void {
+//  snowflake.forEach(flakePart => {
+//    if (!flakePart.growing) {
+//      return;
+//    }
+//
+//
+//  })
+//}
+
+// drawSnowflake(createInitialSnowflake());
+
+//drawBranch({
+//  start: { x: 0.5, y: -0.5 },
+//  size: 0.1,
+//  length: 0.3,
+//});
 
 function testBuildGrowthFunction(): void {
   test(buildGrowthFunction([-1, 0.5, 0])(0.0).scale === 1, 'buildGrowthFunction1');
