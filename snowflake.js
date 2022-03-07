@@ -109,7 +109,8 @@ function createInitialSnowflake() {
         faces: [{
                 growing: true,
                 center: { x: 0, y: 0 },
-                size: 0.0025
+                size: 0.0025,
+                direction: 'none'
             }],
         branches: []
     };
@@ -120,6 +121,12 @@ function enlargeGrowingFaces(snowflake) {
     snowflake.faces.forEach(function (face) {
         if (face.growing) {
             face.size += growthScalar;
+            if (face.direction !== 'none') {
+                var dx = 2 * growthScalar * Math.cos(directions[face.direction]);
+                var dy = 2 * growthScalar * Math.sin(directions[face.direction]);
+                face.center.x += dx;
+                face.center.y += dy;
+            }
         }
     });
 }
@@ -169,7 +176,8 @@ function addFaceToBranch(snowflake, branch) {
     snowflake.faces.push({
         growing: true,
         center: branchEnd(branch),
-        size: branch.size
+        size: branch.size,
+        direction: branch.direction
     });
 }
 var updateInterval = 10;

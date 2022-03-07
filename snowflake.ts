@@ -35,6 +35,7 @@ type Face = {
   growing: boolean,
   center: Point,
   size: number,
+  direction: Direction | 'none',
 };
 
 type Branch = {
@@ -159,6 +160,7 @@ function createInitialSnowflake(): Snowflake {
       growing: true,
       center: { x: 0, y: 0 },
       size: 0.0025,
+      direction: 'none',
     }],
     branches: [],
   };
@@ -171,6 +173,12 @@ function enlargeGrowingFaces(snowflake: Snowflake): void {
   snowflake.faces.forEach(face => {
     if (face.growing) {
       face.size += growthScalar;
+      if (face.direction !== 'none') {
+        const dx = 2 * growthScalar * Math.cos(directions[face.direction]);
+        const dy = 2 * growthScalar * Math.sin(directions[face.direction]);
+        face.center.x += dx;
+        face.center.y += dy;
+      }
     }
   })
 }
@@ -226,6 +234,7 @@ function addFaceToBranch(snowflake: Snowflake, branch: Branch): void {
     growing: true,
     center: branchEnd(branch),
     size: branch.size,
+    direction: branch.direction,
   });
 }
 
