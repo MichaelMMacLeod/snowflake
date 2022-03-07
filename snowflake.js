@@ -2,7 +2,7 @@ var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
 var graphCanvas = document.getElementById('graph');
 var graphCtx = graphCanvas.getContext('2d');
-ctx.fillStyle = 'white';
+ctx.fillStyle = 'rgba(90, 211, 255, 0.3)';
 var oneSixthCircle = Math.PI * 2 / 6;
 var directions = [
     0 * oneSixthCircle,
@@ -174,7 +174,7 @@ function clamp(x, low, high) {
 //    };
 //  };
 //}
-var growthInput = [-1, 0.5, -0.25, 1, -1];
+var growthInput = [-1, 1.0, -0.5, 0.5, -0.25, 1, -1];
 function interpretGrowth(time) {
     var s = clamp(time, 0, 1) * growthInput.length;
     var x = Math.floor(s);
@@ -185,7 +185,40 @@ function interpretGrowth(time) {
         growthType: signedScale > 0.0 ? 'branching' : 'faceting'
     };
 }
-var updateInterval = 10;
+function darken(snowflake) {
+    var newBranches = [];
+    var newFaces = [];
+    for (var i = 0; i < snowflake.branches.length; i += 1) {
+        var branch = snowflake.branches[i];
+        if (branch.growing) {
+            newBranches.push({
+                growing: false,
+                start: { x: branch.start.x, y: branch.start.y },
+                size: branch.size,
+                length: branch.length,
+                direction: branch.direction
+            });
+        }
+    }
+    for (var i = 0; i < snowflake.faces.length; i += 1) {
+        var face = snowflake.faces[i];
+        if (face.growing) {
+            newFaces.push({
+                growing: false,
+                center: { x: face.center.x, y: face.center.y },
+                size: face.size,
+                direction: face.direction
+            });
+        }
+    }
+    for (var i = 0; i < newBranches.length; i += 1) {
+        snowflake.branches.push(newBranches[i]);
+    }
+    for (var i = 0; i < newFaces.length; i += 1) {
+        snowflake.faces.push(newFaces[i]);
+    }
+}
+var updateInterval = 5;
 var maxSteps = 6000;
 var snowflake = createInitialSnowflake();
 var step = 0;
@@ -196,6 +229,9 @@ function currentTime() {
 }
 function update() {
     step += 1;
+    if (step % 100 === 0) {
+        darken(snowflake);
+    }
     var growth = interpretGrowth(currentTime());
     if (currentGrowthType === undefined) {
         currentGrowthType = growth.growthType;

@@ -3,7 +3,7 @@ const ctx = canvas.getContext('2d');
 const graphCanvas = document.getElementById('graph') as HTMLCanvasElement;
 const graphCtx = graphCanvas.getContext('2d');
 
-ctx.fillStyle = 'white';
+ctx.fillStyle = 'rgba(90, 211, 255, 0.3)';
 
 const oneSixthCircle = Math.PI * 2 / 6;
 
@@ -230,7 +230,7 @@ function clamp(x: number, low: number, high: number): number {
 //  };
 //}
 
-let growthInput: NonEmptyArray<number> = [-1, 0.5, -0.25, 1, -1];
+let growthInput: NonEmptyArray<number> = [-1, 1.0, -0.5, 0.5, -0.25, 1, -1];
 
 function interpretGrowth(time: number): Growth {
   let s = clamp(time, 0, 1) * growthInput.length;
@@ -243,7 +243,41 @@ function interpretGrowth(time: number): Growth {
   };
 }
 
-const updateInterval = 10;
+function darken(snowflake: Snowflake): void {
+  const newBranches = [];
+  const newFaces = [];
+  for (let i = 0; i < snowflake.branches.length; i += 1) {
+    const branch = snowflake.branches[i];
+    if (branch.growing) {
+      newBranches.push({
+        growing: false,
+        start: { x: branch.start.x, y: branch.start.y },
+        size: branch.size,
+        length: branch.length,
+        direction: branch.direction,
+      });
+    }
+  }
+  for (let i = 0; i < snowflake.faces.length; i += 1) {
+    const face = snowflake.faces[i];
+    if (face.growing) {
+      newFaces.push({
+        growing: false,
+        center: { x: face.center.x, y: face.center.y },
+        size: face.size,
+        direction: face.direction,
+      });
+    }
+  }
+  for (let i = 0; i < newBranches.length; i += 1) {
+    snowflake.branches.push(newBranches[i]);
+  }
+  for (let i = 0; i < newFaces.length; i += 1) {
+    snowflake.faces.push(newFaces[i]);
+  }
+}
+
+const updateInterval = 5;
 const maxSteps = 6000;
 let snowflake = createInitialSnowflake();
 let step = 0;
@@ -256,6 +290,10 @@ function currentTime(): number {
 
 function update() {
   step += 1;
+
+  if (step % 100 === 0) {
+    darken(snowflake);
+  }
 
   const growth = interpretGrowth(currentTime());
 
