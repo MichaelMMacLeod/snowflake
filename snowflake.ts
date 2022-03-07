@@ -16,6 +16,14 @@ const directions = [
 
 type Direction = 0 | 1 | 2 | 3 | 4 | 5;
 
+function nextDirection(d: Direction): Direction {
+  return ((d + 1) % directions.length) as Direction;
+}
+
+function previousDirection(d: Direction): Direction {
+  return rem(d - 1, directions.length) as Direction;
+}
+
 type Point = { x: number, y: number };
 
 type Snowflake = {
@@ -94,7 +102,9 @@ function drawFace(face: Face): void {
     ctx.lineTo(x, y);
   }
   ctx.closePath();
+  ctx.fillStyle = 'blue';
   ctx.fill();
+  ctx.fillStyle = 'white';
 }
 
 function rem(x: number, m: number): number {
@@ -159,28 +169,52 @@ function createInitialSnowflake(): Snowflake {
 function enlargeGrowingFaces(snowflake: Snowflake): void {
   snowflake.faces.forEach(face => {
     if (face.growing) {
-      face.size += 0.00005;
+      face.size += 0.0001;
     }
   })
 }
 
-//function addBranchesToGrowingFaces(snowflake: Snowflake): void {
-//  snowflake.forEach(flakePart => {
-//    if (!flakePart.growing) {
-//      return;
-//    }
-//
-//
-//  })
-//}
+function addBranchesToGrowingFaces(snowflake: Snowflake): void {
+  snowflake.faces.forEach(face => {
+    if (face.growing) {
+      face.growing = false;
+      addBranchesToFace(snowflake, face);
+    }
+  })
+}
 
-const updateInterval = 1.6e-5;
+function addBranchesToFace(snowflake: Snowflake, face: Face): void {
+  const initialFraction = 0.10;
+  const sizeOfNewBranches = face.size * initialFraction;
+  const distFromCenter = 2 * face.size * (1 - initialFraction);
+  const cx = face.center.x;
+  const cy = face.center.y;
+  console.log(face.size, distFromCenter * Math.cos(directions[0]));
+  for (let dir: Direction = 0; dir < directions.length; dir += 1) {
+    const x = cx + distFromCenter * Math.cos(directions[dir]);
+    const y = cy - distFromCenter * Math.sin(directions[dir]);
+    snowflake.branches.push({
+      growing: true,
+      start: { x, y },
+      size: sizeOfNewBranches,
+      length: 0,
+      direction: dir as Direction,
+    });
+  }
+}
+
+const updateInterval = 10;
 let snowflake = createInitialSnowflake();
+let step = 0;
 
 function update() {
   enlargeGrowingFaces(snowflake);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawSnowflake(snowflake);
+  if (step === 500) {
+    addBranchesToGrowingFaces(snowflake);
+  }
+  step += 1;
 }
 
 window.setInterval(update, updateInterval);
