@@ -61,9 +61,7 @@ function drawFace(face) {
         ctx.lineTo(x, y);
     }
     ctx.closePath();
-    ctx.fillStyle = 'blue';
     ctx.fill();
-    ctx.fillStyle = 'white';
 }
 function rem(x, m) {
     return ((x % m) + m) % m;
@@ -116,10 +114,20 @@ function createInitialSnowflake() {
         branches: []
     };
 }
+var growthScalar = 0.0001;
+var branchGrowthScalar = growthScalar * 0.5;
 function enlargeGrowingFaces(snowflake) {
     snowflake.faces.forEach(function (face) {
         if (face.growing) {
-            face.size += 0.0001;
+            face.size += growthScalar;
+        }
+    });
+}
+function enlargeGrowingBranches(snowflake) {
+    snowflake.branches.forEach(function (branch) {
+        if (branch.growing) {
+            branch.size += branchGrowthScalar;
+            branch.length += growthScalar;
         }
     });
 }
@@ -140,7 +148,7 @@ function addBranchesToFace(snowflake, face) {
     console.log(face.size, distFromCenter * Math.cos(directions[0]));
     for (var dir = 0; dir < directions.length; dir += 1) {
         var x = cx + distFromCenter * Math.cos(directions[dir]);
-        var y = cy - distFromCenter * Math.sin(directions[dir]);
+        var y = cy + distFromCenter * Math.sin(directions[dir]);
         snowflake.branches.push({
             growing: true,
             start: { x: x, y: y },
@@ -153,12 +161,19 @@ function addBranchesToFace(snowflake, face) {
 var updateInterval = 10;
 var snowflake = createInitialSnowflake();
 var step = 0;
+var faces = true;
 function update() {
-    enlargeGrowingFaces(snowflake);
+    if (faces) {
+        enlargeGrowingFaces(snowflake);
+    }
+    else {
+        enlargeGrowingBranches(snowflake);
+    }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawSnowflake(snowflake);
     if (step === 500) {
         addBranchesToGrowingFaces(snowflake);
+        faces = false;
     }
     step += 1;
 }
