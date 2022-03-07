@@ -18,21 +18,19 @@ type Direction = 0 | 1 | 2 | 3 | 4 | 5;
 
 type Point = { x: number, y: number };
 
-type Snowflake = Array<FlakePart>;
-
-type FlakePart = {
-  flakePartKind: FlakePartKind,
-  growing: boolean,
+type Snowflake = {
+  faces: Array<Face>,
+  branches: Array<Branch>,
 };
 
-type FlakePartKind = Face | Branch;
-
 type Face = {
+  growing: boolean,
   center: Point,
   size: number,
 };
 
 type Branch = {
+  growing: boolean,
   start: Point,
   size: number,
   length: number,
@@ -45,14 +43,6 @@ function branchEnd(branch: Branch): Point {
   let x = branch.start.x + l * Math.cos(d);
   let y = branch.start.y + l * Math.sin(d);
   return { x, y };
-}
-
-function isFace(flakePartKind: FlakePartKind): flakePartKind is Face {
-  return (flakePartKind as Branch).start === undefined;
-}
-
-function isBranch(flakePartKind: FlakePartKind): flakePartKind is Branch {
-  return (flakePartKind as Branch).start !== undefined;
 }
 
 type GrowthFunction = (time: number) => Growth;
@@ -89,15 +79,8 @@ function buildGrowthFunction(growthInput: NonEmptyArray<number>): GrowthFunction
 }
 
 function drawSnowflake(snowflake: Snowflake): void {
-  snowflake.forEach(flakePart => drawFlakePartKind(flakePart.flakePartKind));
-}
-
-function drawFlakePartKind(flakePartKind: FlakePartKind): void {
-  if (isFace(flakePartKind)) {
-    drawFace(flakePartKind);
-  } else {
-    drawBranch(flakePartKind);
-  }
+  snowflake.faces.forEach(drawFace);
+  snowflake.branches.forEach(drawBranch);
 }
 
 function drawFace(face: Face): void {
@@ -163,13 +146,14 @@ function toCanvasPoint(p: Point): Point {
 }
 
 function createInitialSnowflake(): Snowflake {
-  return [{
-    flakePartKind: {
-      center: { x: 0, y: 0},
+  return {
+    faces: [{
+      growing: true,
+      center: { x: 0, y: 0 },
       size: 0.0025,
-    },
-    growing: true,
-  }];
+    }],
+    branches: [],
+  };
 }
 
 //function enlargeGrowingFaces(snowflake: Snowflake): void {
@@ -188,7 +172,7 @@ function createInitialSnowflake(): Snowflake {
 //  })
 //}
 
-// drawSnowflake(createInitialSnowflake());
+drawSnowflake(createInitialSnowflake());
 
 //drawBranch({
 //  start: { x: 0.5, y: -0.5 },
@@ -211,19 +195,13 @@ function testBuildGrowthFunction(): void {
   test(buildGrowthFunction([-1, 0.5, 0])(0.34).growthType === 'branching', 'buildGrowthFunction11');
 }
 
-function testTypePredicates(): void {
-  test(isFace({center: {x: 0, y: 0}, size: 1}), 'testTypePredicates1');
-  test(!isBranch({center: {x: 0, y: 0}, size: 1}), 'testTypePredicates2');
-  test(!isFace({start: {x: 0, y: 0}, length: 1, size: 1, direction: 0}), 'testTypePredicates3');
-  test(isBranch({start: {x: 0, y: 0}, length: 1, size: 1, direction: 0}), 'testTypePredicates4');
-}
-
 function testBranchEnd(): void {
   let r1 = branchEnd({
-      start: { x: 0, y: 0 },
-      size: 0.1,
-      length: 1,
-      direction: 0,
+    growing: true,
+    start: { x: 0, y: 0 },
+    size: 0.1,
+    length: 1,
+    direction: 0,
   });
   test(
     Math.abs(r1.x - 1) < 0.0001,
@@ -236,7 +214,6 @@ function testBranchEnd(): void {
 }
 
 testBuildGrowthFunction();
-testTypePredicates();
 testBranchEnd();
 
 // const canvas = document.getElementById('canvas') as HTMLCanvasElement ;

@@ -17,12 +17,6 @@ function branchEnd(branch) {
     var y = branch.start.y + l * Math.sin(d);
     return { x: x, y: y };
 }
-function isFace(flakePartKind) {
-    return flakePartKind.start === undefined;
-}
-function isBranch(flakePartKind) {
-    return flakePartKind.start !== undefined;
-}
 function clamp(x, low, high) {
     return Math.min(Math.max(x, low), high);
 }
@@ -47,15 +41,8 @@ function buildGrowthFunction(growthInput) {
     };
 }
 function drawSnowflake(snowflake) {
-    snowflake.forEach(function (flakePart) { return drawFlakePartKind(flakePart.flakePartKind); });
-}
-function drawFlakePartKind(flakePartKind) {
-    if (isFace(flakePartKind)) {
-        drawFace(flakePartKind);
-    }
-    else {
-        drawBranch(flakePartKind);
-    }
+    snowflake.faces.forEach(drawFace);
+    snowflake.branches.forEach(drawBranch);
 }
 function drawFace(face) {
     var center = toCanvasPoint(face.center);
@@ -112,13 +99,14 @@ function toCanvasPoint(p) {
     return result;
 }
 function createInitialSnowflake() {
-    return [{
-            flakePartKind: {
+    return {
+        faces: [{
+                growing: true,
                 center: { x: 0, y: 0 },
                 size: 0.0025
-            },
-            growing: true
-        }];
+            }],
+        branches: []
+    };
 }
 //function enlargeGrowingFaces(snowflake: Snowflake): void {
 //  snowflake.forEach(flakePart => {
@@ -134,7 +122,7 @@ function createInitialSnowflake() {
 //
 //  })
 //}
-// drawSnowflake(createInitialSnowflake());
+drawSnowflake(createInitialSnowflake());
 //drawBranch({
 //  start: { x: 0.5, y: -0.5 },
 //  size: 0.1,
@@ -153,14 +141,9 @@ function testBuildGrowthFunction() {
     test(buildGrowthFunction([-1, 0.5, 0])(0.32).growthType === 'faceting', 'buildGrowthFunction10');
     test(buildGrowthFunction([-1, 0.5, 0])(0.34).growthType === 'branching', 'buildGrowthFunction11');
 }
-function testTypePredicates() {
-    test(isFace({ center: { x: 0, y: 0 }, size: 1 }), 'testTypePredicates1');
-    test(!isBranch({ center: { x: 0, y: 0 }, size: 1 }), 'testTypePredicates2');
-    test(!isFace({ start: { x: 0, y: 0 }, length: 1, size: 1, direction: 0 }), 'testTypePredicates3');
-    test(isBranch({ start: { x: 0, y: 0 }, length: 1, size: 1, direction: 0 }), 'testTypePredicates4');
-}
 function testBranchEnd() {
     var r1 = branchEnd({
+        growing: true,
         start: { x: 0, y: 0 },
         size: 0.1,
         length: 1,
@@ -170,7 +153,6 @@ function testBranchEnd() {
     test(Math.abs(r1.y - 0) < 0.0001, 'testBranchEnd2');
 }
 testBuildGrowthFunction();
-testTypePredicates();
 testBranchEnd();
 // const canvas = document.getElementById('canvas') as HTMLCanvasElement ;
 // const ctx = canvas.getContext('2d');
