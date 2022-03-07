@@ -96,24 +96,24 @@ function createInitialSnowflake() {
 }
 var growthScalar = 0.0001;
 var branchGrowthScalar = growthScalar * 0.3;
-function enlargeGrowingFaces(snowflake) {
+function enlargeGrowingFaces(snowflake, scale) {
     snowflake.faces.forEach(function (face) {
         if (face.growing) {
-            face.size += growthScalar;
+            face.size += scale * growthScalar;
             if (face.direction !== 'none') {
-                var dx = 2 * growthScalar * Math.cos(directions[face.direction]);
-                var dy = 2 * growthScalar * Math.sin(directions[face.direction]);
+                var dx = 2 * scale * growthScalar * Math.cos(directions[face.direction]);
+                var dy = 2 * scale * growthScalar * Math.sin(directions[face.direction]);
                 face.center.x += dx;
                 face.center.y += dy;
             }
         }
     });
 }
-function enlargeGrowingBranches(snowflake) {
+function enlargeGrowingBranches(snowflake, scale) {
     snowflake.branches.forEach(function (branch) {
         if (branch.growing) {
-            branch.size += branchGrowthScalar;
-            branch.length += growthScalar;
+            branch.size += scale * branchGrowthScalar;
+            branch.length += scale * growthScalar;
         }
     });
 }
@@ -174,7 +174,7 @@ function clamp(x, low, high) {
 //    };
 //  };
 //}
-var growthInput = [-1, 1, -1];
+var growthInput = [-1, 0.5, -0.25, 1, -1];
 function interpretGrowth(time) {
     var s = clamp(time, 0, 1) * growthInput.length;
     var x = Math.floor(s);
@@ -210,10 +210,10 @@ function update() {
         }
     }
     if (currentGrowthType === 'branching') {
-        enlargeGrowingBranches(snowflake);
+        enlargeGrowingBranches(snowflake, growth.scale);
     }
     else {
-        enlargeGrowingFaces(snowflake);
+        enlargeGrowingFaces(snowflake, growth.scale);
     }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawSnowflake(snowflake);

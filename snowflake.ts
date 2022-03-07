@@ -138,13 +138,13 @@ function createInitialSnowflake(): Snowflake {
 const growthScalar = 0.0001;
 const branchGrowthScalar = growthScalar * 0.3;
 
-function enlargeGrowingFaces(snowflake: Snowflake): void {
+function enlargeGrowingFaces(snowflake: Snowflake, scale: number): void {
   snowflake.faces.forEach(face => {
     if (face.growing) {
-      face.size += growthScalar;
+      face.size += scale * growthScalar;
       if (face.direction !== 'none') {
-        const dx = 2 * growthScalar * Math.cos(directions[face.direction]);
-        const dy = 2 * growthScalar * Math.sin(directions[face.direction]);
+        const dx = 2 * scale * growthScalar * Math.cos(directions[face.direction]);
+        const dy = 2 * scale * growthScalar * Math.sin(directions[face.direction]);
         face.center.x += dx;
         face.center.y += dy;
       }
@@ -152,11 +152,11 @@ function enlargeGrowingFaces(snowflake: Snowflake): void {
   })
 }
 
-function enlargeGrowingBranches(snowflake: Snowflake): void {
+function enlargeGrowingBranches(snowflake: Snowflake, scale: number): void {
   snowflake.branches.forEach(branch => {
     if (branch.growing) {
-      branch.size += branchGrowthScalar;
-      branch.length += growthScalar;
+      branch.size += scale * branchGrowthScalar;
+      branch.length += scale * growthScalar;
     }
   })
 }
@@ -230,7 +230,7 @@ function clamp(x: number, low: number, high: number): number {
 //  };
 //}
 
-let growthInput: NonEmptyArray<number> = [-1, 1, -1];
+let growthInput: NonEmptyArray<number> = [-1, 0.5, -0.25, 1, -1];
 
 function interpretGrowth(time: number): Growth {
   let s = clamp(time, 0, 1) * growthInput.length;
@@ -273,9 +273,9 @@ function update() {
   }
 
   if (currentGrowthType === 'branching') {
-    enlargeGrowingBranches(snowflake);
+    enlargeGrowingBranches(snowflake, growth.scale);
   } else {
-    enlargeGrowingFaces(snowflake);
+    enlargeGrowingFaces(snowflake, growth.scale);
   }
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
