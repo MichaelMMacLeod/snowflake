@@ -69,29 +69,29 @@ function drawFace(face) {
     ctx.closePath();
     ctx.fill();
 }
+function rem(x, m) {
+    return ((x % m) + m) % m;
+}
 function drawBranch(branch) {
     var startCenter = toCanvasPoint(branch.start);
     var endCenter = toCanvasPoint(branchEnd(branch));
-    var dir = branch.direction + 2 % directions.length;
+    var dir = rem(branch.direction - 2, directions.length);
     ctx.beginPath();
     {
         var x = startCenter.x + branch.size * Math.cos(directions[dir]);
         var y = startCenter.y - branch.size * Math.sin(directions[dir]);
-        console.log(x, y);
         ctx.moveTo(x, y);
     }
     for (var i = 0; i < 2; i += 1) {
-        dir = (dir + 1) % directions.length;
+        dir = rem(dir - 1, directions.length);
         var x = startCenter.x + branch.size * Math.cos(directions[dir]);
         var y = startCenter.y - branch.size * Math.sin(directions[dir]);
-        console.log(x, y);
         ctx.lineTo(x, y);
     }
     for (var i = 0; i < 3; i += 1) {
-        dir = (dir + 1) % directions.length;
+        dir = rem(dir - 1, directions.length);
         var x = endCenter.x + branch.size * Math.cos(directions[dir]);
         var y = endCenter.y - branch.size * Math.sin(directions[dir]);
-        console.log(x, y);
         ctx.lineTo(x, y);
     }
     ctx.closePath();
@@ -103,9 +103,9 @@ function drawBranch(branch) {
 //});
 drawBranch({
     start: { x: 0, y: 0 },
-    size: 100,
+    size: 8,
     length: 0.3,
-    direction: 1
+    direction: 5
 });
 function toCanvasPoint(p) {
     var result = { x: p.x, y: p.y };
