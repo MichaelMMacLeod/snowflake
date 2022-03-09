@@ -3,7 +3,7 @@ const ctx = canvas.getContext('2d');
 const graphCanvas = document.getElementById('graph') as HTMLCanvasElement;
 const graphCtx = graphCanvas.getContext('2d');
 
-ctx.fillStyle = 'rgba(90, 211, 255, 0.3)';
+ctx.fillStyle = 'rgba(90, 211, 255, 0.8)';
 
 const oneSixthCircle = Math.PI * 2 / 6;
 
@@ -28,12 +28,17 @@ function previousDirection(d: Direction): Direction {
 
 type Point = { x: number, y: number };
 
+function copyPoint(p: Point): Point {
+  return { x: p.x, y: p.y };
+}
+
 type Snowflake = {
   faces: Array<Face>,
   branches: Array<Branch>,
 };
 
 type Face = {
+  rayHits: number,
   growing: boolean,
   center: Point,
   size: number,
@@ -41,6 +46,7 @@ type Face = {
 };
 
 type Branch = {
+  rayHits: number,
   growing: boolean,
   start: Point,
   size: number,
@@ -126,6 +132,7 @@ function toCanvasPoint(p: Point): Point {
 function createInitialSnowflake(): Snowflake {
   return {
     faces: [{
+      rayHits: 0,
       growing: true,
       center: { x: 0, y: 0 },
       size: 0.0025,
@@ -185,21 +192,37 @@ function addBranchesToFace(snowflake: Snowflake, face: Face): void {
   const distFromCenter = 2 * face.size * (1 - initialFraction);
   const cx = face.center.x;
   const cy = face.center.y;
-  for (let dir: Direction = 0; dir < directions.length; dir += 1) {
+
+  let [startDir, numDirs]: [Direction, number] = (() => {
+    if (face.direction === 'none') {
+      return [0, 6];
+    }
+
+    return [
+      previousDirection(face.direction),
+      3,
+    ];
+  })();
+
+  let dir = startDir;
+  for (let i = 0; i < numDirs; i += 1) {
     const x = cx + distFromCenter * Math.cos(directions[dir]);
     const y = cy + distFromCenter * Math.sin(directions[dir]);
     snowflake.branches.push({
+      rayHits: 0,
       growing: true,
       start: { x, y },
       size: sizeOfNewBranches,
       length: 0,
       direction: dir as Direction,
     });
+    dir = nextDirection(dir);
   }
 }
 
 function addFaceToBranch(snowflake: Snowflake, branch: Branch): void {
   snowflake.faces.push({
+    rayHits: 0,
     growing: true,
     center: branchEnd(branch),
     size: branch.size,
@@ -217,20 +240,7 @@ function clamp(x: number, low: number, high: number): number {
   return Math.min(Math.max(x, low), high);
 }
 
-//function buildGrowthFunction(growthInput: NonEmptyArray<number>): GrowthFunction {
-//  return t => {
-//    let s = clamp(t, 0, 1) * growthInput.length;
-//    let x = Math.floor(s);
-//    let i = x === growthInput.length ? growthInput.length - 1 : x;
-//    let signedScale = growthInput[i];
-//    return {
-//      scale: Math.abs(signedScale),
-//      growthType: signedScale > 0.0 ? 'branching' : 'faceting',
-//    };
-//  };
-//}
-
-let growthInput: NonEmptyArray<number> = [-1, 1.0, -0.5, 0.5, -0.25, 1, -1];
+let growthInput: NonEmptyArray<number> = [-1, 1.0, 1.0, 1.0, -0.1, 0.1, -0.1, -0.5, 0.5, -0.25, 1, -1];
 
 function interpretGrowth(time: number): Growth {
   let s = clamp(time, 0, 1) * growthInput.length;
@@ -277,6 +287,125 @@ function darken(snowflake: Snowflake): void {
   }
 }
 
+type Ray = {
+  start: Point,
+  // end is implied to be (0, 0)
+};
+
+function buildRay(theta: number): Ray {
+  const radius = 2;
+  return {
+    start: {
+      x: radius * Math.cos(theta),
+      y: radius * Math.sin(theta),
+    },
+  };
+}
+
+function castRaysAtGrowingParts(snowflake: Snowflake): void {
+  const numRays = 50;
+  const theta = Math.PI * 2 / 50;
+  for (let i = 0; i < numRays; i += 1) {
+    const ray = buildRay(theta * i);
+    recordRayIntersections(snowflake, ray);
+  }
+}
+
+function squareDistance(p1: Point, p2: Point): number {
+  const dx = p2.x - p1.x;
+  const dy = p2.y - p1.y;
+  return dx * dx + dy * dy;
+}
+
+function recordRayIntersections(snowflake: Snowflake, ray: Ray): void {
+  const r = (() => {
+    const r1 = firstRayFaceIntersection(snowflake.faces, ray);
+    const r2 = firstRayBranchIntersection(snowflake.branches, ray);
+    if (r1 === undefined) {
+      return r2;
+    }
+    return r1;
+  })();
+}
+
+type RayHit<T> = {
+  ray: Ray,
+  hit: T,
+};
+
+type MaybeRayHit<T> = undefined | RayHit<T>;
+
+function firstRayFaceIntersection(faces: Array<Face>, ray: Ray): MaybeRayHit<Face> {
+  const smallestDistance = Infinity;
+  let result = undefined;
+
+  for (let i = 0; i < faces.length; i += 1) {
+    const circle = {
+      center: copyPoint(face.center),
+      radius: face.size,
+    };
+    const maybeIntersection = findCircleRayIntersection(circle, ray);
+    if (maybeIntersection !== undefined) {
+      const dist = squareDistance(ray.start, circle.center);
+      if (dist < smallestDistance) {
+        result = {
+          ray,
+          hit: face,
+        };
+      }
+    }
+  }
+
+  return result;
+}
+
+function findCircleRayIntersection(circle: Circle, ray: Ray): undefined | {
+
+}
+
+//function recordRayIntersections(snowflake: Snowflake, ray: Ray): void {
+//  type DiscriminantRecord = undefined | {
+//    value: number,
+//    index: number,
+//    kind: 'face' | 'branch',
+//  };
+//  let record: DiscriminantRecord = undefined;
+//
+//  for (i = 0; i < snowflake.faces.length; i += 1) {
+//    let face = snowflake.faces[i];
+//    if (face.growing) {
+//      let circle = {
+//        center: { x: face.center.x, y: face.center.y },
+//        radius: face.size,
+//      };
+//      let discriminant = rayCircleDiscriminant(ray, circle);
+//      if (rayIntersectsCircle(ray, circle)) {
+//        if 
+//      }
+//    }
+//  }
+//}
+
+type Circle = {
+  center: Point,
+  radius: number,
+};
+
+function rayCircleDiscriminant(ray: Ray, circle: Circle): number {
+  // from https://mathworld.wolfram.com/Circle-LineIntersection.html
+  const x1 = ray.start.x - circle.center.x;
+  const y1 = ray.start.y - circle.center.y;
+  const x2 = -circle.center.x;
+  const y2 = -circle.center.y;
+  const r = circle.radius;
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const dr = Math.sqrt(dx * dx + dy * dy);
+  const D = x1 * y2 - x2 * y1;
+  const discriminant = r * r * dr - D * D;
+  return discriminant;
+}
+
 const updateInterval = 5;
 const maxSteps = 6000;
 let snowflake = createInitialSnowflake();
@@ -291,9 +420,9 @@ function currentTime(): number {
 function update() {
   step += 1;
 
-  if (step % 100 === 0) {
-    darken(snowflake);
-  }
+  // if (step % 100 === 0) {
+  //   darken(snowflake);
+  // }
 
   const growth = interpretGrowth(currentTime());
 
@@ -336,6 +465,7 @@ function test(cond: boolean, name: string): void {
 
 function testBranchEnd(): void {
   let r1 = branchEnd({
+    rayHits: 0,
     growing: true,
     start: { x: 0, y: 0 },
     size: 0.1,
@@ -352,4 +482,22 @@ function testBranchEnd(): void {
   );
 }
 
+// function testRayIntersectsCircle() {
+//   test(
+//     rayIntersectsCircle(
+//       buildRay(0),
+//       { center: { x: 0, y: 0}, radius: 1 },
+//     ),
+//     'rayIntersectsCircle1',
+//   );
+//   test(
+//     !rayIntersectsCircle(
+//       buildRay(0),
+//       { center: { x: 0, y: 3 }, radius: 1 },
+//     ),
+//     'rayIntersectsCircle2',
+//   );
+// }
+
 testBranchEnd();
+// testRayIntersectsCircle();

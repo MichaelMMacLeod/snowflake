@@ -2,7 +2,7 @@ var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
 var graphCanvas = document.getElementById('graph');
 var graphCtx = graphCanvas.getContext('2d');
-ctx.fillStyle = 'rgba(90, 211, 255, 0.3)';
+ctx.fillStyle = 'rgba(90, 211, 255, 0.8)';
 var oneSixthCircle = Math.PI * 2 / 6;
 var directions = [
     0 * oneSixthCircle,
@@ -86,6 +86,7 @@ function toCanvasPoint(p) {
 function createInitialSnowflake() {
     return {
         faces: [{
+                rayHits: 0,
                 growing: true,
                 center: { x: 0, y: 0 },
                 size: 0.0025,
@@ -139,20 +140,33 @@ function addBranchesToFace(snowflake, face) {
     var distFromCenter = 2 * face.size * (1 - initialFraction);
     var cx = face.center.x;
     var cy = face.center.y;
-    for (var dir = 0; dir < directions.length; dir += 1) {
+    var _a = (function () {
+        if (face.direction === 'none') {
+            return [0, 6];
+        }
+        return [
+            previousDirection(face.direction),
+            3,
+        ];
+    })(), startDir = _a[0], numDirs = _a[1];
+    var dir = startDir;
+    for (var i = 0; i < numDirs; i += 1) {
         var x = cx + distFromCenter * Math.cos(directions[dir]);
         var y = cy + distFromCenter * Math.sin(directions[dir]);
         snowflake.branches.push({
+            rayHits: 0,
             growing: true,
             start: { x: x, y: y },
             size: sizeOfNewBranches,
             length: 0,
             direction: dir
         });
+        dir = nextDirection(dir);
     }
 }
 function addFaceToBranch(snowflake, branch) {
     snowflake.faces.push({
+        rayHits: 0,
         growing: true,
         center: branchEnd(branch),
         size: branch.size,
@@ -162,19 +176,7 @@ function addFaceToBranch(snowflake, branch) {
 function clamp(x, low, high) {
     return Math.min(Math.max(x, low), high);
 }
-//function buildGrowthFunction(growthInput: NonEmptyArray<number>): GrowthFunction {
-//  return t => {
-//    let s = clamp(t, 0, 1) * growthInput.length;
-//    let x = Math.floor(s);
-//    let i = x === growthInput.length ? growthInput.length - 1 : x;
-//    let signedScale = growthInput[i];
-//    return {
-//      scale: Math.abs(signedScale),
-//      growthType: signedScale > 0.0 ? 'branching' : 'faceting',
-//    };
-//  };
-//}
-var growthInput = [-1, 1.0, -0.5, 0.5, -0.25, 1, -1];
+var growthInput = [-1, 1.0, 1.0, 1.0, -0.1, 0.1, -0.1, -0.5, 0.5, -0.25, 1, -1];
 function interpretGrowth(time) {
     var s = clamp(time, 0, 1) * growthInput.length;
     var x = Math.floor(s);
@@ -218,6 +220,29 @@ function darken(snowflake) {
         snowflake.faces.push(newFaces[i]);
     }
 }
+function buildRay(theta) {
+    var radius = 2;
+    return {
+        start: {
+            x: radius * Math.cos(theta),
+            y: radius * Math.sin(theta)
+        }
+    };
+}
+function rayCircleDiscriminant(ray, circle) {
+    // from https://mathworld.wolfram.com/Circle-LineIntersection.html
+    var x1 = ray.start.x - circle.center.x;
+    var y1 = ray.start.y - circle.center.y;
+    var x2 = -circle.center.x;
+    var y2 = -circle.center.y;
+    var r = circle.radius;
+    var dx = x2 - x1;
+    var dy = y2 - y1;
+    var dr = Math.sqrt(dx * dx + dy * dy);
+    var D = x1 * y2 - x2 * y1;
+    var discriminant = r * r * dr - D * D;
+    return discriminant;
+}
 var updateInterval = 5;
 var maxSteps = 6000;
 var snowflake = createInitialSnowflake();
@@ -229,9 +254,9 @@ function currentTime() {
 }
 function update() {
     step += 1;
-    if (step % 100 === 0) {
-        darken(snowflake);
-    }
+    // if (step % 100 === 0) {
+    //   darken(snowflake);
+    // }
     var growth = interpretGrowth(currentTime());
     if (currentGrowthType === undefined) {
         currentGrowthType = growth.growthType;
@@ -269,6 +294,7 @@ function test(cond, name) {
 }
 function testBranchEnd() {
     var r1 = branchEnd({
+        rayHits: 0,
         growing: true,
         start: { x: 0, y: 0 },
         size: 0.1,
@@ -278,4 +304,21 @@ function testBranchEnd() {
     test(Math.abs(r1.x - 1) < 0.0001, 'testBranchEnd1');
     test(Math.abs(r1.y - 0) < 0.0001, 'testBranchEnd2');
 }
+// function testRayIntersectsCircle() {
+//   test(
+//     rayIntersectsCircle(
+//       buildRay(0),
+//       { center: { x: 0, y: 0}, radius: 1 },
+//     ),
+//     'rayIntersectsCircle1',
+//   );
+//   test(
+//     !rayIntersectsCircle(
+//       buildRay(0),
+//       { center: { x: 0, y: 3 }, radius: 1 },
+//     ),
+//     'rayIntersectsCircle2',
+//   );
+// }
 testBranchEnd();
+// testRayIntersectsCircle();
