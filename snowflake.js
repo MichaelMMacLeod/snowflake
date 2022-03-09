@@ -18,6 +18,9 @@ function nextDirection(d) {
 function previousDirection(d) {
     return rem(d - 1, directions.length);
 }
+function copyPoint(p) {
+    return { x: p.x, y: p.y };
+}
 function branchEnd(branch) {
     var d = directions[branch.direction];
     var l = branch.length;
@@ -229,6 +232,87 @@ function buildRay(theta) {
         }
     };
 }
+//function castRaysAtGrowingParts(snowflake: Snowflake): void {
+//  const numRays = 50;
+//  const theta = Math.PI * 2 / 50;
+//  for (let i = 0; i < numRays; i += 1) {
+//    const ray = buildRay(theta * i);
+//    recordRayIntersections(snowflake, ray);
+//  }
+//}
+function squareDistance(p1, p2) {
+    var dx = p2.x - p1.x;
+    var dy = p2.y - p1.y;
+    return dx * dx + dy * dy;
+}
+function firstRayFaceIntersection(faces, ray) {
+    var smallestDistance = Infinity;
+    var result = undefined;
+    for (var i = 0; i < faces.length; i += 1) {
+        var face = faces[i];
+        var circle = {
+            center: copyPoint(face.center),
+            radius: face.size
+        };
+        var maybeIntersection = findCircleRayIntersection(circle, ray);
+        if (maybeIntersection !== undefined) {
+            var dist = squareDistance(ray.start, circle.center);
+            if (dist < smallestDistance) {
+                result = {
+                    ray: ray,
+                    hit: face
+                };
+            }
+        }
+    }
+    return result;
+}
+// Returns the point on the circle's circumference that intersects a line that
+// begins at 'ray.start' and ends at (0,0); or undefined, if there isn't such an
+// intersection. If there are two such points, it returns the one furthest from
+// the (0,0).
+function findCircleRayIntersection(circle, ray) {
+    var rx = ray.start.x;
+    var ry = ray.start.y;
+    var cx = circle.center.x;
+    var cy = circle.center.y;
+    var cr = circle.radius;
+    var cr2 = cr * cr;
+    var cx2 = cx * cx;
+    var cy2 = cy * cy;
+    var rx2 = rx * rx;
+    var ry2 = ry * ry;
+    var t1 = (cr2 - cx2) * ry2 + 2 * cx * cy * rx * ry + (cr2 - cy2) * rx2;
+    if (t1 < 0) {
+        return undefined;
+    }
+    var t1sqrt = Math.sqrt(t1);
+    var t2 = cy * rx * ry + cx * rx2;
+    var t3 = cy * ry2 + cx * rx * ry;
+    var t4 = ry2 + rx2;
+    var ix = (rx * t1sqrt + t2) / t4;
+    var iy = (ry * t1sqrt + t3) / t4;
+    return { x: ix, y: iy };
+}
+function testFindCircleRayIntersection() {
+    var circle = {
+        center: {
+            x: 4.4,
+            y: -6.5
+        },
+        radius: 6
+    };
+    var ray = {
+        start: {
+            x: 18,
+            y: -11.6
+        }
+    };
+    var r1 = findCircleRayIntersection(circle, ray);
+    test(Math.abs(r1.x - 10.39) < 0.01, "testFindRayCircleIntersection1");
+    test(Math.abs(r1.y - -6.70) < 0.01, "testFindRayCircleIntersection2");
+}
+testFindCircleRayIntersection();
 function rayCircleDiscriminant(ray, circle) {
     // from https://mathworld.wolfram.com/Circle-LineIntersection.html
     var x1 = ray.start.x - circle.center.x;

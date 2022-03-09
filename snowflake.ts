@@ -302,14 +302,14 @@ function buildRay(theta: number): Ray {
   };
 }
 
-function castRaysAtGrowingParts(snowflake: Snowflake): void {
-  const numRays = 50;
-  const theta = Math.PI * 2 / 50;
-  for (let i = 0; i < numRays; i += 1) {
-    const ray = buildRay(theta * i);
-    recordRayIntersections(snowflake, ray);
-  }
-}
+//function castRaysAtGrowingParts(snowflake: Snowflake): void {
+//  const numRays = 50;
+//  const theta = Math.PI * 2 / 50;
+//  for (let i = 0; i < numRays; i += 1) {
+//    const ray = buildRay(theta * i);
+//    recordRayIntersections(snowflake, ray);
+//  }
+//}
 
 function squareDistance(p1: Point, p2: Point): number {
   const dx = p2.x - p1.x;
@@ -317,16 +317,16 @@ function squareDistance(p1: Point, p2: Point): number {
   return dx * dx + dy * dy;
 }
 
-function recordRayIntersections(snowflake: Snowflake, ray: Ray): void {
-  const r = (() => {
-    const r1 = firstRayFaceIntersection(snowflake.faces, ray);
-    const r2 = firstRayBranchIntersection(snowflake.branches, ray);
-    if (r1 === undefined) {
-      return r2;
-    }
-    return r1;
-  })();
-}
+//function recordRayIntersections(snowflake: Snowflake, ray: Ray): void {
+//  const r = (() => {
+//    const r1 = firstRayFaceIntersection(snowflake.faces, ray);
+//    const r2 = firstRayBranchIntersection(snowflake.branches, ray);
+//    if (r1 === undefined) {
+//      return r2;
+//    }
+//    return r1;
+//  })();
+//}
 
 type RayHit<T> = {
   ray: Ray,
@@ -335,11 +335,48 @@ type RayHit<T> = {
 
 type MaybeRayHit<T> = undefined | RayHit<T>;
 
+function firstRayIntersection(
+  snowflake: Snowflake, ray: Ray
+): undefined | Face | Branch {
+  const smallestDistance = Infinity;
+  let smallestDistancePoint: undefined | Point = undefined;
+  let result: undefined | Face | Branch = undefined;
+
+  function updateIntersection(i: undefined | Point, v: Face | Branch): void {
+    if (i === undefined) {
+      return;
+    }
+
+    if (smallestDistancePoint === undefined) {
+      smallestDistancePoint = i;
+    }
+
+    const d = squareDistance(i, smallestDistancePoint);
+    if (d < smallestDistance) {
+      d = smallestDistance;
+      smallestDistancePoint = i;
+      result = v;
+    }
+  }
+
+  for (let i = 0; i < snowflake.faces.length; i += 1) {
+    const face = snowflake.faces[i];
+
+    const circle = {
+      center: copyPoint(face.center),
+      radius: face.size,
+    };
+
+    const intersection = findCircleRayIntersection(circle, ray);
+  }
+}
+
 function firstRayFaceIntersection(faces: Array<Face>, ray: Ray): MaybeRayHit<Face> {
   const smallestDistance = Infinity;
   let result = undefined;
 
   for (let i = 0; i < faces.length; i += 1) {
+    const face = faces[i];
     const circle = {
       center: copyPoint(face.center),
       radius: face.size,
@@ -359,9 +396,59 @@ function firstRayFaceIntersection(faces: Array<Face>, ray: Ray): MaybeRayHit<Fac
   return result;
 }
 
-function findCircleRayIntersection(circle: Circle, ray: Ray): undefined | {
+// Returns the point on the circle's circumference that intersects a straight
+// line that passes through 'ray.start' and (0,0); or undefined, if there isn't
+// such an intersection. If there are two such points, it returns the one
+// furthest from the (0,0).
+function findCircleRayIntersection(circle: Circle, ray: Ray): undefined | Point {
+  const rx = ray.start.x;
+  const ry = ray.start.y;
+  const cx = circle.center.x;
+  const cy = circle.center.y;
+  const cr = circle.radius;
 
+  const cr2 = cr * cr;
+  const cx2 = cx * cx;
+  const cy2 = cy * cy;
+  const rx2 = rx * rx;
+  const ry2 = ry * ry;
+
+  const t1 = (cr2 - cx2) * ry2 + 2 * cx * cy * rx * ry + (cr2 - cy2) * rx2;
+
+  if (t1 < 0) {
+    return undefined;
+  }
+
+  const t1sqrt = Math.sqrt(t1);
+  const t2 = cy * rx * ry + cx * rx2;
+  const t3 = cy * ry2 + cx * rx * ry;
+  const t4 = ry2 + rx2;
+
+  const ix = (rx * t1sqrt + t2) / t4;
+  const iy = (ry * t1sqrt + t3) / t4;
+
+  return { x: ix, y: iy };
 }
+
+function testFindCircleRayIntersection(): void {
+  const circle = {
+    center: {
+      x: 4.4,
+      y: -6.5,
+    },
+    radius: 6,
+  };
+  const ray = {
+    start: {
+      x: 18,
+      y: -11.6,
+    }
+  };
+  let r1 = findCircleRayIntersection(circle, ray);
+  test(Math.abs(r1.x - 10.39) < 0.01, "testFindRayCircleIntersection1");
+  test(Math.abs(r1.y - -6.70) < 0.01, "testFindRayCircleIntersection2");
+}
+testFindCircleRayIntersection();
 
 //function recordRayIntersections(snowflake: Snowflake, ray: Ray): void {
 //  type DiscriminantRecord = undefined | {
