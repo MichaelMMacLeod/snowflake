@@ -312,51 +312,66 @@ function drawGraphHandle(x, y): void {
   graphCtx.strokeStyle = oldStrokeStyle;
 }
 
-function growthHandlePosition(i: number, w: number, h: number): Point {
+function growthHandlePosition(i: number): Point {
   return {
-    x: w / (growthInput.length - 1) * i + 5,
-    y: 4 * growthInput[i] * (h / yChoices.length) + h * 0.5,
+    x: writableGraphWidth / (growthInput.length - 1) * i + graphMargin,
+    y: 4 * growthInput[i] * (writableGraphHeight / yChoices.length) + writableGraphHeight * 0.5,
   };
 }
 
+function nearestGrowthHandle(canvasX: number, canvasY: number): number {
+  let nearestDist = Infinity;
+  let nearest = undefined;
+  return 0;
+}
+
+const graphMargin = 10;
+const writableGraphWidth = graphCanvas.width - 2 * graphMargin;
+const writableGraphHeight = graphCanvas.height;
+
 function drawGrowthInput(): void {
-  const w = graphCanvas.width - 10;
-  const h = graphCanvas.height;
-  const dx = w / (growthInput.length - 1);
-  const dy = h / yChoices.length;
+  const dx = writableGraphWidth / (growthInput.length - 1);
+  const dy = writableGraphHeight / yChoices.length;
   const percentDone = step / maxSteps;
 
   const old = graphCtx.fillStyle;
   graphCtx.fillStyle = lightBlue;
-  graphCtx.fillRect(5, 0, w * percentDone, h);
+  graphCtx.fillRect(
+    graphMargin,
+    0,
+    writableGraphWidth * percentDone,
+    writableGraphHeight
+  );
   graphCtx.fillStyle = old;
   graphCtx.beginPath();
 
   {
-    const p = growthHandlePosition(0, w, h);
+    const p = growthHandlePosition(0);
     graphCtx.moveTo(p.x, p.y);
   }
   for (let i = 1; i < growthInput.length; i += 1) {
-    const p = growthHandlePosition(i, w, h);
+    const p = growthHandlePosition(i);
     graphCtx.lineTo(p.x, p.y);
   }
   graphCtx.strokeStyle = 'black';
   graphCtx.stroke();
 
   for (let i = 0; i < growthInput.length; i += 1) {
-    const p = growthHandlePosition(i, w, h);
+    const p = growthHandlePosition(i);
     drawGraphHandle(p.x, p.y);
   }
 
   graphCtx.beginPath();
-  graphCtx.moveTo(w * percentDone + 5, 0);
-  graphCtx.lineTo(w * percentDone + 5, h);
+  const progressX = writableGraphWidth * percentDone + graphMargin;
+  graphCtx.moveTo(progressX, 0);
+  graphCtx.lineTo(progressX, writableGraphHeight);
   graphCtx.strokeStyle = 'blue';
   graphCtx.stroke();
 
   graphCtx.beginPath();
-  graphCtx.moveTo(5, h * 0.5);
-  graphCtx.lineTo(w + 5, h * 0.5);
+  const xAxisY = writableGraphHeight * 0.5;
+  graphCtx.moveTo(graphMargin, xAxisY);
+  graphCtx.lineTo(writableGraphWidth + graphMargin, xAxisY);
   graphCtx.strokeStyle = 'black';
   graphCtx.setLineDash([2, 2]);
   graphCtx.stroke()
@@ -670,29 +685,6 @@ function testFindCircleRayIntersection(): void {
   test(Math.abs(r1.y - -6.70) < 0.01, "testFindRayCircleIntersection2");
 }
 testFindCircleRayIntersection();
-
-//function recordRayIntersections(snowflake: Snowflake, ray: Ray): void {
-//  type DiscriminantRecord = undefined | {
-//    value: number,
-//    index: number,
-//    kind: 'face' | 'branch',
-//  };
-//  let record: DiscriminantRecord = undefined;
-//
-//  for (i = 0; i < snowflake.faces.length; i += 1) {
-//    let face = snowflake.faces[i];
-//    if (face.growing) {
-//      let circle = {
-//        center: { x: face.center.x, y: face.center.y },
-//        radius: face.size,
-//      };
-//      let discriminant = rayCircleDiscriminant(ray, circle);
-//      if (rayIntersectsCircle(ray, circle)) {
-//        if 
-//      }
-//    }
-//  }
-//}
 
 type Circle = {
   center: Point,

@@ -241,45 +241,53 @@ function drawGraphHandle(x, y) {
     graphCtx.fillStyle = oldFillStyle;
     graphCtx.strokeStyle = oldStrokeStyle;
 }
-function growthHandlePosition(i, w, h) {
+function growthHandlePosition(i) {
     return {
-        x: w / (growthInput.length - 1) * i + 5,
-        y: 4 * growthInput[i] * (h / yChoices.length) + h * 0.5
+        x: writableGraphWidth / (growthInput.length - 1) * i + graphMargin,
+        y: 4 * growthInput[i] * (writableGraphHeight / yChoices.length) + writableGraphHeight * 0.5
     };
 }
+function nearestGrowthHandle(canvasX, canvasY) {
+    var nearestDist = Infinity;
+    var nearest = undefined;
+    return 0;
+}
+var graphMargin = 10;
+var writableGraphWidth = graphCanvas.width - 2 * graphMargin;
+var writableGraphHeight = graphCanvas.height;
 function drawGrowthInput() {
-    var w = graphCanvas.width - 10;
-    var h = graphCanvas.height;
-    var dx = w / (growthInput.length - 1);
-    var dy = h / yChoices.length;
+    var dx = writableGraphWidth / (growthInput.length - 1);
+    var dy = writableGraphHeight / yChoices.length;
     var percentDone = step / maxSteps;
     var old = graphCtx.fillStyle;
     graphCtx.fillStyle = lightBlue;
-    graphCtx.fillRect(5, 0, w * percentDone, h);
+    graphCtx.fillRect(graphMargin, 0, writableGraphWidth * percentDone, writableGraphHeight);
     graphCtx.fillStyle = old;
     graphCtx.beginPath();
     {
-        var p = growthHandlePosition(0, w, h);
+        var p = growthHandlePosition(0);
         graphCtx.moveTo(p.x, p.y);
     }
     for (var i = 1; i < growthInput.length; i += 1) {
-        var p = growthHandlePosition(i, w, h);
+        var p = growthHandlePosition(i);
         graphCtx.lineTo(p.x, p.y);
     }
     graphCtx.strokeStyle = 'black';
     graphCtx.stroke();
     for (var i = 0; i < growthInput.length; i += 1) {
-        var p = growthHandlePosition(i, w, h);
+        var p = growthHandlePosition(i);
         drawGraphHandle(p.x, p.y);
     }
     graphCtx.beginPath();
-    graphCtx.moveTo(w * percentDone + 5, 0);
-    graphCtx.lineTo(w * percentDone + 5, h);
+    var progressX = writableGraphWidth * percentDone + graphMargin;
+    graphCtx.moveTo(progressX, 0);
+    graphCtx.lineTo(progressX, writableGraphHeight);
     graphCtx.strokeStyle = 'blue';
     graphCtx.stroke();
     graphCtx.beginPath();
-    graphCtx.moveTo(5, h * 0.5);
-    graphCtx.lineTo(w + 5, h * 0.5);
+    var xAxisY = writableGraphHeight * 0.5;
+    graphCtx.moveTo(graphMargin, xAxisY);
+    graphCtx.lineTo(writableGraphWidth + graphMargin, xAxisY);
     graphCtx.strokeStyle = 'black';
     graphCtx.setLineDash([2, 2]);
     graphCtx.stroke();
