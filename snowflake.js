@@ -658,7 +658,7 @@ function updateGraph() {
 }
 function update() {
     //console.log(graphMouse);
-    if (step < maxSteps) {
+    if (step < maxSteps && isPlaying) {
         step += 1;
         castRaysAtGrowingParts(snowflake);
         // if (step % 100 === 0) {

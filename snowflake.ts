@@ -828,7 +828,7 @@ function updateGraph(): void {
 
 function update(): void {
   //console.log(graphMouse);
-  if (step < maxSteps) {
+  if (step < maxSteps && isPlaying) {
     step += 1;
 
     castRaysAtGrowingParts(snowflake);
