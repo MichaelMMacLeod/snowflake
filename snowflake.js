@@ -2,7 +2,8 @@ var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
 var graphCanvas = document.getElementById('graph');
 var graphCtx = graphCanvas.getContext('2d');
-ctx.fillStyle = 'rgba(90, 211, 255, 0.8)';
+var lightBlue = 'rgba(90, 211, 255, 0.8)';
+ctx.fillStyle = lightBlue;
 var otherStyle = 'rgba(0, 211, 0, 0.8)';
 var oneSixthCircle = Math.PI * 2 / 6;
 var directions = [
@@ -222,7 +223,68 @@ function addFaceToBranch(snowflake, branch) {
 function clamp(x, low, high) {
     return Math.min(Math.max(x, low), high);
 }
-var growthInput = [-1, 1.0, 1.0, 1.0, -0.1, 0.1, -0.1, -0.5, 0.5, -0.25, 1, -1];
+var growthInput = [-1, 0.25, 1, 1, -0.25, 0.25, -0.25, -0.5, 0.5, -0.25, 1, -0.25];
+var yChoices = [-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1];
+function drawGraphHandle(x, y) {
+    var oldFillStyle = graphCtx.fillStyle;
+    var oldStrokeStyle = graphCtx.strokeStyle;
+    graphCtx.beginPath();
+    graphCtx.arc(x, y, 3, 0, 2 * Math.PI);
+    graphCtx.closePath();
+    graphCtx.fillStyle = 'black';
+    graphCtx.fill();
+    graphCtx.closePath();
+    graphCtx.beginPath();
+    graphCtx.arc(x, y, 5, 0, 2 * Math.PI);
+    graphCtx.strokeStyle = 'black';
+    graphCtx.stroke();
+    graphCtx.fillStyle = oldFillStyle;
+    graphCtx.strokeStyle = oldStrokeStyle;
+}
+function growthHandlePosition(i, w, h) {
+    return {
+        x: w / (growthInput.length - 1) * i + 5,
+        y: 4 * growthInput[i] * (h / yChoices.length) + h * 0.5
+    };
+}
+function drawGrowthInput() {
+    var w = graphCanvas.width - 10;
+    var h = graphCanvas.height;
+    var dx = w / (growthInput.length - 1);
+    var dy = h / yChoices.length;
+    var percentDone = step / maxSteps;
+    var old = graphCtx.fillStyle;
+    graphCtx.fillStyle = lightBlue;
+    graphCtx.fillRect(5, 0, w * percentDone, h);
+    graphCtx.fillStyle = old;
+    graphCtx.beginPath();
+    {
+        var p = growthHandlePosition(0, w, h);
+        graphCtx.moveTo(p.x, p.y);
+    }
+    for (var i = 1; i < growthInput.length; i += 1) {
+        var p = growthHandlePosition(i, w, h);
+        graphCtx.lineTo(p.x, p.y);
+    }
+    graphCtx.strokeStyle = 'black';
+    graphCtx.stroke();
+    for (var i = 0; i < growthInput.length; i += 1) {
+        var p = growthHandlePosition(i, w, h);
+        drawGraphHandle(p.x, p.y);
+    }
+    graphCtx.beginPath();
+    graphCtx.moveTo(w * percentDone + 5, 0);
+    graphCtx.lineTo(w * percentDone + 5, h);
+    graphCtx.strokeStyle = 'blue';
+    graphCtx.stroke();
+    graphCtx.beginPath();
+    graphCtx.moveTo(5, h * 0.5);
+    graphCtx.lineTo(w + 5, h * 0.5);
+    graphCtx.strokeStyle = 'black';
+    graphCtx.setLineDash([2, 2]);
+    graphCtx.stroke();
+    graphCtx.setLineDash([]);
+}
 function interpretGrowth(time) {
     var s = clamp(time, 0, 1) * growthInput.length;
     var x = Math.floor(s);
@@ -511,7 +573,9 @@ function update() {
         enlargeGrowingFaces(snowflake, growth.scale);
     }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
     drawSnowflake(snowflake);
+    drawGrowthInput();
     if (step === maxSteps) {
         window.clearInterval(intervalId);
         console.log('done growing');

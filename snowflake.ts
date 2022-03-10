@@ -3,7 +3,8 @@ const ctx = canvas.getContext('2d');
 const graphCanvas = document.getElementById('graph') as HTMLCanvasElement;
 const graphCtx = graphCanvas.getContext('2d');
 
-ctx.fillStyle = 'rgba(90, 211, 255, 0.8)';
+const lightBlue = 'rgba(90, 211, 255, 0.8)';
+ctx.fillStyle = lightBlue;
 const otherStyle = 'rgba(0, 211, 0, 0.8)';
 
 const oneSixthCircle = Math.PI * 2 / 6;
@@ -286,7 +287,81 @@ function clamp(x: number, low: number, high: number): number {
   return Math.min(Math.max(x, low), high);
 }
 
-let growthInput: NonEmptyArray<number> = [-1, 1.0, 1.0, 1.0, -0.1, 0.1, -0.1, -0.5, 0.5, -0.25, 1, -1];
+let growthInput: NonEmptyArray<YChoices> = [-1, 0.25, 1, 1, -0.25, 0.25, -0.25, -0.5, 0.5, -0.25, 1, -0.25];
+
+type YChoices = -1 | -0.75 | -0.5 | -0.25 | 0 | 0.25 | 0.5 | 0.75 | 1;
+const yChoices: Array<YChoices> =
+  [-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1];
+
+function drawGraphHandle(x, y): void {
+  const oldFillStyle = graphCtx.fillStyle;
+  const oldStrokeStyle = graphCtx.strokeStyle;
+
+  graphCtx.beginPath();
+  graphCtx.arc(x, y, 3, 0, 2 * Math.PI);
+  graphCtx.closePath();
+  graphCtx.fillStyle = 'black';
+  graphCtx.fill();
+  graphCtx.closePath();
+  graphCtx.beginPath();
+  graphCtx.arc(x, y, 5, 0, 2 * Math.PI);
+  graphCtx.strokeStyle = 'black';
+  graphCtx.stroke();
+
+  graphCtx.fillStyle = oldFillStyle;
+  graphCtx.strokeStyle = oldStrokeStyle;
+}
+
+function growthHandlePosition(i: number, w: number, h: number): Point {
+  return {
+    x: w / (growthInput.length - 1) * i + 5,
+    y: 4 * growthInput[i] * (h / yChoices.length) + h * 0.5,
+  };
+}
+
+function drawGrowthInput(): void {
+  const w = graphCanvas.width - 10;
+  const h = graphCanvas.height;
+  const dx = w / (growthInput.length - 1);
+  const dy = h / yChoices.length;
+  const percentDone = step / maxSteps;
+
+  const old = graphCtx.fillStyle;
+  graphCtx.fillStyle = lightBlue;
+  graphCtx.fillRect(5, 0, w * percentDone, h);
+  graphCtx.fillStyle = old;
+  graphCtx.beginPath();
+
+  {
+    const p = growthHandlePosition(0, w, h);
+    graphCtx.moveTo(p.x, p.y);
+  }
+  for (let i = 1; i < growthInput.length; i += 1) {
+    const p = growthHandlePosition(i, w, h);
+    graphCtx.lineTo(p.x, p.y);
+  }
+  graphCtx.strokeStyle = 'black';
+  graphCtx.stroke();
+
+  for (let i = 0; i < growthInput.length; i += 1) {
+    const p = growthHandlePosition(i, w, h);
+    drawGraphHandle(p.x, p.y);
+  }
+
+  graphCtx.beginPath();
+  graphCtx.moveTo(w * percentDone + 5, 0);
+  graphCtx.lineTo(w * percentDone + 5, h);
+  graphCtx.strokeStyle = 'blue';
+  graphCtx.stroke();
+
+  graphCtx.beginPath();
+  graphCtx.moveTo(5, h * 0.5);
+  graphCtx.lineTo(w + 5, h * 0.5);
+  graphCtx.strokeStyle = 'black';
+  graphCtx.setLineDash([2, 2]);
+  graphCtx.stroke()
+  graphCtx.setLineDash([]);
+}
 
 function interpretGrowth(time: number): Growth {
   let s = clamp(time, 0, 1) * growthInput.length;
@@ -678,8 +753,11 @@ function update() {
   }
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
 
   drawSnowflake(snowflake);
+  drawGrowthInput();
+
   if (step === maxSteps) {
     window.clearInterval(intervalId);
     console.log('done growing');
