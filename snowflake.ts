@@ -534,22 +534,25 @@ function firstRayIntersection(
 
     if (face.growing) {
       circle.radius = Math.max(circle.radius, 0.01);
+
+      const intersection = findCircleRayIntersection(circle, ray);
+
+      updateIntersection(intersection, face, ray);
     }
-
-    const intersection = findCircleRayIntersection(circle, ray);
-
-    updateIntersection(intersection, face, ray);
   }
 
   for (let i = 0; i < snowflake.branches.length; i += 1) {
     const branch = snowflake.branches[i];
-    const circles = createCirclesAlongBranch(branch);
 
-    for (let c = 0; c < circles.length; c += 1) {
-      const circle = circles[c];
-      const intersection = findCircleRayIntersection(circle, ray);
+    if (branch.growing) {
+      const circles = createCirclesAlongBranch(branch);
 
-      updateIntersection(intersection, branch, ray);
+      for (let c = 0; c < circles.length; c += 1) {
+        const circle = circles[c];
+        const intersection = findCircleRayIntersection(circle, ray);
+
+        updateIntersection(intersection, branch, ray);
+      }
     }
   }
 

@@ -412,17 +412,19 @@ function firstRayIntersection(snowflake, ray) {
         };
         if (face.growing) {
             circle.radius = Math.max(circle.radius, 0.01);
+            var intersection = findCircleRayIntersection(circle, ray);
+            updateIntersection(intersection, face, ray);
         }
-        var intersection = findCircleRayIntersection(circle, ray);
-        updateIntersection(intersection, face, ray);
     }
     for (var i = 0; i < snowflake.branches.length; i += 1) {
         var branch = snowflake.branches[i];
-        var circles = createCirclesAlongBranch(branch);
-        for (var c = 0; c < circles.length; c += 1) {
-            var circle = circles[c];
-            var intersection = findCircleRayIntersection(circle, ray);
-            updateIntersection(intersection, branch, ray);
+        if (branch.growing) {
+            var circles = createCirclesAlongBranch(branch);
+            for (var c = 0; c < circles.length; c += 1) {
+                var circle = circles[c];
+                var intersection = findCircleRayIntersection(circle, ray);
+                updateIntersection(intersection, branch, ray);
+            }
         }
     }
     return result;
