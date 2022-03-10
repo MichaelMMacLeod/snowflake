@@ -4,6 +4,7 @@ const graphCanvas = document.getElementById('graph') as HTMLCanvasElement;
 const graphCtx = graphCanvas.getContext('2d');
 
 ctx.fillStyle = 'rgba(90, 211, 255, 0.8)';
+const otherStyle = 'rgba(0, 211, 0, 0.8)';
 
 const oneSixthCircle = Math.PI * 2 / 6;
 
@@ -78,7 +79,12 @@ function drawFace(face: Face): void {
     ctx.lineTo(x, y);
   }
   ctx.closePath();
+  //const oldStyle = ctx.fillStyle;
+  //if (face.rayHits > 0) {
+  //  ctx.fillStyle = otherStyle;
+  //}
   ctx.fill();
+  //ctx.fillStyle = oldStyle;
 }
 
 function rem(x: number, m: number): number {
@@ -109,7 +115,24 @@ function drawBranch(branch: Branch): void {
     ctx.lineTo(x, y);
   }
   ctx.closePath();
+  //const oldStyle = ctx.fillStyle;
+  //if (branch.rayHits > 0) {
+  //  ctx.fillStyle = otherStyle;
+  //}
   ctx.fill();
+  //ctx.fillStyle = oldStyle;
+
+  //ctx.beginPath();
+  //ctx.strokeStyle = 'black';
+  //const circles = createCirclesAlongBranch(branch);
+  //for (let i = 0; i < circles.length; i += 1) {
+  //  const circle = circles[i];
+  //  const cCenter = toCanvasPoint(circle.center);
+  //  const cRadius = toCanvasSize(circle.radius);
+  //  ctx.ellipse(cCenter.x, cCenter.y, cRadius, cRadius, 0, 2 * Math.PI, 0);
+  //}
+  //ctx.closePath();
+  //ctx.stroke();
 }
 
 function toCanvasSize(n: number): number {
@@ -293,7 +316,7 @@ type Ray = {
 };
 
 function buildRay(theta: number): Ray {
-  const radius = 2;
+  const radius = 10;
   return {
     start: {
       x: radius * Math.cos(theta),
@@ -302,19 +325,59 @@ function buildRay(theta: number): Ray {
   };
 }
 
-//function castRaysAtGrowingParts(snowflake: Snowflake): void {
-//  const numRays = 50;
-//  const theta = Math.PI * 2 / 50;
-//  for (let i = 0; i < numRays; i += 1) {
-//    const ray = buildRay(theta * i);
-//    recordRayIntersections(snowflake, ray);
-//  }
-//}
+function drawRay(ray: Ray): void {
+  const start = toCanvasPoint(ray.start);
+  const end = toCanvasPoint({ x: 0, y: 0 });
+  ctx.beginPath();
+  ctx.moveTo(start.x, start.y);
+  ctx.lineTo(end.x, end.y);
+  ctx.closePath();
+  ctx.stroke();
+}
+
+function castRaysAtGrowingParts(snowflake: Snowflake): void {
+  for (let i = 0; i < snowflake.faces.length; i += 1) {
+    const face = snowflake.faces[i];
+    face.rayHits = 0;
+  }
+  for (let i = 0; i < snowflake.branches.length; i += 1) {
+    const branch = snowflake.branches[i];
+    branch.rayHits = 0;
+  }
+
+  const numRays = 200;
+  const theta = Math.PI * 2 / numRays;
+  for (let i = 0; i < numRays; i += 1) {
+    const ray = buildRay(theta * i);
+    //drawRay(ray);
+    const intersection = firstRayIntersection(snowflake, ray);
+    if (intersection !== undefined) {
+      intersection.rayHits += 1;
+    }
+  }
+
+  for (let i = 0; i < snowflake.faces.length; i += 1) {
+    const face = snowflake.faces[i];
+    if (face.rayHits === 0) {
+      face.growing = false;
+    }
+  }
+  for (let i = 0; i < snowflake.branches.length; i += 1) {
+    const branch = snowflake.branches[i];
+    if (branch.rayHits === 0) {
+      branch.growing = false;
+    }
+  }
+}
 
 function squareDistance(p1: Point, p2: Point): number {
   const dx = p2.x - p1.x;
   const dy = p2.y - p1.y;
   return dx * dx + dy * dy;
+}
+
+function distance(p1: Point, p2: Point): number {
+  return Math.sqrt(squareDistance(p1, p2));
 }
 
 //function recordRayIntersections(snowflake: Snowflake, ray: Ray): void {
@@ -338,11 +401,15 @@ type MaybeRayHit<T> = undefined | RayHit<T>;
 function firstRayIntersection(
   snowflake: Snowflake, ray: Ray
 ): undefined | Face | Branch {
-  const smallestDistance = Infinity;
+  let smallestDistance = Infinity;
   let smallestDistancePoint: undefined | Point = undefined;
   let result: undefined | Face | Branch = undefined;
 
-  function updateIntersection(i: undefined | Point, v: Face | Branch): void {
+  function updateIntersection(
+    i: undefined | Point,
+    v: Face | Branch,
+    r: Ray,
+  ): void {
     if (i === undefined) {
       return;
     }
@@ -351,9 +418,9 @@ function firstRayIntersection(
       smallestDistancePoint = i;
     }
 
-    const d = squareDistance(i, smallestDistancePoint);
+    const d = squareDistance(i, r.start);
     if (d < smallestDistance) {
-      d = smallestDistance;
+      smallestDistance = d;
       smallestDistancePoint = i;
       result = v;
     }
@@ -367,34 +434,87 @@ function firstRayIntersection(
       radius: face.size,
     };
 
+    if (face.growing) {
+      circle.radius = Math.max(circle.radius, 0.01);
+    }
+
     const intersection = findCircleRayIntersection(circle, ray);
+
+    updateIntersection(intersection, face, ray);
   }
-}
 
-function firstRayFaceIntersection(faces: Array<Face>, ray: Ray): MaybeRayHit<Face> {
-  const smallestDistance = Infinity;
-  let result = undefined;
+  for (let i = 0; i < snowflake.branches.length; i += 1) {
+    const branch = snowflake.branches[i];
+    const circles = createCirclesAlongBranch(branch);
 
-  for (let i = 0; i < faces.length; i += 1) {
-    const face = faces[i];
-    const circle = {
-      center: copyPoint(face.center),
-      radius: face.size,
-    };
-    const maybeIntersection = findCircleRayIntersection(circle, ray);
-    if (maybeIntersection !== undefined) {
-      const dist = squareDistance(ray.start, circle.center);
-      if (dist < smallestDistance) {
-        result = {
-          ray,
-          hit: face,
-        };
-      }
+    for (let c = 0; c < circles.length; c += 1) {
+      const circle = circles[c];
+      const intersection = findCircleRayIntersection(circle, ray);
+
+      updateIntersection(intersection, branch, ray);
     }
   }
 
   return result;
 }
+
+function createCirclesAlongBranch(branch: Branch): Array<Circle> {
+  if (branch.size === 0) {
+    return [];
+  }
+
+  const result = [];
+  const numCircles = Math.ceil(branch.length / branch.size);
+  const end = branchEnd(branch);
+  const dx = (end.x - branch.start.x) / numCircles;
+  const dy = (end.y - branch.start.y) / numCircles;
+  const radius = (() => {
+    if (branch.growing) {
+      return Math.max(branch.size, 0.01);
+    }
+
+    return branch.size;
+  })();
+
+  for (let i = 0; i <= numCircles; i += 1) {
+    const x = branch.start.x + dx * i;
+    const y = branch.start.y + dy * i;
+
+    result.push({
+      center: { x, y },
+      radius,
+    });
+  }
+
+  return result;
+}
+
+//function firstRayFaceIntersection(
+//  faces: Array<Face>, ray: Ray
+//): MaybeRayHit<Face> {
+//  const smallestDistance = Infinity;
+//  let result = undefined;
+//
+//  for (let i = 0; i < faces.length; i += 1) {
+//    const face = faces[i];
+//    const circle = {
+//      center: copyPoint(face.center),
+//      radius: face.size,
+//    };
+//    const maybeIntersection = findCircleRayIntersection(circle, ray);
+//    if (maybeIntersection !== undefined) {
+//      const dist = squareDistance(ray.start, circle.center);
+//      if (dist < smallestDistance) {
+//        result = {
+//          ray,
+//          hit: face,
+//        };
+//      }
+//    }
+//  }
+//
+//  return result;
+//}
 
 // Returns the point on the circle's circumference that intersects a straight
 // line that passes through 'ray.start' and (0,0); or undefined, if there isn't
@@ -533,6 +653,9 @@ function update() {
   }
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  castRaysAtGrowingParts(snowflake);
+
   drawSnowflake(snowflake);
   if (step === maxSteps) {
     window.clearInterval(intervalId);
