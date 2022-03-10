@@ -1,4 +1,4 @@
-const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+const canvas = document.getElementById('snowflake') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d');
 const graphCanvas = document.getElementById('graph') as HTMLCanvasElement;
 const graphCtx = graphCanvas.getContext('2d');
