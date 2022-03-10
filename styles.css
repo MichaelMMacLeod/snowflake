@@ -4,6 +4,17 @@ body {
     margin: 0;
 }
 
+#controlContainer {
+  align-self: center;
+  margin: 1em;
+}
+
+.control {
+  z-index: 10;
+  position: relative;
+  width: 5em;
+}
+
 canvas {
   align-self: center;
 }

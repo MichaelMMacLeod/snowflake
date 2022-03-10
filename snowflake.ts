@@ -3,6 +3,21 @@ const ctx = canvas.getContext('2d');
 const graphCanvas = document.getElementById('graph') as HTMLCanvasElement;
 const graphCtx = graphCanvas.getContext('2d');
 
+const pauseButton = document.getElementById('pause') as HTMLButtonElement;
+const resetButton = document.getElementById('reset') as HTMLButtonElement;
+let isPlaying = true;
+pauseButton.addEventListener('click', e => {
+  isPlaying = !isPlaying;
+  if (isPlaying) {
+    pauseButton.innerHTML = 'pause';
+  } else {
+    pauseButton.innerHTML = 'play';
+  }
+});
+resetButton.addEventListener('click', e => {
+  reset();
+});
+
 let handleBeingDragged: undefined | number | 'needs lookup' = undefined;
 let mouseRecentlyExitedGraph: boolean = false;
 const graphMouse: Point = { x: 0, y: 0 };
@@ -772,6 +787,12 @@ let snowflake = createInitialSnowflake();
 let step = 0;
 let intervalId = undefined;
 let currentGrowthType = undefined;
+
+function reset(): void {
+  snowflake = createInitialSnowflake();
+  step = 0;
+  currentGrowthType = undefined;
+}
 
 function currentTime(): number {
   return step / maxSteps;

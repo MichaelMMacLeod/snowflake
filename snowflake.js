@@ -2,6 +2,21 @@ var canvas = document.getElementById('snowflake');
 var ctx = canvas.getContext('2d');
 var graphCanvas = document.getElementById('graph');
 var graphCtx = graphCanvas.getContext('2d');
+var pauseButton = document.getElementById('pause');
+var resetButton = document.getElementById('reset');
+var isPlaying = true;
+pauseButton.addEventListener('click', function (e) {
+    isPlaying = !isPlaying;
+    if (isPlaying) {
+        pauseButton.innerHTML = 'pause';
+    }
+    else {
+        pauseButton.innerHTML = 'play';
+    }
+});
+resetButton.addEventListener('click', function (e) {
+    reset();
+});
 var handleBeingDragged = undefined;
 var mouseRecentlyExitedGraph = false;
 var graphMouse = { x: 0, y: 0 };
@@ -608,6 +623,11 @@ var snowflake = createInitialSnowflake();
 var step = 0;
 var intervalId = undefined;
 var currentGrowthType = undefined;
+function reset() {
+    snowflake = createInitialSnowflake();
+    step = 0;
+    currentGrowthType = undefined;
+}
 function currentTime() {
     return step / maxSteps;
 }
