@@ -2,6 +2,11 @@ var canvas = document.getElementById('snowflake');
 var ctx = canvas.getContext('2d');
 var graphCanvas = document.getElementById('graph');
 var graphCtx = graphCanvas.getContext('2d');
+var graphMouse = { x: 0, y: 0 };
+graphCanvas.addEventListener('mousemove', function (e) {
+    graphMouse.x = e.offsetX;
+    graphMouse.y = e.offsetY;
+});
 var lightBlue = 'rgba(90, 211, 255, 0.8)';
 ctx.fillStyle = lightBlue;
 var otherStyle = 'rgba(0, 211, 0, 0.8)';
@@ -225,18 +230,34 @@ function clamp(x, low, high) {
 }
 var growthInput = [-1, 0.25, 1, 1, -0.25, 0.25, -0.25, -0.5, 0.5, -0.25, 1, -0.25];
 var yChoices = [-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1];
-function drawGraphHandle(x, y) {
+function drawGraphHandle(x, y, isSelected) {
     var oldFillStyle = graphCtx.fillStyle;
     var oldStrokeStyle = graphCtx.strokeStyle;
+    var newStyle = (function () {
+        if (isSelected) {
+            return 'black';
+        }
+        else {
+            return 'black';
+        }
+    })();
+    var outerRingRadius = (function () {
+        if (isSelected) {
+            return 8;
+        }
+        else {
+            return 5;
+        }
+    })();
     graphCtx.beginPath();
     graphCtx.arc(x, y, 3, 0, 2 * Math.PI);
     graphCtx.closePath();
-    graphCtx.fillStyle = 'black';
+    graphCtx.fillStyle = newStyle;
     graphCtx.fill();
     graphCtx.closePath();
     graphCtx.beginPath();
-    graphCtx.arc(x, y, 5, 0, 2 * Math.PI);
-    graphCtx.strokeStyle = 'black';
+    graphCtx.arc(x, y, outerRingRadius, 0, 2 * Math.PI);
+    graphCtx.strokeStyle = newStyle;
     graphCtx.stroke();
     graphCtx.fillStyle = oldFillStyle;
     graphCtx.strokeStyle = oldStrokeStyle;
@@ -247,10 +268,19 @@ function growthHandlePosition(i) {
         y: 4 * growthInput[i] * (writableGraphHeight / yChoices.length) + writableGraphHeight * 0.5
     };
 }
-function nearestGrowthHandle(canvasX, canvasY) {
+function nearestGrowthHandle(canvasPoint) {
     var nearestDist = Infinity;
-    var nearest = undefined;
-    return 0;
+    var nearest = 0;
+    for (var i = 0; i < growthInput.length; i += 1) {
+        var p = growthHandlePosition(i);
+        var dx = p.x - canvasPoint.x;
+        var dist = dx * dx;
+        if (dist < nearestDist) {
+            nearestDist = dist;
+            nearest = i;
+        }
+    }
+    return nearest;
 }
 var graphMargin = 10;
 var writableGraphWidth = graphCanvas.width - 2 * graphMargin;
@@ -274,9 +304,10 @@ function drawGrowthInput() {
     }
     graphCtx.strokeStyle = 'black';
     graphCtx.stroke();
+    var nearest = nearestGrowthHandle(graphMouse);
     for (var i = 0; i < growthInput.length; i += 1) {
         var p = growthHandlePosition(i);
-        drawGraphHandle(p.x, p.y);
+        drawGraphHandle(p.x, p.y, i === nearest);
     }
     graphCtx.beginPath();
     var progressX = writableGraphWidth * percentDone + graphMargin;

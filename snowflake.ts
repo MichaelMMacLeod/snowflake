@@ -3,6 +3,12 @@ const ctx = canvas.getContext('2d');
 const graphCanvas = document.getElementById('graph') as HTMLCanvasElement;
 const graphCtx = graphCanvas.getContext('2d');
 
+const graphMouse: Point = { x: 0, y: 0 };
+graphCanvas.addEventListener('mousemove', e => {
+  graphMouse.x = e.offsetX;
+  graphMouse.y = e.offsetY;
+});
+
 const lightBlue = 'rgba(90, 211, 255, 0.8)';
 ctx.fillStyle = lightBlue;
 const otherStyle = 'rgba(0, 211, 0, 0.8)';
@@ -293,19 +299,35 @@ type YChoices = -1 | -0.75 | -0.5 | -0.25 | 0 | 0.25 | 0.5 | 0.75 | 1;
 const yChoices: Array<YChoices> =
   [-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1];
 
-function drawGraphHandle(x, y): void {
+function drawGraphHandle(x: number, y: number, isSelected: boolean): void {
   const oldFillStyle = graphCtx.fillStyle;
   const oldStrokeStyle = graphCtx.strokeStyle;
+
+  const newStyle = (() => {
+    if (isSelected) {
+      return 'black';
+    } else {
+      return 'black';
+    }
+  })();
+
+  const outerRingRadius = (() => {
+    if (isSelected) {
+      return 8;
+    } else {
+      return 5;
+    }
+  })();
 
   graphCtx.beginPath();
   graphCtx.arc(x, y, 3, 0, 2 * Math.PI);
   graphCtx.closePath();
-  graphCtx.fillStyle = 'black';
+  graphCtx.fillStyle = newStyle;
   graphCtx.fill();
   graphCtx.closePath();
   graphCtx.beginPath();
-  graphCtx.arc(x, y, 5, 0, 2 * Math.PI);
-  graphCtx.strokeStyle = 'black';
+  graphCtx.arc(x, y, outerRingRadius, 0, 2 * Math.PI);
+  graphCtx.strokeStyle = newStyle;
   graphCtx.stroke();
 
   graphCtx.fillStyle = oldFillStyle;
@@ -319,10 +341,21 @@ function growthHandlePosition(i: number): Point {
   };
 }
 
-function nearestGrowthHandle(canvasX: number, canvasY: number): number {
+function nearestGrowthHandle(canvasPoint: Point): number {
   let nearestDist = Infinity;
-  let nearest = undefined;
-  return 0;
+  let nearest = 0;
+
+  for (let i = 0; i < growthInput.length; i += 1) {
+    const p = growthHandlePosition(i);
+    const dx = p.x - canvasPoint.x;
+    const dist = dx * dx;
+    if (dist < nearestDist) {
+      nearestDist = dist;
+      nearest = i;
+    }
+  }
+
+  return nearest;
 }
 
 const graphMargin = 10;
@@ -356,9 +389,10 @@ function drawGrowthInput(): void {
   graphCtx.strokeStyle = 'black';
   graphCtx.stroke();
 
+  const nearest = nearestGrowthHandle(graphMouse);
   for (let i = 0; i < growthInput.length; i += 1) {
     const p = growthHandlePosition(i);
-    drawGraphHandle(p.x, p.y);
+    drawGraphHandle(p.x, p.y, i === nearest);
   }
 
   graphCtx.beginPath();
