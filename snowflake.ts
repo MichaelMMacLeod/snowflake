@@ -3,15 +3,33 @@ const ctx = canvas.getContext('2d');
 const graphCanvas = document.getElementById('graph') as HTMLCanvasElement;
 const graphCtx = graphCanvas.getContext('2d');
 
+let handleBeingDragged: undefined | number | 'needs lookup' = undefined;
+let mouseRecentlyExitedGraph: boolean = false;
 const graphMouse: Point = { x: 0, y: 0 };
 graphCanvas.addEventListener('mousemove', e => {
   graphMouse.x = e.offsetX;
   graphMouse.y = e.offsetY;
 });
+graphCanvas.addEventListener('mousedown', e => {
+  handleBeingDragged = 'needs lookup';
+});
+graphCanvas.addEventListener('mouseup', e => {
+  handleBeingDragged = undefined;
+  console.log('mouseup')
+});
+graphCanvas.addEventListener('mouseleave', e => {
+  console.log('mouseleave');
+  // handleBeingDragged = undefined;
+  mouseRecentlyExitedGraph = true;
+  if (graphMouse.y > graphCanvas.height * 0.5) {
+    graphMouse.y = graphCanvas.height;
+  } else {
+    graphMouse.y = 0;
+  }
+});
 
-const lightBlue = 'rgba(90, 211, 255, 0.8)';
+const lightBlue = 'rgba(90, 211, 255, 1.0)';
 ctx.fillStyle = lightBlue;
-const otherStyle = 'rgba(0, 211, 0, 0.8)';
 
 const oneSixthCircle = Math.PI * 2 / 6;
 
@@ -293,29 +311,35 @@ function clamp(x: number, low: number, high: number): number {
   return Math.min(Math.max(x, low), high);
 }
 
-let growthInput: NonEmptyArray<YChoices> = [-1, 0.25, 1, 1, -0.25, 0.25, -0.25, -0.5, 0.5, -0.25, 1, -0.25];
-
-type YChoices = -1 | -0.75 | -0.5 | -0.25 | 0 | 0.25 | 0.5 | 0.75 | 1;
-const yChoices: Array<YChoices> =
+let growthInput: NonEmptyArray<number> = [0, 5, 8, 8, 3, 5, 3, 2, 6, 3, 8, 3];
+const yChoices: Array<number> =
   [-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1];
 
-function drawGraphHandle(x: number, y: number, isSelected: boolean): void {
+function drawGraphHandle(
+  x: number,
+  y: number,
+  isSelected: boolean,
+  isBeingDragged: boolean
+): void {
   const oldFillStyle = graphCtx.fillStyle;
   const oldStrokeStyle = graphCtx.strokeStyle;
+  const oldLineDash = graphCtx.getLineDash();
 
-  const newStyle = (() => {
-    if (isSelected) {
-      return 'black';
-    } else {
-      return 'black';
-    }
-  })();
+  const newStyle = 'black';
 
   const outerRingRadius = (() => {
     if (isSelected) {
       return 8;
     } else {
       return 5;
+    }
+  })();
+
+  const newLineDash = (() => {
+    if (isBeingDragged) {
+      return [2, 2];
+    } else {
+      return [];
     }
   })();
 
@@ -328,16 +352,18 @@ function drawGraphHandle(x: number, y: number, isSelected: boolean): void {
   graphCtx.beginPath();
   graphCtx.arc(x, y, outerRingRadius, 0, 2 * Math.PI);
   graphCtx.strokeStyle = newStyle;
+  graphCtx.setLineDash(newLineDash);
   graphCtx.stroke();
 
   graphCtx.fillStyle = oldFillStyle;
   graphCtx.strokeStyle = oldStrokeStyle;
+  graphCtx.setLineDash(oldLineDash);
 }
 
 function growthHandlePosition(i: number): Point {
   return {
     x: writableGraphWidth / (growthInput.length - 1) * i + graphMargin,
-    y: 4 * growthInput[i] * (writableGraphHeight / yChoices.length) + writableGraphHeight * 0.5,
+    y: 4 * yChoices[growthInput[i]] * (writableGraphHeight / yChoices.length) + writableGraphHeight * 0.5,
   };
 }
 
@@ -392,7 +418,7 @@ function drawGrowthInput(): void {
   const nearest = nearestGrowthHandle(graphMouse);
   for (let i = 0; i < growthInput.length; i += 1) {
     const p = growthHandlePosition(i);
-    drawGraphHandle(p.x, p.y, i === nearest);
+    drawGraphHandle(p.x, p.y, i === nearest, i === handleBeingDragged);
   }
 
   graphCtx.beginPath();
@@ -416,7 +442,7 @@ function interpretGrowth(time: number): Growth {
   let s = clamp(time, 0, 1) * growthInput.length;
   let x = Math.floor(s);
   let i = x === growthInput.length ? growthInput.length - 1 : x;
-  let signedScale = growthInput[i];
+  let signedScale = yChoices[growthInput[i]];
   return {
     scale: Math.abs(signedScale),
     growthType: signedScale > 0.0 ? 'branching' : 'faceting',
@@ -751,7 +777,36 @@ function currentTime(): number {
   return step / maxSteps;
 }
 
-function update() {
+function updateGraph(): void {
+
+  if (handleBeingDragged !== undefined || mouseRecentlyExitedGraph) {
+    mouseRecentlyExitedGraph = false;
+    const handle = (() => {
+      if (handleBeingDragged === 'needs lookup') {
+        return nearestGrowthHandle(graphMouse);
+      } else {
+        return handleBeingDragged;
+      }
+    })();
+
+    if (handleBeingDragged === 'needs lookup') {
+      handleBeingDragged = handle;
+    }
+
+    const dy = writableGraphHeight / yChoices.length;
+    const i = Math.floor(graphMouse.y / dy);
+    growthInput[handle] = clamp(i, 0, yChoices.length - 1);
+    //while (growthInput[handle] > 0 && growthHandlePosition(handle).y > graphMouse.y) {
+    //  growthInput[handle] -= 1;
+    //}
+    //while (growthInput[handle] < yChoices.length && growthHandlePosition(handle).y < graphMouse.y) {
+    //  growthInput[handle] += 1;
+    //}
+  }
+}
+
+function update(): void {
+  //console.log(graphMouse);
   if (step < maxSteps) {
     step += 1;
 
@@ -786,12 +841,12 @@ function update() {
     drawSnowflake(snowflake);
   }
 
+  updateGraph();
   graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
   drawGrowthInput();
 
   if (step === maxSteps) {
     //window.clearInterval(intervalId);
-    console.log('done growing');
   }
 }
 
