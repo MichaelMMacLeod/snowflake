@@ -115,7 +115,8 @@ function createInitialSnowflake() {
                 growing: true,
                 center: { x: 0, y: 0 },
                 size: 0.0025,
-                direction: 'none'
+                direction: 'none',
+                growthScale: 1
             }],
         branches: []
     };
@@ -125,10 +126,10 @@ var branchGrowthScalar = growthScalar * 0.3;
 function enlargeGrowingFaces(snowflake, scale) {
     snowflake.faces.forEach(function (face) {
         if (face.growing) {
-            face.size += scale * growthScalar;
+            face.size += scale * growthScalar * face.growthScale;
             if (face.direction !== 'none') {
-                var dx = 2 * scale * growthScalar * Math.cos(directions[face.direction]);
-                var dy = 2 * scale * growthScalar * Math.sin(directions[face.direction]);
+                var dx = 2 * scale * growthScalar * Math.cos(directions[face.direction]) * face.growthScale;
+                var dy = 2 * scale * growthScalar * Math.sin(directions[face.direction]) * face.growthScale;
                 face.center.x += dx;
                 face.center.y += dy;
             }
@@ -138,8 +139,17 @@ function enlargeGrowingFaces(snowflake, scale) {
 function enlargeGrowingBranches(snowflake, scale) {
     snowflake.branches.forEach(function (branch) {
         if (branch.growing) {
-            branch.size += scale * branchGrowthScalar;
-            branch.length += scale * growthScalar;
+            //const rayHitScale = (() => {
+            //  if (branch.rayHits > 10) {
+            //    return 2;
+            //  }
+            //  if (branch.rayHits > 5) {
+            //    return 1;
+            //  }
+            //  if (branch.rayHits)
+            //})();
+            branch.size += scale * branchGrowthScalar * branch.growthScale;
+            branch.length += scale * growthScalar * branch.growthScale;
         }
     });
 }
@@ -175,18 +185,28 @@ function addBranchesToFace(snowflake, face) {
         ];
     })(), startDir = _a[0], numDirs = _a[1];
     var dir = startDir;
-    for (var i = 0; i < numDirs; i += 1) {
+    var _loop_1 = function (i) {
         var x = cx + distFromCenter * Math.cos(directions[dir]);
         var y = cy + distFromCenter * Math.sin(directions[dir]);
+        var growthScale = (function () {
+            if (face.direction === 'none' || i === 1) {
+                return face.growthScale;
+            }
+            return face.growthScale * 0.5;
+        })();
         snowflake.branches.push({
             rayHits: 0,
             growing: true,
             start: { x: x, y: y },
             size: sizeOfNewBranches,
             length: 0,
-            direction: dir
+            direction: dir,
+            growthScale: growthScale
         });
         dir = nextDirection(dir);
+    };
+    for (var i = 0; i < numDirs; i += 1) {
+        _loop_1(i);
     }
 }
 function addFaceToBranch(snowflake, branch) {
@@ -195,7 +215,8 @@ function addFaceToBranch(snowflake, branch) {
         growing: true,
         center: branchEnd(branch),
         size: branch.size,
-        direction: branch.direction
+        direction: branch.direction,
+        growthScale: branch.growthScale
     });
 }
 function clamp(x, low, high) {
@@ -466,6 +487,7 @@ function currentTime() {
 }
 function update() {
     step += 1;
+    castRaysAtGrowingParts(snowflake);
     // if (step % 100 === 0) {
     //   darken(snowflake);
     // }
@@ -489,7 +511,6 @@ function update() {
         enlargeGrowingFaces(snowflake, growth.scale);
     }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    castRaysAtGrowingParts(snowflake);
     drawSnowflake(snowflake);
     if (step === maxSteps) {
         window.clearInterval(intervalId);
@@ -512,7 +533,8 @@ function testBranchEnd() {
         start: { x: 0, y: 0 },
         size: 0.1,
         length: 1,
-        direction: 0
+        direction: 0,
+        growthScale: 1
     });
     test(Math.abs(r1.x - 1) < 0.0001, 'testBranchEnd1');
     test(Math.abs(r1.y - 0) < 0.0001, 'testBranchEnd2');

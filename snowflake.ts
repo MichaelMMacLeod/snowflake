@@ -44,6 +44,7 @@ type Face = {
   center: Point,
   size: number,
   direction: Direction | 'none',
+  growthScale: number,
 };
 
 type Branch = {
@@ -53,6 +54,7 @@ type Branch = {
   size: number,
   length: number,
   direction: Direction,
+  growthScale: number,
 }
 
 function branchEnd(branch: Branch): Point {
@@ -160,6 +162,7 @@ function createInitialSnowflake(): Snowflake {
       center: { x: 0, y: 0 },
       size: 0.0025,
       direction: 'none',
+      growthScale: 1,
     }],
     branches: [],
   };
@@ -171,10 +174,10 @@ const branchGrowthScalar = growthScalar * 0.3;
 function enlargeGrowingFaces(snowflake: Snowflake, scale: number): void {
   snowflake.faces.forEach(face => {
     if (face.growing) {
-      face.size += scale * growthScalar;
+      face.size += scale * growthScalar * face.growthScale;
       if (face.direction !== 'none') {
-        const dx = 2 * scale * growthScalar * Math.cos(directions[face.direction]);
-        const dy = 2 * scale * growthScalar * Math.sin(directions[face.direction]);
+        const dx = 2 * scale * growthScalar * Math.cos(directions[face.direction]) * face.growthScale;
+        const dy = 2 * scale * growthScalar * Math.sin(directions[face.direction]) * face.growthScale;
         face.center.x += dx;
         face.center.y += dy;
       }
@@ -185,8 +188,19 @@ function enlargeGrowingFaces(snowflake: Snowflake, scale: number): void {
 function enlargeGrowingBranches(snowflake: Snowflake, scale: number): void {
   snowflake.branches.forEach(branch => {
     if (branch.growing) {
-      branch.size += scale * branchGrowthScalar;
-      branch.length += scale * growthScalar;
+      //const rayHitScale = (() => {
+      //  if (branch.rayHits > 10) {
+      //    return 2;
+      //  }
+
+      //  if (branch.rayHits > 5) {
+      //    return 1;
+      //  }
+
+      //  if (branch.rayHits)
+      //})();
+      branch.size += scale * branchGrowthScalar * branch.growthScale;
+      branch.length += scale * growthScalar * branch.growthScale;
     }
   })
 }
@@ -231,6 +245,13 @@ function addBranchesToFace(snowflake: Snowflake, face: Face): void {
   for (let i = 0; i < numDirs; i += 1) {
     const x = cx + distFromCenter * Math.cos(directions[dir]);
     const y = cy + distFromCenter * Math.sin(directions[dir]);
+    const growthScale = (() => {
+      if (face.direction === 'none' || i === 1) {
+        return face.growthScale;
+      }
+
+      return face.growthScale * 0.5;
+    })();
     snowflake.branches.push({
       rayHits: 0,
       growing: true,
@@ -238,6 +259,7 @@ function addBranchesToFace(snowflake: Snowflake, face: Face): void {
       size: sizeOfNewBranches,
       length: 0,
       direction: dir as Direction,
+      growthScale,
     });
     dir = nextDirection(dir);
   }
@@ -250,6 +272,7 @@ function addFaceToBranch(snowflake: Snowflake, branch: Branch): void {
     center: branchEnd(branch),
     size: branch.size,
     direction: branch.direction,
+    growthScale: branch.growthScale,
   });
 }
 
@@ -627,6 +650,8 @@ function currentTime(): number {
 function update() {
   step += 1;
 
+  castRaysAtGrowingParts(snowflake);
+
   // if (step % 100 === 0) {
   //   darken(snowflake);
   // }
@@ -654,8 +679,6 @@ function update() {
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  castRaysAtGrowingParts(snowflake);
-
   drawSnowflake(snowflake);
   if (step === maxSteps) {
     window.clearInterval(intervalId);
@@ -681,6 +704,7 @@ function testBranchEnd(): void {
     size: 0.1,
     length: 1,
     direction: 0,
+    growthScale: 1,
   });
   test(
     Math.abs(r1.x - 1) < 0.0001,
