@@ -752,43 +752,45 @@ function currentTime(): number {
 }
 
 function update() {
-  step += 1;
+  if (step < maxSteps) {
+    step += 1;
 
-  castRaysAtGrowingParts(snowflake);
+    castRaysAtGrowingParts(snowflake);
 
-  // if (step % 100 === 0) {
-  //   darken(snowflake);
-  // }
+    // if (step % 100 === 0) {
+    //   darken(snowflake);
+    // }
 
-  const growth = interpretGrowth(currentTime());
+    const growth = interpretGrowth(currentTime());
 
-  if (currentGrowthType === undefined) {
-    currentGrowthType = growth.growthType;
-  }
-
-  if (currentGrowthType !== growth.growthType) {
-    currentGrowthType = growth.growthType;
-    if (currentGrowthType === 'branching') {
-      addBranchesToGrowingFaces(snowflake);
-    } else {
-      addFacesToGrowingBranches(snowflake);
+    if (currentGrowthType === undefined) {
+      currentGrowthType = growth.growthType;
     }
+
+    if (currentGrowthType !== growth.growthType) {
+      currentGrowthType = growth.growthType;
+      if (currentGrowthType === 'branching') {
+        addBranchesToGrowingFaces(snowflake);
+      } else {
+        addFacesToGrowingBranches(snowflake);
+      }
+    }
+
+    if (currentGrowthType === 'branching') {
+      enlargeGrowingBranches(snowflake, growth.scale);
+    } else {
+      enlargeGrowingFaces(snowflake, growth.scale);
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawSnowflake(snowflake);
   }
 
-  if (currentGrowthType === 'branching') {
-    enlargeGrowingBranches(snowflake, growth.scale);
-  } else {
-    enlargeGrowingFaces(snowflake, growth.scale);
-  }
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
   graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
-
-  drawSnowflake(snowflake);
   drawGrowthInput();
 
   if (step === maxSteps) {
-    window.clearInterval(intervalId);
+    //window.clearInterval(intervalId);
     console.log('done growing');
   }
 }
