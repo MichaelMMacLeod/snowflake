@@ -43,6 +43,7 @@ graphCanvas.addEventListener('mouseleave', function (e) {
     }
 });
 var lightBlue = 'rgba(90, 211, 255, 1.0)';
+var graphBackground = 'rgba(90, 211, 255, 0.5)';
 ctx.fillStyle = lightBlue;
 var oneSixthCircle = Math.PI * 2 / 6;
 var directions = [
@@ -262,7 +263,7 @@ function addFaceToBranch(snowflake, branch) {
 function clamp(x, low, high) {
     return Math.min(Math.max(x, low), high);
 }
-var growthInput = [0, 5, 8, 8, 3, 5, 3, 2, 6, 3, 8, 3];
+var growthInput = [0, 5, 8, 8, 3, 5, 3, 2, 6, 3, 6, 3];
 var yChoices = [-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1];
 function drawGraphHandle(x, y, isSelected, isBeingDragged) {
     var oldFillStyle = graphCtx.fillStyle;
@@ -328,7 +329,7 @@ function drawGrowthInput() {
     var dy = writableGraphHeight / yChoices.length;
     var percentDone = step / maxSteps;
     var old = graphCtx.fillStyle;
-    graphCtx.fillStyle = lightBlue;
+    graphCtx.fillStyle = graphBackground;
     graphCtx.fillRect(graphMargin, 0, writableGraphWidth * percentDone, writableGraphHeight);
     graphCtx.fillStyle = old;
     graphCtx.beginPath();
@@ -361,6 +362,18 @@ function drawGrowthInput() {
     graphCtx.setLineDash([2, 2]);
     graphCtx.stroke();
     graphCtx.setLineDash([]);
+    //const facetingMetrics = graphCtx.measureText("faceting");
+    //const branchingMetrics = graphCtx.measureText("branching");
+    //graphCtx.fillText(
+    //  "faceting",
+    //  writableGraphWidth - facetingMetrics.width,
+    //  writableGraphHeight * 0.5 - facetingMetrics.actualBoundingBoxAscent,
+    //);
+    //graphCtx.fillText(
+    //  "branching",
+    //  writableGraphWidth - branchingMetrics.width,
+    //  writableGraphHeight * 0.5 + branchingMetrics.actualBoundingBoxAscent,
+    //);
 }
 function interpretGrowth(time) {
     var s = clamp(time, 0, 1) * growthInput.length;

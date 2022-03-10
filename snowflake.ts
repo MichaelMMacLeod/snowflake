@@ -44,6 +44,7 @@ graphCanvas.addEventListener('mouseleave', e => {
 });
 
 const lightBlue = 'rgba(90, 211, 255, 1.0)';
+const graphBackground = 'rgba(90, 211, 255, 0.5)';
 ctx.fillStyle = lightBlue;
 
 const oneSixthCircle = Math.PI * 2 / 6;
@@ -326,7 +327,7 @@ function clamp(x: number, low: number, high: number): number {
   return Math.min(Math.max(x, low), high);
 }
 
-let growthInput: NonEmptyArray<number> = [0, 5, 8, 8, 3, 5, 3, 2, 6, 3, 8, 3];
+let growthInput: NonEmptyArray<number> = [0, 5, 8, 8, 3, 5, 3, 2, 6, 3, 6, 3];
 const yChoices: Array<number> =
   [-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1];
 
@@ -409,7 +410,7 @@ function drawGrowthInput(): void {
   const percentDone = step / maxSteps;
 
   const old = graphCtx.fillStyle;
-  graphCtx.fillStyle = lightBlue;
+  graphCtx.fillStyle = graphBackground;
   graphCtx.fillRect(
     graphMargin,
     0,
@@ -451,6 +452,19 @@ function drawGrowthInput(): void {
   graphCtx.setLineDash([2, 2]);
   graphCtx.stroke()
   graphCtx.setLineDash([]);
+
+  //const facetingMetrics = graphCtx.measureText("faceting");
+  //const branchingMetrics = graphCtx.measureText("branching");
+  //graphCtx.fillText(
+  //  "faceting",
+  //  writableGraphWidth - facetingMetrics.width,
+  //  writableGraphHeight * 0.5 - facetingMetrics.actualBoundingBoxAscent,
+  //);
+  //graphCtx.fillText(
+  //  "branching",
+  //  writableGraphWidth - branchingMetrics.width,
+  //  writableGraphHeight * 0.5 + branchingMetrics.actualBoundingBoxAscent,
+  //);
 }
 
 function interpretGrowth(time: number): Growth {

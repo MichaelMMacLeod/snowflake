@@ -14,7 +14,17 @@
         <button class="control" id="pause" type="button">pause</button>
         <button class="control" id="reset" type="button">reset</button>
       </div>
-      <canvas id="graph" width="600" height="200"></canvas>
+      <div id="graphContainer">
+        <canvas id="graph" width="600" height="200"></canvas>
+        <div id="graphLabelContainer">
+          <p class="graphLabel">
+            faceting
+          </p>
+          <p class="graphLabel">
+            branching
+          </p>
+        </div>
+      </div>
     </div>
   </body>
   <script src="snowflake.js"></script>
