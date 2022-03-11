@@ -187,8 +187,8 @@ function enlargeGrowingBranches(snowflake, scale) {
             //  }
             //  if (branch.rayHits)
             //})();
-            var lengthScalar = -2 * scale + 2;
-            var sizeScalar = 2 * scale;
+            var lengthScalar = -1.5 * scale + 1.5;
+            var sizeScalar = 1.5 * scale;
             branch.size += sizeScalar * branchGrowthScalar * branch.growthScale;
             branch.length += lengthScalar * growthScalar * branch.growthScale;
         }
@@ -390,8 +390,9 @@ function interpretGrowth(time) {
     //let x = Math.floor(s);
     //let i = x === growthInput.length ? growthInput.length - 1 : x;
     //let signedScale = yChoices[growthInput[i]];
+    var timeScalar = -0.01 * s + 1;
     return {
-        scale: Math.abs(signedScale),
+        scale: timeScalar * Math.abs(signedScale),
         growthType: signedScale > 0.0 ? 'branching' : 'faceting'
     };
 }

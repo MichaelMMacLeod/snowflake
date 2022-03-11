@@ -238,8 +238,8 @@ function enlargeGrowingBranches(snowflake: Snowflake, scale: number): void {
 
       //  if (branch.rayHits)
       //})();
-      const lengthScalar = -2 * scale + 2;
-      const sizeScalar = 2 * scale;
+      const lengthScalar = -1.5 * scale + 1.5;
+      const sizeScalar = 1.5 * scale;
       branch.size += sizeScalar * branchGrowthScalar * branch.growthScale;
       branch.length += lengthScalar * growthScalar * branch.growthScale;
     }
@@ -484,8 +484,9 @@ function interpretGrowth(time: number): Growth {
   //let x = Math.floor(s);
   //let i = x === growthInput.length ? growthInput.length - 1 : x;
   //let signedScale = yChoices[growthInput[i]];
+  let timeScalar = -0.01 * s + 1;
   return {
-    scale: Math.abs(signedScale),
+    scale: timeScalar * Math.abs(signedScale),
     growthType: signedScale > 0.0 ? 'branching' : 'faceting',
   };
 }
