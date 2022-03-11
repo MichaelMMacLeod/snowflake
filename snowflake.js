@@ -27,12 +27,10 @@ graphCanvas.addEventListener('mousemove', function (e) {
 graphCanvas.addEventListener('mousedown', function (e) {
     handleBeingDragged = 'needs lookup';
 });
-graphCanvas.addEventListener('mouseup', function (e) {
+window.addEventListener('mouseup', function (e) {
     handleBeingDragged = undefined;
-    console.log('mouseup');
 });
 graphCanvas.addEventListener('mouseleave', function (e) {
-    console.log('mouseleave');
     // handleBeingDragged = undefined;
     mouseRecentlyExitedGraph = true;
     if (graphMouse.y > graphCanvas.height * 0.5) {
@@ -189,8 +187,10 @@ function enlargeGrowingBranches(snowflake, scale) {
             //  }
             //  if (branch.rayHits)
             //})();
-            branch.size += scale * branchGrowthScalar * branch.growthScale;
-            branch.length += scale * growthScalar * branch.growthScale;
+            var lengthScalar = -2 * scale + 2;
+            var sizeScalar = 2 * scale;
+            branch.size += sizeScalar * branchGrowthScalar * branch.growthScale;
+            branch.length += lengthScalar * growthScalar * branch.growthScale;
         }
     });
 }
@@ -375,11 +375,21 @@ function drawGrowthInput() {
     //  writableGraphHeight * 0.5 + branchingMetrics.actualBoundingBoxAscent,
     //);
 }
+function lerp(a, b, n) {
+    return (1 - n) * a + n * b;
+}
+function fracPart(n) {
+    return n % 1;
+}
 function interpretGrowth(time) {
     var s = clamp(time, 0, 1) * growthInput.length;
-    var x = Math.floor(s);
-    var i = x === growthInput.length ? growthInput.length - 1 : x;
-    var signedScale = yChoices[growthInput[i]];
+    var n = fracPart(s);
+    var a = yChoices[growthInput[Math.floor(s)]];
+    var b = yChoices[growthInput[Math.ceil(s)]];
+    var signedScale = lerp(a, b, n);
+    //let x = Math.floor(s);
+    //let i = x === growthInput.length ? growthInput.length - 1 : x;
+    //let signedScale = yChoices[growthInput[i]];
     return {
         scale: Math.abs(signedScale),
         growthType: signedScale > 0.0 ? 'branching' : 'faceting'
@@ -524,7 +534,7 @@ function createCirclesAlongBranch(branch) {
         return [];
     }
     var result = [];
-    var numCircles = Math.ceil(branch.length / branch.size);
+    var numCircles = Math.min(Math.ceil(branch.length / branch.size), 10);
     var end = branchEnd(branch);
     var dx = (end.x - branch.start.x) / numCircles;
     var dy = (end.y - branch.start.y) / numCircles;
@@ -639,6 +649,7 @@ function reset() {
     snowflake = createInitialSnowflake();
     step = 0;
     currentGrowthType = undefined;
+    clearSnowflakeCanvas();
 }
 function currentTime() {
     return step / maxSteps;
@@ -691,12 +702,15 @@ function update() {
         else {
             enlargeGrowingFaces(snowflake, growth.scale);
         }
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        clearSnowflakeCanvas();
         drawSnowflake(snowflake);
     }
     updateGraph();
     graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
     drawGrowthInput();
+}
+function clearSnowflakeCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 intervalId = window.setInterval(update, updateInterval);
 function test(cond, name) {

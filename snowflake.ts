@@ -28,12 +28,10 @@ graphCanvas.addEventListener('mousemove', e => {
 graphCanvas.addEventListener('mousedown', e => {
   handleBeingDragged = 'needs lookup';
 });
-graphCanvas.addEventListener('mouseup', e => {
+window.addEventListener('mouseup', e => {
   handleBeingDragged = undefined;
-  console.log('mouseup')
 });
 graphCanvas.addEventListener('mouseleave', e => {
-  console.log('mouseleave');
   // handleBeingDragged = undefined;
   mouseRecentlyExitedGraph = true;
   if (graphMouse.y > graphCanvas.height * 0.5) {
@@ -240,8 +238,10 @@ function enlargeGrowingBranches(snowflake: Snowflake, scale: number): void {
 
       //  if (branch.rayHits)
       //})();
-      branch.size += scale * branchGrowthScalar * branch.growthScale;
-      branch.length += scale * growthScalar * branch.growthScale;
+      const lengthScalar = -2 * scale + 2;
+      const sizeScalar = 2 * scale;
+      branch.size += sizeScalar * branchGrowthScalar * branch.growthScale;
+      branch.length += lengthScalar * growthScalar * branch.growthScale;
     }
   })
 }
@@ -467,11 +467,23 @@ function drawGrowthInput(): void {
   //);
 }
 
+function lerp(a, b, n) {
+  return (1 - n) * a + n * b;
+}
+
+function fracPart(n) {
+  return n % 1;
+}
+
 function interpretGrowth(time: number): Growth {
   let s = clamp(time, 0, 1) * growthInput.length;
-  let x = Math.floor(s);
-  let i = x === growthInput.length ? growthInput.length - 1 : x;
-  let signedScale = yChoices[growthInput[i]];
+  let n = fracPart(s);
+  let a = yChoices[growthInput[Math.floor(s)]];
+  let b = yChoices[growthInput[Math.ceil(s)]];
+  let signedScale = lerp(a, b, n);
+  //let x = Math.floor(s);
+  //let i = x === growthInput.length ? growthInput.length - 1 : x;
+  //let signedScale = yChoices[growthInput[i]];
   return {
     scale: Math.abs(signedScale),
     growthType: signedScale > 0.0 ? 'branching' : 'faceting',
@@ -669,7 +681,7 @@ function createCirclesAlongBranch(branch: Branch): Array<Circle> {
   }
 
   const result = [];
-  const numCircles = Math.ceil(branch.length / branch.size);
+  const numCircles = Math.min(Math.ceil(branch.length / branch.size), 10);
   const end = branchEnd(branch);
   const dx = (end.x - branch.start.x) / numCircles;
   const dy = (end.y - branch.start.y) / numCircles;
@@ -806,6 +818,7 @@ function reset(): void {
   snowflake = createInitialSnowflake();
   step = 0;
   currentGrowthType = undefined;
+  clearSnowflakeCanvas();
 }
 
 function currentTime(): number {
@@ -867,13 +880,17 @@ function update(): void {
       enlargeGrowingFaces(snowflake, growth.scale);
     }
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    clearSnowflakeCanvas();
     drawSnowflake(snowflake);
   }
 
   updateGraph();
   graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
   drawGrowthInput();
+}
+
+function clearSnowflakeCanvas(): void {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 intervalId = window.setInterval(update, updateInterval);
