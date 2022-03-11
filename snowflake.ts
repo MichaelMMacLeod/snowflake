@@ -36,11 +36,11 @@ window.addEventListener('mouseup', e => {
 graphCanvas.addEventListener('mouseleave', e => {
   // handleBeingDragged = undefined;
   mouseRecentlyExitedGraph = true;
-  if (graphMouse.y > graphCanvas.height * 0.5) {
-    graphMouse.y = graphCanvas.height;
-  } else {
-    graphMouse.y = 0;
-  }
+  //if (graphMouse.y > graphCanvas.height * 0.5) {
+  //  graphMouse.y = graphCanvas.height;
+  //} else {
+  //  graphMouse.y = 0;
+  //}
 });
 
 const lightBlue = 'rgba(90, 211, 255, 1.0)';

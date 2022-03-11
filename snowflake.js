@@ -35,12 +35,11 @@ window.addEventListener('mouseup', function (e) {
 graphCanvas.addEventListener('mouseleave', function (e) {
     // handleBeingDragged = undefined;
     mouseRecentlyExitedGraph = true;
-    if (graphMouse.y > graphCanvas.height * 0.5) {
-        graphMouse.y = graphCanvas.height;
-    }
-    else {
-        graphMouse.y = 0;
-    }
+    //if (graphMouse.y > graphCanvas.height * 0.5) {
+    //  graphMouse.y = graphCanvas.height;
+    //} else {
+    //  graphMouse.y = 0;
+    //}
 });
 var lightBlue = 'rgba(90, 211, 255, 1.0)';
 var graphBackground = 'rgba(90, 211, 255, 0.5)';
