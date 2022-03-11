@@ -385,15 +385,10 @@ function fracPart(n) {
 }
 function interpretGrowth(time) {
     var s = lerp(0, growthInput.length - 1, time);
-    //let s = clamp(time, 0, 1) * growthInput.length;
     var n = fracPart(s);
     var a = yChoices[growthInput[Math.floor(s)]];
     var b = yChoices[growthInput[Math.ceil(s)]];
-    console.log(s, Math.ceil(s), growthInput[Math.ceil(s)], b);
     var signedScale = lerp(a, b, n);
-    //let x = Math.floor(s);
-    //let i = x === growthInput.length ? growthInput.length - 1 : x;
-    //let signedScale = yChoices[growthInput[i]];
     var timeScalar = -0.01 * s + 1;
     return {
         scale: timeScalar * Math.abs(signedScale),

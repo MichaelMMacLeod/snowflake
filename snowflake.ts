@@ -482,11 +482,7 @@ function interpretGrowth(time: number): Growth {
   let n = fracPart(s);
   let a = yChoices[growthInput[Math.floor(s)]];
   let b = yChoices[growthInput[Math.ceil(s)]];
-  console.log(s, Math.ceil(s), growthInput[Math.ceil(s)], b);
   let signedScale = lerp(a, b, n);
-  //let x = Math.floor(s);
-  //let i = x === growthInput.length ? growthInput.length - 1 : x;
-  //let signedScale = yChoices[growthInput[i]];
   let timeScalar = -0.01 * s + 1;
   return {
     scale: timeScalar * Math.abs(signedScale),
