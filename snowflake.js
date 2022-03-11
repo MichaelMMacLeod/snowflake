@@ -615,7 +615,6 @@ function testFindCircleRayIntersection() {
     test(Math.abs(r1.x - 10.39) < 0.01, "testFindRayCircleIntersection1");
     test(Math.abs(r1.y - -6.70) < 0.01, "testFindRayCircleIntersection2");
 }
-testFindCircleRayIntersection();
 function rayCircleDiscriminant(ray, circle) {
     // from https://mathworld.wolfram.com/Circle-LineIntersection.html
     var x1 = ray.start.x - circle.center.x;
@@ -737,5 +736,5 @@ function testBranchEnd() {
 //     'rayIntersectsCircle2',
 //   );
 // }
-testBranchEnd();
+//testBranchEnd();
 // testRayIntersectsCircle();

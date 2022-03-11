@@ -773,7 +773,7 @@ function testFindCircleRayIntersection(): void {
   test(Math.abs(r1.x - 10.39) < 0.01, "testFindRayCircleIntersection1");
   test(Math.abs(r1.y - -6.70) < 0.01, "testFindRayCircleIntersection2");
 }
-testFindCircleRayIntersection();
+//testFindCircleRayIntersection();
 
 type Circle = {
   center: Point,
@@ -923,5 +923,5 @@ function testBranchEnd(): void {
 //   );
 // }
 
-testBranchEnd();
+//testBranchEnd();
 // testRayIntersectsCircle();
