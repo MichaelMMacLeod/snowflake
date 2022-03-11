@@ -231,7 +231,7 @@ function addBranchesToFace(snowflake, face) {
         var y = cy + distFromCenter * Math.sin(directions[dir]);
         var growthScale = (function () {
             if (face.direction === 'none' || i === 1) {
-                return face.growthScale;
+                return face.growthScale * 0.9;
             }
             return face.growthScale * 0.5;
         })();

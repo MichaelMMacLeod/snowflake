@@ -288,7 +288,7 @@ function addBranchesToFace(snowflake: Snowflake, face: Face): void {
     const y = cy + distFromCenter * Math.sin(directions[dir]);
     const growthScale = (() => {
       if (face.direction === 'none' || i === 1) {
-        return face.growthScale;
+        return face.growthScale * 0.9;
       }
 
       return face.growthScale * 0.5;
