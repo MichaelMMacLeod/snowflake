@@ -44,6 +44,7 @@ graphCanvas.addEventListener('mouseleave', function (e) {
 var lightBlue = 'rgba(90, 211, 255, 1.0)';
 var graphBackground = 'rgba(90, 211, 255, 0.5)';
 ctx.fillStyle = lightBlue;
+var otherStyle = 'rgba(90, 220, 255, 1.0)';
 var oneSixthCircle = Math.PI * 2 / 6;
 var directions = [
     0 * oneSixthCircle,

@@ -46,6 +46,7 @@ graphCanvas.addEventListener('mouseleave', e => {
 const lightBlue = 'rgba(90, 211, 255, 1.0)';
 const graphBackground = 'rgba(90, 211, 255, 0.5)';
 ctx.fillStyle = lightBlue;
+const otherStyle = 'rgba(90, 220, 255, 1.0)';
 
 const oneSixthCircle = Math.PI * 2 / 6;
 
