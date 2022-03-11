@@ -670,13 +670,9 @@ function updateGraph() {
     }
 }
 function update() {
-    //console.log(graphMouse);
     if (step < maxSteps && isPlaying) {
         step += 1;
         castRaysAtGrowingParts(snowflake);
-        // if (step % 100 === 0) {
-        //   darken(snowflake);
-        // }
         var growth = interpretGrowth(currentTime());
         if (currentGrowthType === undefined) {
             currentGrowthType = growth.growthType;
@@ -702,9 +698,6 @@ function update() {
     updateGraph();
     graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
     drawGrowthInput();
-    if (step === maxSteps) {
-        //window.clearInterval(intervalId);
-    }
 }
 intervalId = window.setInterval(update, updateInterval);
 function test(cond, name) {

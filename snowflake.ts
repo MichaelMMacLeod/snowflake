@@ -841,15 +841,10 @@ function updateGraph(): void {
 }
 
 function update(): void {
-  //console.log(graphMouse);
   if (step < maxSteps && isPlaying) {
     step += 1;
 
     castRaysAtGrowingParts(snowflake);
-
-    // if (step % 100 === 0) {
-    //   darken(snowflake);
-    // }
 
     const growth = interpretGrowth(currentTime());
 
@@ -879,10 +874,6 @@ function update(): void {
   updateGraph();
   graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
   drawGrowthInput();
-
-  if (step === maxSteps) {
-    //window.clearInterval(intervalId);
-  }
 }
 
 intervalId = window.setInterval(update, updateInterval);
