@@ -9,9 +9,11 @@ pauseButton.addEventListener('click', function (e) {
     isPlaying = !isPlaying;
     if (isPlaying) {
         pauseButton.innerHTML = 'pause';
+        canvas.className = '';
     }
     else {
         pauseButton.innerHTML = 'play';
+        canvas.className = 'paused';
     }
 });
 resetButton.addEventListener('click', function (e) {
@@ -382,10 +384,12 @@ function fracPart(n) {
     return n % 1;
 }
 function interpretGrowth(time) {
-    var s = clamp(time, 0, 1) * growthInput.length;
+    var s = lerp(0, growthInput.length - 1, time);
+    //let s = clamp(time, 0, 1) * growthInput.length;
     var n = fracPart(s);
     var a = yChoices[growthInput[Math.floor(s)]];
     var b = yChoices[growthInput[Math.ceil(s)]];
+    console.log(s, Math.ceil(s), growthInput[Math.ceil(s)], b);
     var signedScale = lerp(a, b, n);
     //let x = Math.floor(s);
     //let i = x === growthInput.length ? growthInput.length - 1 : x;

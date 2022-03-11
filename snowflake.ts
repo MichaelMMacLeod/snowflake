@@ -10,8 +10,10 @@ pauseButton.addEventListener('click', e => {
   isPlaying = !isPlaying;
   if (isPlaying) {
     pauseButton.innerHTML = 'pause';
+    canvas.className = '';
   } else {
     pauseButton.innerHTML = 'play';
+    canvas.className = 'paused';
   }
 });
 resetButton.addEventListener('click', e => {
@@ -476,10 +478,11 @@ function fracPart(n) {
 }
 
 function interpretGrowth(time: number): Growth {
-  let s = clamp(time, 0, 1) * growthInput.length;
+  let s = lerp(0, growthInput.length - 1, time);
   let n = fracPart(s);
   let a = yChoices[growthInput[Math.floor(s)]];
   let b = yChoices[growthInput[Math.ceil(s)]];
+  console.log(s, Math.ceil(s), growthInput[Math.ceil(s)], b);
   let signedScale = lerp(a, b, n);
   //let x = Math.floor(s);
   //let i = x === growthInput.length ? growthInput.length - 1 : x;
