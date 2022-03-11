@@ -167,10 +167,10 @@ var branchGrowthScalar = growthScalar * 0.3;
 function enlargeGrowingFaces(snowflake, scale) {
     snowflake.faces.forEach(function (face) {
         if (face.growing) {
-            face.size += scale * growthScalar * face.growthScale;
+            face.size += 0.75 * scale * growthScalar * face.growthScale;
             if (face.direction !== 'none') {
-                var dx = 2 * scale * growthScalar * Math.cos(directions[face.direction]) * face.growthScale;
-                var dy = 2 * scale * growthScalar * Math.sin(directions[face.direction]) * face.growthScale;
+                var dx = 0.75 * 2 * scale * growthScalar * Math.cos(directions[face.direction]) * face.growthScale;
+                var dy = 0.75 * 2 * scale * growthScalar * Math.sin(directions[face.direction]) * face.growthScale;
                 face.center.x += dx;
                 face.center.y += dy;
             }

@@ -215,10 +215,10 @@ const branchGrowthScalar = growthScalar * 0.3;
 function enlargeGrowingFaces(snowflake: Snowflake, scale: number): void {
   snowflake.faces.forEach(face => {
     if (face.growing) {
-      face.size += scale * growthScalar * face.growthScale;
+      face.size += 0.75 * scale * growthScalar * face.growthScale;
       if (face.direction !== 'none') {
-        const dx = 2 * scale * growthScalar * Math.cos(directions[face.direction]) * face.growthScale;
-        const dy = 2 * scale * growthScalar * Math.sin(directions[face.direction]) * face.growthScale;
+        const dx = 0.75 * 2 * scale * growthScalar * Math.cos(directions[face.direction]) * face.growthScale;
+        const dy = 0.75 * 2 * scale * growthScalar * Math.sin(directions[face.direction]) * face.growthScale;
         face.center.x += dx;
         face.center.y += dy;
       }
