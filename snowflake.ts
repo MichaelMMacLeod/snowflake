@@ -4,12 +4,38 @@ const ctx = canvas.getContext('2d');
 type Graph = {
   canvas: HTMLCanvasElement,
   ctx: CanvasRenderingContext2D,
+  handleBeingDragged: undefined | number | 'needs lookup',
+  mouseRecentlyExitedGraph: boolean,
+  graphMouse: Point,
 };
 
 function makeGraph(): Graph {
   const canvas = document.getElementById('graph') as HTMLCanvasElement;
   const ctx = canvas.getContext('2d');
-  return { canvas, ctx };
+  const graphMouse = { x: 0, y: 0 };
+  const result = {
+    canvas,
+    ctx,
+    handleBeingDragged: undefined,
+    mouseRecentlyExitedGraph: false,
+    graphMouse,
+  };
+
+  canvas.addEventListener('mousemove', e => {
+    graphMouse.x = e.offsetX;
+    graphMouse.y = e.offsetY;
+  });
+  canvas.addEventListener('mousedown', e => {
+    result.handleBeingDragged = 'needs lookup';
+  });
+  canvas.addEventListener('mouseup', e => {
+    result.handleBeingDragged = undefined;
+  });
+  canvas.addEventListener('mouseleave', e => {
+    result.mouseRecentlyExitedGraph = true;
+  });
+  
+  return result;
 };
 
 const graph = makeGraph();
@@ -17,53 +43,33 @@ const graph = makeGraph();
 type Controls = {
   pause: HTMLButtonElement;
   reset: HTMLButtonElement;
+  playing: boolean;
 };
 
 function makeControls(): Controls {
   const pause = document.getElementById('pause') as HTMLButtonElement;
   const reset = document.getElementById('reset') as HTMLButtonElement;
-  return { pause, reset };
+  const result = { pause, reset, playing: true };
+  
+  pause.addEventListener('click', e => {
+    result.playing = !result.playing;
+    if (result.playing) {
+      pause.innerHTML = 'pause';
+      canvas.className = '';
+    } else {
+      pause.innerHTML = 'play';
+      canvas.className = 'paused';
+    }
+  });
+
+  reset.addEventListener('click', e => {
+    resetSnowflake();
+  });
+  
+  return result;
 }
 
 const controls = makeControls();
-
-let isPlaying = true;
-controls.pause.addEventListener('click', e => {
-  isPlaying = !isPlaying;
-  if (isPlaying) {
-    controls.pause.innerHTML = 'pause';
-    canvas.className = '';
-  } else {
-    controls.pause.innerHTML = 'play';
-    canvas.className = 'paused';
-  }
-});
-controls.reset.addEventListener('click', e => {
-  reset();
-});
-
-let handleBeingDragged: undefined | number | 'needs lookup' = undefined;
-let mouseRecentlyExitedGraph: boolean = false;
-const graphMouse: Point = { x: 0, y: 0 };
-graph.canvas.addEventListener('mousemove', e => {
-  graphMouse.x = e.offsetX;
-  graphMouse.y = e.offsetY;
-});
-graph.canvas.addEventListener('mousedown', e => {
-  handleBeingDragged = 'needs lookup';
-});
-window.addEventListener('mouseup', e => {
-  handleBeingDragged = undefined;
-});
-graph.canvas.addEventListener('mouseleave', e => {
-  // handleBeingDragged = undefined;
-  mouseRecentlyExitedGraph = true;
-  //if (graphMouse.y > graph.canvas.height * 0.5) {
-  //  graphMouse.y = graph.canvas.height;
-  //} else {
-  //  graphMouse.y = 0;
-  //}
-});
 
 const lightBlue = 'rgba(90, 211, 255, 1.0)';
 const graphBackground = 'rgba(90, 211, 255, 0.5)';
@@ -456,10 +462,10 @@ function drawGrowthInput(): void {
   graph.ctx.strokeStyle = 'black';
   graph.ctx.stroke();
 
-  const nearest = nearestGrowthHandle(graphMouse);
+  const nearest = nearestGrowthHandle(graph.graphMouse);
   for (let i = 0; i < growthInput.length; i += 1) {
     const p = growthHandlePosition(i);
-    drawGraphHandle(p.x, p.y, i === nearest, i === handleBeingDragged);
+    drawGraphHandle(p.x, p.y, i === nearest, i === graph.handleBeingDragged);
   }
 
   graph.ctx.beginPath();
@@ -837,7 +843,7 @@ let step = 0;
 let intervalId = undefined;
 let currentGrowthType = undefined;
 
-function reset(): void {
+function resetSnowflake(): void {
   snowflake = createInitialSnowflake();
   step = 0;
   currentGrowthType = undefined;
@@ -850,34 +856,34 @@ function currentTime(): number {
 
 function updateGraph(): void {
 
-  if (handleBeingDragged !== undefined || mouseRecentlyExitedGraph) {
-    mouseRecentlyExitedGraph = false;
+  if (graph.handleBeingDragged !== undefined || graph.mouseRecentlyExitedGraph) {
+    graph.mouseRecentlyExitedGraph = false;
     const handle = (() => {
-      if (handleBeingDragged === 'needs lookup') {
-        return nearestGrowthHandle(graphMouse);
+      if (graph.handleBeingDragged === 'needs lookup') {
+        return nearestGrowthHandle(graph.graphMouse);
       } else {
-        return handleBeingDragged;
+        return graph.handleBeingDragged;
       }
     })();
 
-    if (handleBeingDragged === 'needs lookup') {
-      handleBeingDragged = handle;
+    if (graph.handleBeingDragged === 'needs lookup') {
+      graph.handleBeingDragged = handle;
     }
 
     const dy = writableGraphHeight / yChoices.length;
-    const i = Math.floor(graphMouse.y / dy);
+    const i = Math.floor(graph.graphMouse.y / dy);
     growthInput[handle] = clamp(i, 0, yChoices.length - 1);
-    //while (growthInput[handle] > 0 && growthHandlePosition(handle).y > graphMouse.y) {
+    //while (growthInput[handle] > 0 && growthHandlePosition(handle).y > graph.graphMouse.y) {
     //  growthInput[handle] -= 1;
     //}
-    //while (growthInput[handle] < yChoices.length && growthHandlePosition(handle).y < graphMouse.y) {
+    //while (growthInput[handle] < yChoices.length && growthHandlePosition(handle).y < graph.graphMouse.y) {
     //  growthInput[handle] += 1;
     //}
   }
 }
 
 function update(): void {
-  if (step < maxSteps && isPlaying) {
+  if (step < maxSteps && controls.playing) {
     step += 1;
 
     castRaysAtGrowingParts(snowflake);

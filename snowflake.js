@@ -3,53 +3,52 @@ var ctx = canvas.getContext('2d');
 function makeGraph() {
     var canvas = document.getElementById('graph');
     var ctx = canvas.getContext('2d');
-    return { canvas: canvas, ctx: ctx };
+    var graphMouse = { x: 0, y: 0 };
+    var result = {
+        canvas: canvas,
+        ctx: ctx,
+        handleBeingDragged: undefined,
+        mouseRecentlyExitedGraph: false,
+        graphMouse: graphMouse
+    };
+    canvas.addEventListener('mousemove', function (e) {
+        graphMouse.x = e.offsetX;
+        graphMouse.y = e.offsetY;
+    });
+    canvas.addEventListener('mousedown', function (e) {
+        result.handleBeingDragged = 'needs lookup';
+    });
+    canvas.addEventListener('mouseup', function (e) {
+        result.handleBeingDragged = undefined;
+    });
+    canvas.addEventListener('mouseleave', function (e) {
+        result.mouseRecentlyExitedGraph = true;
+    });
+    return result;
 }
 ;
 var graph = makeGraph();
 function makeControls() {
     var pause = document.getElementById('pause');
     var reset = document.getElementById('reset');
-    return { pause: pause, reset: reset };
+    var result = { pause: pause, reset: reset, playing: true };
+    pause.addEventListener('click', function (e) {
+        result.playing = !result.playing;
+        if (result.playing) {
+            pause.innerHTML = 'pause';
+            canvas.className = '';
+        }
+        else {
+            pause.innerHTML = 'play';
+            canvas.className = 'paused';
+        }
+    });
+    reset.addEventListener('click', function (e) {
+        resetSnowflake();
+    });
+    return result;
 }
 var controls = makeControls();
-var isPlaying = true;
-controls.pause.addEventListener('click', function (e) {
-    isPlaying = !isPlaying;
-    if (isPlaying) {
-        controls.pause.innerHTML = 'pause';
-        canvas.className = '';
-    }
-    else {
-        controls.pause.innerHTML = 'play';
-        canvas.className = 'paused';
-    }
-});
-controls.reset.addEventListener('click', function (e) {
-    reset();
-});
-var handleBeingDragged = undefined;
-var mouseRecentlyExitedGraph = false;
-var graphMouse = { x: 0, y: 0 };
-graph.canvas.addEventListener('mousemove', function (e) {
-    graphMouse.x = e.offsetX;
-    graphMouse.y = e.offsetY;
-});
-graph.canvas.addEventListener('mousedown', function (e) {
-    handleBeingDragged = 'needs lookup';
-});
-window.addEventListener('mouseup', function (e) {
-    handleBeingDragged = undefined;
-});
-graph.canvas.addEventListener('mouseleave', function (e) {
-    // handleBeingDragged = undefined;
-    mouseRecentlyExitedGraph = true;
-    //if (graphMouse.y > graph.canvas.height * 0.5) {
-    //  graphMouse.y = graph.canvas.height;
-    //} else {
-    //  graphMouse.y = 0;
-    //}
-});
 var lightBlue = 'rgba(90, 211, 255, 1.0)';
 var graphBackground = 'rgba(90, 211, 255, 0.5)';
 ctx.fillStyle = lightBlue;
@@ -354,10 +353,10 @@ function drawGrowthInput() {
     }
     graph.ctx.strokeStyle = 'black';
     graph.ctx.stroke();
-    var nearest = nearestGrowthHandle(graphMouse);
+    var nearest = nearestGrowthHandle(graph.graphMouse);
     for (var i = 0; i < growthInput.length; i += 1) {
         var p = growthHandlePosition(i);
-        drawGraphHandle(p.x, p.y, i === nearest, i === handleBeingDragged);
+        drawGraphHandle(p.x, p.y, i === nearest, i === graph.handleBeingDragged);
     }
     graph.ctx.beginPath();
     var progressX = writableGraphWidth * percentDone + graphMargin;
@@ -654,7 +653,7 @@ var snowflake = createInitialSnowflake();
 var step = 0;
 var intervalId = undefined;
 var currentGrowthType = undefined;
-function reset() {
+function resetSnowflake() {
     snowflake = createInitialSnowflake();
     step = 0;
     currentGrowthType = undefined;
@@ -664,32 +663,32 @@ function currentTime() {
     return step / maxSteps;
 }
 function updateGraph() {
-    if (handleBeingDragged !== undefined || mouseRecentlyExitedGraph) {
-        mouseRecentlyExitedGraph = false;
+    if (graph.handleBeingDragged !== undefined || graph.mouseRecentlyExitedGraph) {
+        graph.mouseRecentlyExitedGraph = false;
         var handle = (function () {
-            if (handleBeingDragged === 'needs lookup') {
-                return nearestGrowthHandle(graphMouse);
+            if (graph.handleBeingDragged === 'needs lookup') {
+                return nearestGrowthHandle(graph.graphMouse);
             }
             else {
-                return handleBeingDragged;
+                return graph.handleBeingDragged;
             }
         })();
-        if (handleBeingDragged === 'needs lookup') {
-            handleBeingDragged = handle;
+        if (graph.handleBeingDragged === 'needs lookup') {
+            graph.handleBeingDragged = handle;
         }
         var dy = writableGraphHeight / yChoices.length;
-        var i = Math.floor(graphMouse.y / dy);
+        var i = Math.floor(graph.graphMouse.y / dy);
         growthInput[handle] = clamp(i, 0, yChoices.length - 1);
-        //while (growthInput[handle] > 0 && growthHandlePosition(handle).y > graphMouse.y) {
+        //while (growthInput[handle] > 0 && growthHandlePosition(handle).y > graph.graphMouse.y) {
         //  growthInput[handle] -= 1;
         //}
-        //while (growthInput[handle] < yChoices.length && growthHandlePosition(handle).y < graphMouse.y) {
+        //while (growthInput[handle] < yChoices.length && growthHandlePosition(handle).y < graph.graphMouse.y) {
         //  growthInput[handle] += 1;
         //}
     }
 }
 function update() {
-    if (step < maxSteps && isPlaying) {
+    if (step < maxSteps && controls.playing) {
         step += 1;
         castRaysAtGrowingParts(snowflake);
         var growth = interpretGrowth(currentTime());
