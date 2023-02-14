@@ -14,20 +14,31 @@ function makeGraph(): Graph {
 
 const graph = makeGraph();
 
-const pauseButton = document.getElementById('pause') as HTMLButtonElement;
-const resetButton = document.getElementById('reset') as HTMLButtonElement;
+type Controls = {
+  pause: HTMLButtonElement;
+  reset: HTMLButtonElement;
+};
+
+function makeControls(): Controls {
+  const pause = document.getElementById('pause') as HTMLButtonElement;
+  const reset = document.getElementById('reset') as HTMLButtonElement;
+  return { pause, reset };
+}
+
+const controls = makeControls();
+
 let isPlaying = true;
-pauseButton.addEventListener('click', e => {
+controls.pause.addEventListener('click', e => {
   isPlaying = !isPlaying;
   if (isPlaying) {
-    pauseButton.innerHTML = 'pause';
+    controls.pause.innerHTML = 'pause';
     canvas.className = '';
   } else {
-    pauseButton.innerHTML = 'play';
+    controls.pause.innerHTML = 'play';
     canvas.className = 'paused';
   }
 });
-resetButton.addEventListener('click', e => {
+controls.reset.addEventListener('click', e => {
   reset();
 });
 

@@ -7,21 +7,25 @@ function makeGraph() {
 }
 ;
 var graph = makeGraph();
-var pauseButton = document.getElementById('pause');
-var resetButton = document.getElementById('reset');
+function makeControls() {
+    var pause = document.getElementById('pause');
+    var reset = document.getElementById('reset');
+    return { pause: pause, reset: reset };
+}
+var controls = makeControls();
 var isPlaying = true;
-pauseButton.addEventListener('click', function (e) {
+controls.pause.addEventListener('click', function (e) {
     isPlaying = !isPlaying;
     if (isPlaying) {
-        pauseButton.innerHTML = 'pause';
+        controls.pause.innerHTML = 'pause';
         canvas.className = '';
     }
     else {
-        pauseButton.innerHTML = 'play';
+        controls.pause.innerHTML = 'play';
         canvas.className = 'paused';
     }
 });
-resetButton.addEventListener('click', function (e) {
+controls.reset.addEventListener('click', function (e) {
     reset();
 });
 var handleBeingDragged = undefined;
