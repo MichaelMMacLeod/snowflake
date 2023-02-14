@@ -1,7 +1,18 @@
 const canvas = document.getElementById('snowflake') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d');
-const graphCanvas = document.getElementById('graph') as HTMLCanvasElement;
-const graphCtx = graphCanvas.getContext('2d');
+
+type Graph = {
+  canvas: HTMLCanvasElement,
+  ctx: CanvasRenderingContext2D,
+};
+
+function makeGraph(): Graph {
+  const canvas = document.getElementById('graph') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d');
+  return { canvas, ctx };
+};
+
+const graph = makeGraph();
 
 const pauseButton = document.getElementById('pause') as HTMLButtonElement;
 const resetButton = document.getElementById('reset') as HTMLButtonElement;
@@ -23,21 +34,21 @@ resetButton.addEventListener('click', e => {
 let handleBeingDragged: undefined | number | 'needs lookup' = undefined;
 let mouseRecentlyExitedGraph: boolean = false;
 const graphMouse: Point = { x: 0, y: 0 };
-graphCanvas.addEventListener('mousemove', e => {
+graph.canvas.addEventListener('mousemove', e => {
   graphMouse.x = e.offsetX;
   graphMouse.y = e.offsetY;
 });
-graphCanvas.addEventListener('mousedown', e => {
+graph.canvas.addEventListener('mousedown', e => {
   handleBeingDragged = 'needs lookup';
 });
 window.addEventListener('mouseup', e => {
   handleBeingDragged = undefined;
 });
-graphCanvas.addEventListener('mouseleave', e => {
+graph.canvas.addEventListener('mouseleave', e => {
   // handleBeingDragged = undefined;
   mouseRecentlyExitedGraph = true;
-  //if (graphMouse.y > graphCanvas.height * 0.5) {
-  //  graphMouse.y = graphCanvas.height;
+  //if (graphMouse.y > graph.canvas.height * 0.5) {
+  //  graphMouse.y = graph.canvas.height;
   //} else {
   //  graphMouse.y = 0;
   //}
@@ -340,9 +351,9 @@ function drawGraphHandle(
   isSelected: boolean,
   isBeingDragged: boolean
 ): void {
-  const oldFillStyle = graphCtx.fillStyle;
-  const oldStrokeStyle = graphCtx.strokeStyle;
-  const oldLineDash = graphCtx.getLineDash();
+  const oldFillStyle = graph.ctx.fillStyle;
+  const oldStrokeStyle = graph.ctx.strokeStyle;
+  const oldLineDash = graph.ctx.getLineDash();
 
   const newStyle = 'black';
 
@@ -362,21 +373,21 @@ function drawGraphHandle(
     }
   })();
 
-  graphCtx.beginPath();
-  graphCtx.arc(x, y, 3, 0, 2 * Math.PI);
-  graphCtx.closePath();
-  graphCtx.fillStyle = newStyle;
-  graphCtx.fill();
-  graphCtx.closePath();
-  graphCtx.beginPath();
-  graphCtx.arc(x, y, outerRingRadius, 0, 2 * Math.PI);
-  graphCtx.strokeStyle = newStyle;
-  graphCtx.setLineDash(newLineDash);
-  graphCtx.stroke();
+  graph.ctx.beginPath();
+  graph.ctx.arc(x, y, 3, 0, 2 * Math.PI);
+  graph.ctx.closePath();
+  graph.ctx.fillStyle = newStyle;
+  graph.ctx.fill();
+  graph.ctx.closePath();
+  graph.ctx.beginPath();
+  graph.ctx.arc(x, y, outerRingRadius, 0, 2 * Math.PI);
+  graph.ctx.strokeStyle = newStyle;
+  graph.ctx.setLineDash(newLineDash);
+  graph.ctx.stroke();
 
-  graphCtx.fillStyle = oldFillStyle;
-  graphCtx.strokeStyle = oldStrokeStyle;
-  graphCtx.setLineDash(oldLineDash);
+  graph.ctx.fillStyle = oldFillStyle;
+  graph.ctx.strokeStyle = oldStrokeStyle;
+  graph.ctx.setLineDash(oldLineDash);
 }
 
 function growthHandlePosition(i: number): Point {
@@ -404,35 +415,35 @@ function nearestGrowthHandle(canvasPoint: Point): number {
 }
 
 const graphMargin = 10;
-const writableGraphWidth = graphCanvas.width - 2 * graphMargin;
-const writableGraphHeight = graphCanvas.height;
+const writableGraphWidth = graph.canvas.width - 2 * graphMargin;
+const writableGraphHeight = graph.canvas.height;
 
 function drawGrowthInput(): void {
   const dx = writableGraphWidth / (growthInput.length - 1);
   const dy = writableGraphHeight / yChoices.length;
   const percentDone = step / maxSteps;
 
-  const old = graphCtx.fillStyle;
-  graphCtx.fillStyle = graphBackground;
-  graphCtx.fillRect(
+  const old = graph.ctx.fillStyle;
+  graph.ctx.fillStyle = graphBackground;
+  graph.ctx.fillRect(
     graphMargin,
     0,
     writableGraphWidth * percentDone,
     writableGraphHeight
   );
-  graphCtx.fillStyle = old;
-  graphCtx.beginPath();
+  graph.ctx.fillStyle = old;
+  graph.ctx.beginPath();
 
   {
     const p = growthHandlePosition(0);
-    graphCtx.moveTo(p.x, p.y);
+    graph.ctx.moveTo(p.x, p.y);
   }
   for (let i = 1; i < growthInput.length; i += 1) {
     const p = growthHandlePosition(i);
-    graphCtx.lineTo(p.x, p.y);
+    graph.ctx.lineTo(p.x, p.y);
   }
-  graphCtx.strokeStyle = 'black';
-  graphCtx.stroke();
+  graph.ctx.strokeStyle = 'black';
+  graph.ctx.stroke();
 
   const nearest = nearestGrowthHandle(graphMouse);
   for (let i = 0; i < growthInput.length; i += 1) {
@@ -440,30 +451,30 @@ function drawGrowthInput(): void {
     drawGraphHandle(p.x, p.y, i === nearest, i === handleBeingDragged);
   }
 
-  graphCtx.beginPath();
+  graph.ctx.beginPath();
   const progressX = writableGraphWidth * percentDone + graphMargin;
-  graphCtx.moveTo(progressX, 0);
-  graphCtx.lineTo(progressX, writableGraphHeight);
-  graphCtx.strokeStyle = 'blue';
-  graphCtx.stroke();
+  graph.ctx.moveTo(progressX, 0);
+  graph.ctx.lineTo(progressX, writableGraphHeight);
+  graph.ctx.strokeStyle = 'blue';
+  graph.ctx.stroke();
 
-  graphCtx.beginPath();
+  graph.ctx.beginPath();
   const xAxisY = writableGraphHeight * 0.5;
-  graphCtx.moveTo(graphMargin, xAxisY);
-  graphCtx.lineTo(writableGraphWidth + graphMargin, xAxisY);
-  graphCtx.strokeStyle = 'black';
-  graphCtx.setLineDash([2, 2]);
-  graphCtx.stroke()
-  graphCtx.setLineDash([]);
+  graph.ctx.moveTo(graphMargin, xAxisY);
+  graph.ctx.lineTo(writableGraphWidth + graphMargin, xAxisY);
+  graph.ctx.strokeStyle = 'black';
+  graph.ctx.setLineDash([2, 2]);
+  graph.ctx.stroke()
+  graph.ctx.setLineDash([]);
 
-  //const facetingMetrics = graphCtx.measureText("faceting");
-  //const branchingMetrics = graphCtx.measureText("branching");
-  //graphCtx.fillText(
+  //const facetingMetrics = graph.ctx.measureText("faceting");
+  //const branchingMetrics = graph.ctx.measureText("branching");
+  //graph.ctx.fillText(
   //  "faceting",
   //  writableGraphWidth - facetingMetrics.width,
   //  writableGraphHeight * 0.5 - facetingMetrics.actualBoundingBoxAscent,
   //);
-  //graphCtx.fillText(
+  //graph.ctx.fillText(
   //  "branching",
   //  writableGraphWidth - branchingMetrics.width,
   //  writableGraphHeight * 0.5 + branchingMetrics.actualBoundingBoxAscent,
@@ -886,7 +897,7 @@ function update(): void {
   }
 
   updateGraph();
-  graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
+  graph.ctx.clearRect(0, 0, graph.canvas.width, graph.canvas.height);
   drawGrowthInput();
 }
 

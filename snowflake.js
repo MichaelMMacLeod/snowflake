@@ -1,7 +1,12 @@
 var canvas = document.getElementById('snowflake');
 var ctx = canvas.getContext('2d');
-var graphCanvas = document.getElementById('graph');
-var graphCtx = graphCanvas.getContext('2d');
+function makeGraph() {
+    var canvas = document.getElementById('graph');
+    var ctx = canvas.getContext('2d');
+    return { canvas: canvas, ctx: ctx };
+}
+;
+var graph = makeGraph();
 var pauseButton = document.getElementById('pause');
 var resetButton = document.getElementById('reset');
 var isPlaying = true;
@@ -22,21 +27,21 @@ resetButton.addEventListener('click', function (e) {
 var handleBeingDragged = undefined;
 var mouseRecentlyExitedGraph = false;
 var graphMouse = { x: 0, y: 0 };
-graphCanvas.addEventListener('mousemove', function (e) {
+graph.canvas.addEventListener('mousemove', function (e) {
     graphMouse.x = e.offsetX;
     graphMouse.y = e.offsetY;
 });
-graphCanvas.addEventListener('mousedown', function (e) {
+graph.canvas.addEventListener('mousedown', function (e) {
     handleBeingDragged = 'needs lookup';
 });
 window.addEventListener('mouseup', function (e) {
     handleBeingDragged = undefined;
 });
-graphCanvas.addEventListener('mouseleave', function (e) {
+graph.canvas.addEventListener('mouseleave', function (e) {
     // handleBeingDragged = undefined;
     mouseRecentlyExitedGraph = true;
-    //if (graphMouse.y > graphCanvas.height * 0.5) {
-    //  graphMouse.y = graphCanvas.height;
+    //if (graphMouse.y > graph.canvas.height * 0.5) {
+    //  graphMouse.y = graph.canvas.height;
     //} else {
     //  graphMouse.y = 0;
     //}
@@ -268,9 +273,9 @@ function clamp(x, low, high) {
 var growthInput = [0, 5, 8, 8, 3, 5, 3, 2, 6, 3, 6, 3];
 var yChoices = [-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1];
 function drawGraphHandle(x, y, isSelected, isBeingDragged) {
-    var oldFillStyle = graphCtx.fillStyle;
-    var oldStrokeStyle = graphCtx.strokeStyle;
-    var oldLineDash = graphCtx.getLineDash();
+    var oldFillStyle = graph.ctx.fillStyle;
+    var oldStrokeStyle = graph.ctx.strokeStyle;
+    var oldLineDash = graph.ctx.getLineDash();
     var newStyle = 'black';
     var outerRingRadius = (function () {
         if (isSelected) {
@@ -288,20 +293,20 @@ function drawGraphHandle(x, y, isSelected, isBeingDragged) {
             return [];
         }
     })();
-    graphCtx.beginPath();
-    graphCtx.arc(x, y, 3, 0, 2 * Math.PI);
-    graphCtx.closePath();
-    graphCtx.fillStyle = newStyle;
-    graphCtx.fill();
-    graphCtx.closePath();
-    graphCtx.beginPath();
-    graphCtx.arc(x, y, outerRingRadius, 0, 2 * Math.PI);
-    graphCtx.strokeStyle = newStyle;
-    graphCtx.setLineDash(newLineDash);
-    graphCtx.stroke();
-    graphCtx.fillStyle = oldFillStyle;
-    graphCtx.strokeStyle = oldStrokeStyle;
-    graphCtx.setLineDash(oldLineDash);
+    graph.ctx.beginPath();
+    graph.ctx.arc(x, y, 3, 0, 2 * Math.PI);
+    graph.ctx.closePath();
+    graph.ctx.fillStyle = newStyle;
+    graph.ctx.fill();
+    graph.ctx.closePath();
+    graph.ctx.beginPath();
+    graph.ctx.arc(x, y, outerRingRadius, 0, 2 * Math.PI);
+    graph.ctx.strokeStyle = newStyle;
+    graph.ctx.setLineDash(newLineDash);
+    graph.ctx.stroke();
+    graph.ctx.fillStyle = oldFillStyle;
+    graph.ctx.strokeStyle = oldStrokeStyle;
+    graph.ctx.setLineDash(oldLineDash);
 }
 function growthHandlePosition(i) {
     return {
@@ -324,54 +329,54 @@ function nearestGrowthHandle(canvasPoint) {
     return nearest;
 }
 var graphMargin = 10;
-var writableGraphWidth = graphCanvas.width - 2 * graphMargin;
-var writableGraphHeight = graphCanvas.height;
+var writableGraphWidth = graph.canvas.width - 2 * graphMargin;
+var writableGraphHeight = graph.canvas.height;
 function drawGrowthInput() {
     var dx = writableGraphWidth / (growthInput.length - 1);
     var dy = writableGraphHeight / yChoices.length;
     var percentDone = step / maxSteps;
-    var old = graphCtx.fillStyle;
-    graphCtx.fillStyle = graphBackground;
-    graphCtx.fillRect(graphMargin, 0, writableGraphWidth * percentDone, writableGraphHeight);
-    graphCtx.fillStyle = old;
-    graphCtx.beginPath();
+    var old = graph.ctx.fillStyle;
+    graph.ctx.fillStyle = graphBackground;
+    graph.ctx.fillRect(graphMargin, 0, writableGraphWidth * percentDone, writableGraphHeight);
+    graph.ctx.fillStyle = old;
+    graph.ctx.beginPath();
     {
         var p = growthHandlePosition(0);
-        graphCtx.moveTo(p.x, p.y);
+        graph.ctx.moveTo(p.x, p.y);
     }
     for (var i = 1; i < growthInput.length; i += 1) {
         var p = growthHandlePosition(i);
-        graphCtx.lineTo(p.x, p.y);
+        graph.ctx.lineTo(p.x, p.y);
     }
-    graphCtx.strokeStyle = 'black';
-    graphCtx.stroke();
+    graph.ctx.strokeStyle = 'black';
+    graph.ctx.stroke();
     var nearest = nearestGrowthHandle(graphMouse);
     for (var i = 0; i < growthInput.length; i += 1) {
         var p = growthHandlePosition(i);
         drawGraphHandle(p.x, p.y, i === nearest, i === handleBeingDragged);
     }
-    graphCtx.beginPath();
+    graph.ctx.beginPath();
     var progressX = writableGraphWidth * percentDone + graphMargin;
-    graphCtx.moveTo(progressX, 0);
-    graphCtx.lineTo(progressX, writableGraphHeight);
-    graphCtx.strokeStyle = 'blue';
-    graphCtx.stroke();
-    graphCtx.beginPath();
+    graph.ctx.moveTo(progressX, 0);
+    graph.ctx.lineTo(progressX, writableGraphHeight);
+    graph.ctx.strokeStyle = 'blue';
+    graph.ctx.stroke();
+    graph.ctx.beginPath();
     var xAxisY = writableGraphHeight * 0.5;
-    graphCtx.moveTo(graphMargin, xAxisY);
-    graphCtx.lineTo(writableGraphWidth + graphMargin, xAxisY);
-    graphCtx.strokeStyle = 'black';
-    graphCtx.setLineDash([2, 2]);
-    graphCtx.stroke();
-    graphCtx.setLineDash([]);
-    //const facetingMetrics = graphCtx.measureText("faceting");
-    //const branchingMetrics = graphCtx.measureText("branching");
-    //graphCtx.fillText(
+    graph.ctx.moveTo(graphMargin, xAxisY);
+    graph.ctx.lineTo(writableGraphWidth + graphMargin, xAxisY);
+    graph.ctx.strokeStyle = 'black';
+    graph.ctx.setLineDash([2, 2]);
+    graph.ctx.stroke();
+    graph.ctx.setLineDash([]);
+    //const facetingMetrics = graph.ctx.measureText("faceting");
+    //const branchingMetrics = graph.ctx.measureText("branching");
+    //graph.ctx.fillText(
     //  "faceting",
     //  writableGraphWidth - facetingMetrics.width,
     //  writableGraphHeight * 0.5 - facetingMetrics.actualBoundingBoxAscent,
     //);
-    //graphCtx.fillText(
+    //graph.ctx.fillText(
     //  "branching",
     //  writableGraphWidth - branchingMetrics.width,
     //  writableGraphHeight * 0.5 + branchingMetrics.actualBoundingBoxAscent,
@@ -706,7 +711,7 @@ function update() {
         drawSnowflake(snowflake);
     }
     updateGraph();
-    graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
+    graph.ctx.clearRect(0, 0, graph.canvas.width, graph.canvas.height);
     drawGrowthInput();
 }
 function clearSnowflakeCanvas() {
