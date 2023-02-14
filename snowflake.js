@@ -1,5 +1,9 @@
-var canvas = document.getElementById('snowflake');
-var ctx = canvas.getContext('2d');
+function makeGraphic() {
+    var canvas = document.getElementById('snowflake');
+    var ctx = canvas.getContext('2d');
+    return { canvas: canvas, ctx: ctx };
+}
+var graphic = makeGraphic();
 function makeGraph() {
     var canvas = document.getElementById('graph');
     var ctx = canvas.getContext('2d');
@@ -36,11 +40,11 @@ function makeControls() {
         result.playing = !result.playing;
         if (result.playing) {
             pause.innerHTML = 'pause';
-            canvas.className = '';
+            graphic.canvas.className = '';
         }
         else {
             pause.innerHTML = 'play';
-            canvas.className = 'paused';
+            graphic.canvas.className = 'paused';
         }
     });
     reset.addEventListener('click', function (e) {
@@ -51,7 +55,7 @@ function makeControls() {
 var controls = makeControls();
 var lightBlue = 'rgba(90, 211, 255, 1.0)';
 var graphBackground = 'rgba(90, 211, 255, 0.5)';
-ctx.fillStyle = lightBlue;
+graphic.ctx.fillStyle = lightBlue;
 var otherStyle = 'rgba(90, 220, 255, 1.0)';
 var oneSixthCircle = Math.PI * 2 / 6;
 var directions = [
@@ -85,20 +89,15 @@ function drawSnowflake(snowflake) {
 function drawFace(face) {
     var center = toCanvasPoint(face.center);
     var size = toCanvasSize(face.size);
-    ctx.beginPath();
-    ctx.moveTo(center.x + size, center.y);
+    graphic.ctx.beginPath();
+    graphic.ctx.moveTo(center.x + size, center.y);
     for (var dir = 1; dir < 6; dir += 1) {
         var x = center.x + size * Math.cos(directions[dir]);
         var y = center.y - size * Math.sin(directions[dir]);
-        ctx.lineTo(x, y);
+        graphic.ctx.lineTo(x, y);
     }
-    ctx.closePath();
-    //const oldStyle = ctx.fillStyle;
-    //if (face.rayHits > 0) {
-    //  ctx.fillStyle = otherStyle;
-    //}
-    ctx.fill();
-    //ctx.fillStyle = oldStyle;
+    graphic.ctx.closePath();
+    graphic.ctx.fill();
 }
 function rem(x, m) {
     return ((x % m) + m) % m;
@@ -108,53 +107,37 @@ function drawBranch(branch) {
     var endCenter = toCanvasPoint(branchEnd(branch));
     var size = toCanvasSize(branch.size);
     var dir = rem(branch.direction - 2, directions.length);
-    ctx.beginPath();
+    graphic.ctx.beginPath();
     {
         var x = startCenter.x + size * Math.cos(directions[dir]);
         var y = startCenter.y - size * Math.sin(directions[dir]);
-        ctx.moveTo(x, y);
+        graphic.ctx.moveTo(x, y);
     }
     for (var i = 0; i < 2; i += 1) {
         dir = rem(dir - 1, directions.length);
         var x = startCenter.x + size * Math.cos(directions[dir]);
         var y = startCenter.y - size * Math.sin(directions[dir]);
-        ctx.lineTo(x, y);
+        graphic.ctx.lineTo(x, y);
     }
     for (var i = 0; i < 3; i += 1) {
         dir = rem(dir - 1, directions.length);
         var x = endCenter.x + size * Math.cos(directions[dir]);
         var y = endCenter.y - size * Math.sin(directions[dir]);
-        ctx.lineTo(x, y);
+        graphic.ctx.lineTo(x, y);
     }
-    ctx.closePath();
-    //const oldStyle = ctx.fillStyle;
-    //if (branch.rayHits > 0) {
-    //  ctx.fillStyle = otherStyle;
-    //}
-    ctx.fill();
-    //ctx.fillStyle = oldStyle;
-    //ctx.beginPath();
-    //ctx.strokeStyle = 'black';
-    //const circles = createCirclesAlongBranch(branch);
-    //for (let i = 0; i < circles.length; i += 1) {
-    //  const circle = circles[i];
-    //  const cCenter = toCanvasPoint(circle.center);
-    //  const cRadius = toCanvasSize(circle.radius);
-    //  ctx.ellipse(cCenter.x, cCenter.y, cRadius, cRadius, 0, 2 * Math.PI, 0);
-    //}
-    //ctx.closePath();
-    //ctx.stroke();
+    graphic.ctx.closePath();
+    graphic.ctx.fill();
 }
 function toCanvasSize(n) {
-    var smallestDimension = Math.min(canvas.width, canvas.height);
+    var smallestDimension = Math.min(graphic.canvas.width, graphic.canvas.height);
     return n * smallestDimension;
 }
 function toCanvasPoint(p) {
     var result = { x: p.x, y: p.y };
-    result.x *= canvas.width / 2;
-    result.y *= -canvas.height / 2;
-    result.x += canvas.width * 0.5;
-    result.y += canvas.height * 0.5;
+    result.x *= graphic.canvas.width / 2;
+    result.y *= -graphic.canvas.height / 2;
+    result.x += graphic.canvas.width * 0.5;
+    result.y += graphic.canvas.height * 0.5;
     return result;
 }
 function createInitialSnowflake() {
@@ -448,11 +431,11 @@ function buildRay(theta) {
 function drawRay(ray) {
     var start = toCanvasPoint(ray.start);
     var end = toCanvasPoint({ x: 0, y: 0 });
-    ctx.beginPath();
-    ctx.moveTo(start.x, start.y);
-    ctx.lineTo(end.x, end.y);
-    ctx.closePath();
-    ctx.stroke();
+    graphic.ctx.beginPath();
+    graphic.ctx.moveTo(start.x, start.y);
+    graphic.ctx.lineTo(end.x, end.y);
+    graphic.ctx.closePath();
+    graphic.ctx.stroke();
 }
 function castRaysAtGrowingParts(snowflake) {
     for (var i = 0; i < snowflake.faces.length; i += 1) {
@@ -718,7 +701,7 @@ function update() {
     drawGrowthInput();
 }
 function clearSnowflakeCanvas() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    graphic.ctx.clearRect(0, 0, graphic.canvas.width, graphic.canvas.height);
 }
 intervalId = window.setInterval(update, updateInterval);
 function test(cond, name) {
