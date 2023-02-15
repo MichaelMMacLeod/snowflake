@@ -1,6 +1,8 @@
 function makeGraphic() {
     var canvas = document.getElementById('snowflake');
     var ctx = canvas.getContext('2d');
+    var lightBlue = 'rgba(90, 211, 255, 1.0)';
+    ctx.fillStyle = lightBlue;
     return { canvas: canvas, ctx: ctx };
 }
 var graphic = makeGraphic();
@@ -8,12 +10,14 @@ function makeGraph() {
     var canvas = document.getElementById('graph');
     var ctx = canvas.getContext('2d');
     var graphMouse = { x: 0, y: 0 };
+    var background = 'rgba(90, 211, 255, 0.5)';
     var result = {
         canvas: canvas,
         ctx: ctx,
         handleBeingDragged: undefined,
         mouseRecentlyExitedGraph: false,
-        graphMouse: graphMouse
+        graphMouse: graphMouse,
+        background: background
     };
     canvas.addEventListener('mousemove', function (e) {
         graphMouse.x = e.offsetX;
@@ -53,10 +57,6 @@ function makeControls() {
     return result;
 }
 var controls = makeControls();
-var lightBlue = 'rgba(90, 211, 255, 1.0)';
-var graphBackground = 'rgba(90, 211, 255, 0.5)';
-graphic.ctx.fillStyle = lightBlue;
-var otherStyle = 'rgba(90, 220, 255, 1.0)';
 var oneSixthCircle = Math.PI * 2 / 6;
 var directions = [
     0 * oneSixthCircle,
@@ -226,7 +226,8 @@ function addBranchesToFace(snowflake, face) {
             if (face.direction === 'none' || i === 1) {
                 return face.growthScale * 0.9;
             }
-            return face.growthScale * 0.5;
+            var randomAdjust = Math.random() + 0.5;
+            return face.growthScale * 0.5 * randomAdjust;
         })();
         snowflake.branches.push({
             rayHits: 0,
@@ -322,7 +323,7 @@ function drawGrowthInput() {
     var dy = writableGraphHeight / yChoices.length;
     var percentDone = step / maxSteps;
     var old = graph.ctx.fillStyle;
-    graph.ctx.fillStyle = graphBackground;
+    graph.ctx.fillStyle = graph.background;
     graph.ctx.fillRect(graphMargin, 0, writableGraphWidth * percentDone, writableGraphHeight);
     graph.ctx.fillStyle = old;
     graph.ctx.beginPath();
