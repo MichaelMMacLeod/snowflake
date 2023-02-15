@@ -6,11 +6,16 @@ type Graphic = {
 function makeGraphic(): Graphic {
   const canvas = document.getElementById('snowflake') as HTMLCanvasElement;
   const ctx = canvas.getContext('2d');
-
+  const lightBlue = 'rgba(90, 211, 255, 1.0)';
+  
+  ctx.fillStyle = lightBlue;
+  
   return { canvas, ctx };
 }
 
 const graphic = makeGraphic();
+
+type RGBA = `rgba(${number}, ${number}, ${number}, ${number})`;
 
 type Graph = {
   canvas: HTMLCanvasElement,
@@ -18,18 +23,21 @@ type Graph = {
   handleBeingDragged: undefined | number | 'needs lookup',
   mouseRecentlyExitedGraph: boolean,
   graphMouse: Point,
+  background: RGBA,
 };
 
 function makeGraph(): Graph {
   const canvas = document.getElementById('graph') as HTMLCanvasElement;
   const ctx = canvas.getContext('2d');
   const graphMouse = { x: 0, y: 0 };
+  const background: RGBA = 'rgba(90, 211, 255, 0.5)';
   const result = {
     canvas,
     ctx,
     handleBeingDragged: undefined,
     mouseRecentlyExitedGraph: false,
     graphMouse,
+    background,
   };
 
   canvas.addEventListener('mousemove', e => {
@@ -81,11 +89,6 @@ function makeControls(): Controls {
 }
 
 const controls = makeControls();
-
-const lightBlue = 'rgba(90, 211, 255, 1.0)';
-const graphBackground = 'rgba(90, 211, 255, 0.5)';
-graphic.ctx.fillStyle = lightBlue;
-const otherStyle = 'rgba(90, 220, 255, 1.0)';
 
 const oneSixthCircle = Math.PI * 2 / 6;
 
@@ -430,7 +433,7 @@ function drawGrowthInput(): void {
   const percentDone = step / maxSteps;
 
   const old = graph.ctx.fillStyle;
-  graph.ctx.fillStyle = graphBackground;
+  graph.ctx.fillStyle = graph.background;
   graph.ctx.fillRect(
     graphMargin,
     0,
