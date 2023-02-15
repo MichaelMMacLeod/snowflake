@@ -117,14 +117,25 @@ function copyPoint(p: Point): Point {
   return { x: p.x, y: p.y };
 }
 
+type Faces = {
+  growing: Array<Face>,
+  grown: Array<Face>,
+  waiting: Array<Face>,
+};
+
+type Branches = {
+  growing: Array<Branch>,
+  grown: Array<Branch>,
+  waiting: Array<Branch>,
+};
+
 type Snowflake = {
-  faces: Array<Face>,
-  branches: Array<Branch>,
+  faces: Faces,
+  branches: Branches,
 };
 
 type Face = {
   rayHits: number,
-  growing: boolean,
   center: Point,
   size: number,
   direction: Direction | 'none',
@@ -133,7 +144,6 @@ type Face = {
 
 type Branch = {
   rayHits: number,
-  growing: boolean,
   start: Point,
   size: number,
   length: number,
@@ -150,8 +160,10 @@ function branchEnd(branch: Branch): Point {
 }
 
 function drawSnowflake(snowflake: Snowflake): void {
-  snowflake.faces.forEach(drawFace);
-  snowflake.branches.forEach(drawBranch);
+  snowflake.faces.growing.forEach(drawFace);
+  snowflake.faces.grown.forEach(drawFace);
+  snowflake.branches.growing.forEach(drawBranch);
+  snowflake.branches.grown.forEach(drawBranch);
 }
 
 function drawFace(face: Face): void {
@@ -218,15 +230,18 @@ function toCanvasPoint(p: Point): Point {
 
 function createInitialSnowflake(): Snowflake {
   return {
-    faces: [{
-      rayHits: 0,
-      growing: true,
-      center: { x: 0, y: 0 },
-      size: 0.0025,
-      direction: 'none',
-      growthScale: 1,
-    }],
-    branches: [],
+    faces: {
+      growing: [{
+        rayHits: 0,
+        center: { x: 0, y: 0 },
+        size: 0.0025,
+        direction: 'none',
+        growthScale: 1,
+      }],
+      grown: [],
+      waiting: [],
+    },
+    branches: {growing: [], grown: [], waiting: [] },
   };
 }
 
@@ -234,56 +249,37 @@ const growthScalar = 0.0001;
 const branchGrowthScalar = growthScalar * 0.3;
 
 function enlargeGrowingFaces(snowflake: Snowflake, scale: number): void {
-  snowflake.faces.forEach(face => {
-    if (face.growing) {
-      face.size += 0.75 * scale * growthScalar * face.growthScale;
-      if (face.direction !== 'none') {
-        const dx = 0.75 * 2 * scale * growthScalar * Math.cos(directions[face.direction]) * face.growthScale;
-        const dy = 0.75 * 2 * scale * growthScalar * Math.sin(directions[face.direction]) * face.growthScale;
-        face.center.x += dx;
-        face.center.y += dy;
-      }
+  snowflake.faces.growing.forEach(face => {
+    face.size += 0.75 * scale * growthScalar * face.growthScale;
+    if (face.direction !== 'none') {
+      const dx = 0.75 * 2 * scale * growthScalar * Math.cos(directions[face.direction]) * face.growthScale;
+      const dy = 0.75 * 2 * scale * growthScalar * Math.sin(directions[face.direction]) * face.growthScale;
+      face.center.x += dx;
+      face.center.y += dy;
     }
   })
 }
 
 function enlargeGrowingBranches(snowflake: Snowflake, scale: number): void {
-  snowflake.branches.forEach(branch => {
-    if (branch.growing) {
-      //const rayHitScale = (() => {
-      //  if (branch.rayHits > 10) {
-      //    return 2;
-      //  }
-
-      //  if (branch.rayHits > 5) {
-      //    return 1;
-      //  }
-
-      //  if (branch.rayHits)
-      //})();
-      const lengthScalar = -1.5 * scale + 1.5;
-      const sizeScalar = 1.5 * scale;
-      branch.size += sizeScalar * branchGrowthScalar * branch.growthScale;
-      branch.length += lengthScalar * growthScalar * branch.growthScale;
-    }
+  snowflake.branches.growing.forEach(branch => {
+    const lengthScalar = -1.5 * scale + 1.5;
+    const sizeScalar = 1.5 * scale;
+    branch.size += sizeScalar * branchGrowthScalar * branch.growthScale;
+    branch.length += lengthScalar * growthScalar * branch.growthScale;
   })
 }
 
 function addBranchesToGrowingFaces(snowflake: Snowflake): void {
-  snowflake.faces.forEach(face => {
-    if (face.growing) {
-      face.growing = false;
-      addBranchesToFace(snowflake, face);
-    }
+  snowflake.faces.growing.forEach(face => {
+    snowflake.faces.waiting.push(face);
+    addBranchesToFace(snowflake, face);
   })
 }
 
 function addFacesToGrowingBranches(snowflake: Snowflake): void {
-  snowflake.branches.forEach(branch => {
-    if (branch.growing) {
-      branch.growing = false;
-      addFaceToBranch(snowflake, branch);
-    }
+  snowflake.branches.growing.forEach(branch => {
+    snowflake.branches.waiting.push(branch);
+    addFaceToBranch(snowflake, branch);
   })
 }
 
@@ -317,9 +313,8 @@ function addBranchesToFace(snowflake: Snowflake, face: Face): void {
       const randomAdjust = Math.random() * 0.5 + 0.5;
       return face.growthScale * 0.5 * randomAdjust;
     })();
-    snowflake.branches.push({
+    snowflake.branches.growing.push({
       rayHits: 0,
-      growing: true,
       start: { x, y },
       size: sizeOfNewBranches,
       length: 0,
@@ -331,9 +326,8 @@ function addBranchesToFace(snowflake: Snowflake, face: Face): void {
 }
 
 function addFaceToBranch(snowflake: Snowflake, branch: Branch): void {
-  snowflake.faces.push({
+  snowflake.faces.growing.push({
     rayHits: 0,
-    growing: true,
     center: branchEnd(branch),
     size: branch.size,
     direction: branch.direction,
@@ -512,40 +506,6 @@ function interpretGrowth(time: number): Growth {
   };
 }
 
-function darken(snowflake: Snowflake): void {
-  const newBranches = [];
-  const newFaces = [];
-  for (let i = 0; i < snowflake.branches.length; i += 1) {
-    const branch = snowflake.branches[i];
-    if (branch.growing) {
-      newBranches.push({
-        growing: false,
-        start: { x: branch.start.x, y: branch.start.y },
-        size: branch.size,
-        length: branch.length,
-        direction: branch.direction,
-      });
-    }
-  }
-  for (let i = 0; i < snowflake.faces.length; i += 1) {
-    const face = snowflake.faces[i];
-    if (face.growing) {
-      newFaces.push({
-        growing: false,
-        center: { x: face.center.x, y: face.center.y },
-        size: face.size,
-        direction: face.direction,
-      });
-    }
-  }
-  for (let i = 0; i < newBranches.length; i += 1) {
-    snowflake.branches.push(newBranches[i]);
-  }
-  for (let i = 0; i < newFaces.length; i += 1) {
-    snowflake.faces.push(newFaces[i]);
-  }
-}
-
 type Ray = {
   start: Point,
   // end is implied to be (0, 0)
@@ -572,38 +532,29 @@ function drawRay(ray: Ray): void {
 }
 
 function castRaysAtGrowingParts(snowflake: Snowflake): void {
-  for (let i = 0; i < snowflake.faces.length; i += 1) {
-    const face = snowflake.faces[i];
-    face.rayHits = 0;
-  }
-  for (let i = 0; i < snowflake.branches.length; i += 1) {
-    const branch = snowflake.branches[i];
-    branch.rayHits = 0;
-  }
+  snowflake.faces.growing.forEach(face => face.rayHits = 0);
+  snowflake.branches.growing.forEach(branch => branch.rayHits = 0);
 
   const numRays = 200;
   const theta = Math.PI * 2 / numRays;
   for (let i = 0; i < numRays; i += 1) {
     const ray = buildRay(theta * i);
-    //drawRay(ray);
     const intersection = firstRayIntersection(snowflake, ray);
     if (intersection !== undefined) {
       intersection.rayHits += 1;
     }
   }
 
-  for (let i = 0; i < snowflake.faces.length; i += 1) {
-    const face = snowflake.faces[i];
+  snowflake.faces.growing.forEach(face => {
     if (face.rayHits === 0) {
-      face.growing = false;
+      snowflake.faces.waiting.push(face);
     }
-  }
-  for (let i = 0; i < snowflake.branches.length; i += 1) {
-    const branch = snowflake.branches[i];
+  });
+  snowflake.branches.growing.forEach(branch => {
     if (branch.rayHits === 0) {
-      branch.growing = false;
+      snowflake.branches.waiting.push(branch);
     }
-  }
+  });
 }
 
 function squareDistance(p1: Point, p2: Point): number {
@@ -662,37 +613,22 @@ function firstRayIntersection(
     }
   }
 
-  for (let i = 0; i < snowflake.faces.length; i += 1) {
-    const face = snowflake.faces[i];
-
+  snowflake.faces.growing.forEach(face => {
     const circle = {
       center: copyPoint(face.center),
       radius: face.size,
     };
+    circle.radius = Math.max(circle.radius, 0.01);
+    const intersection = findCircleRayIntersection(circle, ray);
+    updateIntersection(intersection, face, ray);
+  });
 
-    if (face.growing) {
-      circle.radius = Math.max(circle.radius, 0.01);
-
+  snowflake.branches.growing.forEach(branch => {
+    createCirclesAlongBranch(branch).forEach(circle => {
       const intersection = findCircleRayIntersection(circle, ray);
-
-      updateIntersection(intersection, face, ray);
-    }
-  }
-
-  for (let i = 0; i < snowflake.branches.length; i += 1) {
-    const branch = snowflake.branches[i];
-
-    if (branch.growing) {
-      const circles = createCirclesAlongBranch(branch);
-
-      for (let c = 0; c < circles.length; c += 1) {
-        const circle = circles[c];
-        const intersection = findCircleRayIntersection(circle, ray);
-
-        updateIntersection(intersection, branch, ray);
-      }
-    }
-  }
+      updateIntersection(intersection, branch, ray);
+    });
+  });
 
   return result;
 }
@@ -707,13 +643,7 @@ function createCirclesAlongBranch(branch: Branch): Array<Circle> {
   const end = branchEnd(branch);
   const dx = (end.x - branch.start.x) / numCircles;
   const dy = (end.y - branch.start.y) / numCircles;
-  const radius = (() => {
-    if (branch.growing) {
-      return Math.max(branch.size, 0.01);
-    }
-
-    return branch.size;
-  })();
+  const radius = Math.max(branch.size, 0.01);
 
   for (let i = 0; i <= numCircles; i += 1) {
     const x = branch.start.x + dx * i;
@@ -848,7 +778,6 @@ function currentTime(): number {
 }
 
 function updateGraph(): void {
-
   if (graph.handleBeingDragged !== undefined || graph.mouseRecentlyExitedGraph) {
     graph.mouseRecentlyExitedGraph = false;
     const handle = (() => {
@@ -875,6 +804,32 @@ function updateGraph(): void {
   }
 }
 
+
+function deleteSortedElementsFromSortedArray<T>(removeArray: Array<T>, elements: Array<T>) {
+  let completed = 0;
+  let removePos = 0;
+  let elementPos = 0;
+  while (removePos < removeArray.length) {
+    if (removeArray[removePos] === elements[elementPos]) {
+      elementPos += 1;
+    } else {
+      removeArray[completed] = removeArray[removePos];
+      completed += 1;
+    }
+    removePos += 1;
+  }
+  removeArray.splice(completed);
+}
+
+function moveBranchesAndFaces() {
+  deleteSortedElementsFromSortedArray(snowflake.faces.growing, snowflake.faces.waiting);
+  deleteSortedElementsFromSortedArray(snowflake.branches.growing, snowflake.branches.waiting);
+  snowflake.faces.grown.splice(snowflake.faces.grown.length, 0, ...snowflake.faces.waiting);
+  snowflake.branches.grown.splice(snowflake.branches.grown.length, 0, ...snowflake.branches.waiting);
+  snowflake.faces.waiting.splice(0);
+  snowflake.branches.waiting.splice(0);
+}
+
 function update(): void {
   if (step < maxSteps && controls.playing) {
     step += 1;
@@ -895,6 +850,8 @@ function update(): void {
         addFacesToGrowingBranches(snowflake);
       }
     }
+
+    moveBranchesAndFaces();
 
     if (currentGrowthType === 'branching') {
       enlargeGrowingBranches(snowflake, growth.scale);
@@ -925,42 +882,26 @@ function test(cond: boolean, name: string): void {
   }
 }
 
-function testBranchEnd(): void {
-  let r1 = branchEnd({
-    rayHits: 0,
-    growing: true,
-    start: { x: 0, y: 0 },
-    size: 0.1,
-    length: 1,
-    direction: 0,
-    growthScale: 1,
-  });
-  test(
-    Math.abs(r1.x - 1) < 0.0001,
-    'testBranchEnd1',
-  );
-  test(
-    Math.abs(r1.y - 0) < 0.0001,
-    'testBranchEnd2',
-  );
+function arraysEqual<T>(xs: Array<T>, ys: Array<T>) {
+  if (xs === ys) return true;
+  if (xs.length !== ys.length) return false;
+  for (let i = 0; i < xs.length; i += 1) {
+    if (xs[i] !== ys[i]) return false;
+  }
+  return true;
 }
 
-// function testRayIntersectsCircle() {
-//   test(
-//     rayIntersectsCircle(
-//       buildRay(0),
-//       { center: { x: 0, y: 0}, radius: 1 },
-//     ),
-//     'rayIntersectsCircle1',
-//   );
-//   test(
-//     !rayIntersectsCircle(
-//       buildRay(0),
-//       { center: { x: 0, y: 3 }, radius: 1 },
-//     ),
-//     'rayIntersectsCircle2',
-//   );
-// }
-
-//testBranchEnd();
-// testRayIntersectsCircle();
+function testDelete() {
+  {
+    const letters = ['a','b','c','d','e','f','g','h','i'];
+    const vowels = ['a','e','i'];
+    deleteSortedElementsFromSortedArray(letters, vowels);
+    test(arraysEqual(letters, ['b','c','d','f','g','h']), `1: Letters was ${letters}`);
+  }
+  {
+    const letters = ['a','b','c','d','e','f','g','h'];
+    const vowels = ['a','e'];
+    deleteSortedElementsFromSortedArray(letters, vowels);
+    test(arraysEqual(letters, ['b','c','d','f','g','h']), `2: Letters was ${letters}`);
+  }
+}

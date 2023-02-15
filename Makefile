@@ -1,5 +1,5 @@
 default:
-	npx tsc snowflake.ts
+	npx tsc
 
 watch:
-	npx tsc -w snowflake.ts
+	npx tsc -w
