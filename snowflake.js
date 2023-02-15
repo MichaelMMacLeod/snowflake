@@ -226,7 +226,7 @@ function addBranchesToFace(snowflake, face) {
             if (face.direction === 'none' || i === 1) {
                 return face.growthScale * 0.9;
             }
-            var randomAdjust = Math.random() + 0.5;
+            var randomAdjust = Math.random() * 0.5 + 0.5;
             return face.growthScale * 0.5 * randomAdjust;
         })();
         snowflake.branches.push({
