@@ -1,3 +1,4 @@
+"use strict";
 // Coordinate system(s):
 //
 // 1: "World" space. This is two dimensional (x,y) with the origin,
@@ -44,14 +45,19 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 function makeGraphic() {
     var canvas = document.getElementById('snowflake');
     var ctx = canvas.getContext('2d');
+    if (ctx === null) {
+        return undefined;
+    }
     var lightBlue = 'rgba(90, 211, 255, 1.0)';
     ctx.fillStyle = lightBlue;
     return { canvas: canvas, ctx: ctx };
 }
-var graphic = makeGraphic();
 function makeGraph() {
     var canvas = document.getElementById('graph');
     var ctx = canvas.getContext('2d');
+    if (ctx === null) {
+        return undefined;
+    }
     var graphMouse = { x: 0, y: 0 };
     var background = 'rgba(90, 211, 255, 0.5)';
     var result = {
@@ -78,14 +84,17 @@ function makeGraph() {
     return result;
 }
 ;
-var graph = makeGraph();
-function makeControls() {
+function makeControls(graphic) {
     var pause = document.getElementById('pause');
     var reset = document.getElementById('reset');
-    var result = { pause: pause, reset: reset, playing: true };
+    return { pause: pause, reset: reset, playing: true };
+}
+function registerControlsEventListeners(state) {
+    var controls = state.controls, graphic = state.graphic;
+    var pause = controls.pause, reset = controls.reset;
     pause.addEventListener('click', function (e) {
-        result.playing = !result.playing;
-        if (result.playing) {
+        controls.playing = !controls.playing;
+        if (controls.playing) {
             pause.innerHTML = 'pause';
             graphic.canvas.className = '';
         }
@@ -95,11 +104,9 @@ function makeControls() {
         }
     });
     reset.addEventListener('click', function (e) {
-        resetSnowflake();
+        resetSnowflake(state);
     });
-    return result;
 }
-var controls = makeControls();
 var oneSixthCircle = Math.PI * 2 / 6;
 var directions = [
     0 * oneSixthCircle,
@@ -109,12 +116,9 @@ var directions = [
     4 * oneSixthCircle,
     5 * oneSixthCircle,
 ];
-function parseDirection(i) {
-    if (i === 0 || i === 1 || i === 2 ||
-        i === 3 || i === 4 || i === 5) {
-        return i;
-    }
-    return undefined;
+function isDirection(i) {
+    return i === 0 || i === 1 || i === 2 ||
+        i === 3 || i === 4 || i === 5;
 }
 function nextDirection(d) {
     return ((d + 1) % directions.length);
@@ -151,13 +155,13 @@ function branchEnd(branch) {
     var y = branch.start.y + l * Math.sin(d);
     return { x: x, y: y };
 }
-function drawSnowflake(snowflake) {
-    snowflake.faces.growing.forEach(drawFace);
-    snowflake.faces.grown.forEach(drawFace);
-    snowflake.branches.growing.forEach(drawBranch);
-    snowflake.branches.grown.forEach(drawBranch);
+function drawSnowflake(graphic, snowflake) {
+    snowflake.faces.growing.forEach(function (f) { return drawFace(graphic, f); });
+    snowflake.faces.grown.forEach(function (f) { return drawFace(graphic, f); });
+    snowflake.branches.growing.forEach(function (b) { return drawBranch(graphic, b); });
+    snowflake.branches.grown.forEach(function (b) { return drawBranch(graphic, b); });
 }
-function worldToViewTransform(p) {
+function worldToViewTransform(graphic, p) {
     var w = graphic.canvas.width;
     var h = graphic.canvas.height;
     // affine transform:
@@ -170,10 +174,10 @@ function worldToViewTransform(p) {
     };
     return r;
 }
-function drawFace(face) {
+function drawFace(graphic, face) {
     graphic.ctx.beginPath();
     getFacePoints(face).forEach(function (p, i) {
-        var _a = worldToViewTransform(p), x = _a.x, y = _a.y;
+        var _a = worldToViewTransform(graphic, p), x = _a.x, y = _a.y;
         if (i === 0) {
             graphic.ctx.moveTo(x, y);
         }
@@ -188,10 +192,10 @@ function drawFace(face) {
 function rem(x, m) {
     return ((x % m) + m) % m;
 }
-function drawBranch(branch) {
+function drawBranch(graphic, branch) {
     graphic.ctx.beginPath();
     getBranchPoints(branch).forEach(function (p, i) {
-        var _a = worldToViewTransform(p), x = _a.x, y = _a.y;
+        var _a = worldToViewTransform(graphic, p), x = _a.x, y = _a.y;
         if (i === 0) {
             graphic.ctx.moveTo(x, y);
         }
@@ -201,10 +205,6 @@ function drawBranch(branch) {
     });
     graphic.ctx.closePath();
     graphic.ctx.fill();
-}
-function toCanvasSize(n) {
-    var smallestDimension = Math.min(graphic.canvas.width, graphic.canvas.height);
-    return n * smallestDimension;
 }
 // function toCanvasPoint(p: Point): Point {
 //   const result = { x: p.x, y: p.y };
@@ -317,7 +317,7 @@ function clamp(x, low, high) {
 }
 var growthInput = [0, 5, 8, 8, 3, 5, 3, 2, 6, 3, 6, 3];
 var yChoices = [-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1];
-function drawGraphHandle(x, y, isSelected, isBeingDragged) {
+function drawGraphHandle(graph, x, y, isSelected, isBeingDragged) {
     var oldFillStyle = graph.ctx.fillStyle;
     var oldStrokeStyle = graph.ctx.strokeStyle;
     var oldLineDash = graph.ctx.getLineDash();
@@ -353,17 +353,18 @@ function drawGraphHandle(x, y, isSelected, isBeingDragged) {
     graph.ctx.strokeStyle = oldStrokeStyle;
     graph.ctx.setLineDash(oldLineDash);
 }
-function growthHandlePosition(i) {
+function growthHandlePosition(writableGraphWidth, writableGraphHeight, graphMargin, i) {
     return {
         x: writableGraphWidth / (growthInput.length - 1) * i + graphMargin,
         y: 4 * yChoices[growthInput[i]] * (writableGraphHeight / yChoices.length) + writableGraphHeight * 0.5
     };
 }
-function nearestGrowthHandle(canvasPoint) {
+function nearestGrowthHandle(state, canvasPoint) {
+    var writableGraphWidth = state.writableGraphWidth, writableGraphHeight = state.writableGraphHeight, graphMargin = state.graphMargin;
     var nearestDist = Infinity;
     var nearest = 0;
     for (var i = 0; i < growthInput.length; i += 1) {
-        var p = growthHandlePosition(i);
+        var p = growthHandlePosition(writableGraphWidth, writableGraphHeight, graphMargin, i);
         var dx = p.x - canvasPoint.x;
         var dist = dx * dx;
         if (dist < nearestDist) {
@@ -373,10 +374,8 @@ function nearestGrowthHandle(canvasPoint) {
     }
     return nearest;
 }
-var graphMargin = 10;
-var writableGraphWidth = graph.canvas.width - 2 * graphMargin;
-var writableGraphHeight = graph.canvas.height;
-function drawGrowthInput() {
+function drawGrowthInput(state) {
+    var graph = state.graph, writableGraphWidth = state.writableGraphWidth, writableGraphHeight = state.writableGraphHeight, graphMargin = state.graphMargin, step = state.step, maxSteps = state.maxSteps;
     var dx = writableGraphWidth / (growthInput.length - 1);
     var dy = writableGraphHeight / yChoices.length;
     var percentDone = step / maxSteps;
@@ -386,19 +385,19 @@ function drawGrowthInput() {
     graph.ctx.fillStyle = old;
     graph.ctx.beginPath();
     {
-        var p = growthHandlePosition(0);
+        var p = growthHandlePosition(writableGraphWidth, writableGraphHeight, graphMargin, 0);
         graph.ctx.moveTo(p.x, p.y);
     }
     for (var i = 1; i < growthInput.length; i += 1) {
-        var p = growthHandlePosition(i);
+        var p = growthHandlePosition(writableGraphWidth, writableGraphHeight, graphMargin, i);
         graph.ctx.lineTo(p.x, p.y);
     }
     graph.ctx.strokeStyle = 'black';
     graph.ctx.stroke();
-    var nearest = nearestGrowthHandle(graph.graphMouse);
+    var nearest = nearestGrowthHandle(state, graph.graphMouse);
     for (var i = 0; i < growthInput.length; i += 1) {
-        var p = growthHandlePosition(i);
-        drawGraphHandle(p.x, p.y, i === nearest, i === graph.handleBeingDragged);
+        var p = growthHandlePosition(writableGraphWidth, writableGraphHeight, graphMargin, i);
+        drawGraphHandle(graph, p.x, p.y, i === nearest, i === graph.handleBeingDragged);
     }
     graph.ctx.beginPath();
     var progressX = writableGraphWidth * percentDone + graphMargin;
@@ -454,9 +453,9 @@ function buildRay(theta) {
         }
     };
 }
-function drawRay(ray) {
-    var start = worldToViewTransform(ray.start);
-    var end = worldToViewTransform({ x: 0, y: 0 });
+function drawRay(graphic, ray) {
+    var start = worldToViewTransform(graphic, ray.start);
+    var end = worldToViewTransform(graphic, { x: 0, y: 0 });
     graphic.ctx.beginPath();
     graphic.ctx.moveTo(start.x, start.y);
     graphic.ctx.lineTo(end.x, end.y);
@@ -617,8 +616,13 @@ function testFindCircleRayIntersection() {
         }
     };
     var r1 = findCircleRayIntersection(circle, ray);
-    test(Math.abs(r1.x - 10.39) < 0.01, "testFindRayCircleIntersection1");
-    test(Math.abs(r1.y - -6.70) < 0.01, "testFindRayCircleIntersection2");
+    if (r1 === undefined) {
+        console.error("no intersection");
+    }
+    else {
+        test(Math.abs(r1.x - 10.39) < 0.01, "testFindRayCircleIntersection1");
+        test(Math.abs(r1.y - -6.70) < 0.01, "testFindRayCircleIntersection2");
+    }
 }
 function rayCircleDiscriminant(ray, circle) {
     // from https://mathworld.wolfram.com/Circle-LineIntersection.html
@@ -634,27 +638,17 @@ function rayCircleDiscriminant(ray, circle) {
     var discriminant = r * r * dr - D * D;
     return discriminant;
 }
-var updateInterval = 5;
-var maxSteps = 6000;
-var snowflake = createInitialSnowflake();
-var step = 0;
-var intervalId = undefined;
-var currentGrowthType = undefined;
-function resetSnowflake() {
-    snowflake = createInitialSnowflake();
-    step = 0;
-    currentGrowthType = undefined;
-    clearSnowflakeCanvas();
-}
-function currentTime() {
+function currentTime(state) {
+    var step = state.step, maxSteps = state.maxSteps;
     return step / maxSteps;
 }
-function updateGraph() {
+function updateGraph(state) {
+    var graph = state.graph, writableGraphHeight = state.writableGraphHeight;
     if (graph.handleBeingDragged !== undefined || graph.mouseRecentlyExitedGraph) {
         graph.mouseRecentlyExitedGraph = false;
         var handle = (function () {
             if (graph.handleBeingDragged === 'needs lookup') {
-                return nearestGrowthHandle(graph.graphMouse);
+                return nearestGrowthHandle(state, graph.graphMouse);
             }
             else {
                 return graph.handleBeingDragged;
@@ -665,13 +659,9 @@ function updateGraph() {
         }
         var dy = writableGraphHeight / yChoices.length;
         var i = Math.floor(graph.graphMouse.y / dy);
-        growthInput[handle] = clamp(i, 0, yChoices.length - 1);
-        //while (growthInput[handle] > 0 && growthHandlePosition(handle).y > graph.graphMouse.y) {
-        //  growthInput[handle] -= 1;
-        //}
-        //while (growthInput[handle] < yChoices.length && growthHandlePosition(handle).y < graph.graphMouse.y) {
-        //  growthInput[handle] += 1;
-        //}
+        if (handle !== undefined) {
+            growthInput[handle] = clamp(i, 0, yChoices.length - 1);
+        }
     }
 }
 function deleteSortedElementsFromSortedArray(removeArray, elements) {
@@ -690,7 +680,7 @@ function deleteSortedElementsFromSortedArray(removeArray, elements) {
     }
     removeArray.splice(completed);
 }
-function moveBranchesAndFaces() {
+function moveBranchesAndFaces(snowflake) {
     var _a, _b;
     deleteSortedElementsFromSortedArray(snowflake.faces.growing, snowflake.faces.waiting);
     deleteSortedElementsFromSortedArray(snowflake.branches.growing, snowflake.branches.waiting);
@@ -699,41 +689,41 @@ function moveBranchesAndFaces() {
     snowflake.faces.waiting.splice(0);
     snowflake.branches.waiting.splice(0);
 }
-function update() {
-    if (step < maxSteps && controls.playing) {
-        step += 1;
+function update(state) {
+    var snowflake = state.snowflake, graph = state.graph, graphic = state.graphic, maxSteps = state.maxSteps, controls = state.controls;
+    if (state.step < maxSteps && controls.playing) {
+        state.step += 1;
         castRaysAtGrowingParts(snowflake);
-        var growth = interpretGrowth(currentTime());
-        if (currentGrowthType === undefined) {
-            currentGrowthType = growth.growthType;
+        var growth = interpretGrowth(currentTime(state));
+        if (state.currentGrowthType === undefined) {
+            state.currentGrowthType = growth.growthType;
         }
-        if (currentGrowthType !== growth.growthType) {
-            currentGrowthType = growth.growthType;
-            if (currentGrowthType === 'branching') {
+        if (state.currentGrowthType !== growth.growthType) {
+            state.currentGrowthType = growth.growthType;
+            if (state.currentGrowthType === 'branching') {
                 addBranchesToGrowingFaces(snowflake);
             }
             else {
                 addFacesToGrowingBranches(snowflake);
             }
         }
-        moveBranchesAndFaces();
-        if (currentGrowthType === 'branching') {
+        moveBranchesAndFaces(snowflake);
+        if (state.currentGrowthType === 'branching') {
             enlargeGrowingBranches(snowflake, growth.scale);
         }
         else {
             enlargeGrowingFaces(snowflake, growth.scale);
         }
-        clearSnowflakeCanvas();
-        drawSnowflake(snowflake);
+        clearSnowflakeCanvas(graphic);
+        drawSnowflake(graphic, snowflake);
     }
-    updateGraph();
+    updateGraph(state);
     graph.ctx.clearRect(0, 0, graph.canvas.width, graph.canvas.height);
-    drawGrowthInput();
+    drawGrowthInput(state);
 }
-function clearSnowflakeCanvas() {
+function clearSnowflakeCanvas(graphic) {
     graphic.ctx.clearRect(0, 0, graphic.canvas.width, graphic.canvas.height);
 }
-intervalId = window.setInterval(update, updateInterval);
 function test(cond, name) {
     if (!cond) {
         console.error("Test failure: ".concat(name));
@@ -849,24 +839,64 @@ function getBranchPoints(branch) {
     var result = [];
     var startPoints = getFacePoints(branchStartFace(branch));
     var endPoints = getFacePoints(branchEndFace(branch));
+    result.push(endPoints[0]);
+    result.push(endPoints[1]);
     result.push(startPoints[2]);
     result.push(startPoints[3]);
     result.push(startPoints[4]);
     result.push(endPoints[5]);
-    result.push(endPoints[0]);
-    result.push(endPoints[1]);
     return result;
 }
-function testGetBranchEndPoints() {
+function testGetBranchPoints() {
     {
         var b = __assign(__assign({}, defaultBranch), { start: { x: 0, y: 0 }, direction: 0, length: 10, size: 1 });
         var p = getBranchPoints(b);
-        testEq(p.length, 6, "gbep_a1");
-        testAbs(p[4].x, 11, "gbep_a2");
-        testAbs(p[4].y, 0, "gbep_a3");
-        testAbs(p[3].x, 10 + Math.cos(5 * oneSixthCircle), "gbep_a4");
-        testAbs(p[3].y, Math.sin(5 * oneSixthCircle), "gbep_a5");
+        testEq(p.length, 6, "gbp_a1");
+        testAbs(p[0].x, 11, "gbp_a2");
+        testAbs(p[0].y, 0, "gbp_a3");
+        testAbs(p[5].x, 10 + Math.cos(5 * oneSixthCircle), "gbp_a4");
+        testAbs(p[5].y, Math.sin(5 * oneSixthCircle), "gbp_a5");
     }
+}
+function getBranchSide2Ds(branch) {
+    var points = getBranchPoints(branch);
+    var result = [];
+    for (var i = 0; i < directions.length; i += 1) {
+        if (i === directions.length - 1) {
+            result.push({ right: points[i], left: points[0] });
+        }
+        else {
+            result.push({ right: points[i], left: points[i + 1] });
+        }
+    }
+    return result;
+}
+function testGetBranchSide2Ds() {
+    {
+        var b = __assign(__assign({}, defaultBranch), { start: { x: 0, y: 0 }, size: 1, length: 10, direction: 2 });
+        var p = getBranchSide2Ds(b);
+        testEq(p.length, 6, "gbs_a1");
+        testAbs(p[4].right.x, Math.cos(0 * oneSixthCircle), "gbs_a2");
+        testAbs(p[4].right.y, Math.sin(0 * oneSixthCircle), "gbs_a3");
+        testAbs(p[4].left.x, 10 * Math.cos(2 * oneSixthCircle) + Math.cos(oneSixthCircle), "gbs_a4");
+        testAbs(p[4].left.y, 10 * Math.sin(2 * oneSixthCircle) + Math.sin(oneSixthCircle), "gbs_a5");
+        testAbs(p[3].right.x, Math.cos(5 * oneSixthCircle), "gbs_a6");
+        testAbs(p[3].right.y, Math.sin(5 * oneSixthCircle), "gbs_a7");
+        testAbs(p[3].left.x, p[4].right.x, "gbs_a8");
+        testAbs(p[3].left.y, p[4].right.y, "gbs_a9");
+    }
+}
+function getNormalizedBranchSides(branch) {
+    return getBranchSide2Ds(branch).map(function (s, i) {
+        var theta = oneSixthCircle * (1 - i);
+        var left = rotatePoint(s.left, theta);
+        var right = rotatePoint(s.right, theta);
+        return {
+            left: left.x,
+            right: right.x,
+            height: left.y
+        };
+    });
 }
 function getFaceSide2Ds(face) {
     var points = getFacePoints(face);
@@ -927,8 +957,14 @@ function testGetNormalizedFaceSides() {
     }
     {
         var s = directions.map(function (d, i) {
-            var f = __assign(__assign({}, defaultFace), { size: 10, direction: parseDirection(i), center: rotatePoint({ x: 50, y: 0 }, d) });
-            return [getFaceSide2Ds(f), getNormalizedFaceSides(f)];
+            if (isDirection(i)) {
+                var f = __assign(__assign({}, defaultFace), { size: 10, direction: i, center: rotatePoint({ x: 50, y: 0 }, d) });
+                return [getFaceSide2Ds(f), getNormalizedFaceSides(f)];
+            }
+            else {
+                console.error('problem in norm');
+                return [getFaceSide2Ds(defaultFace), getNormalizedFaceSides(defaultFace)];
+            }
         });
         testAbs(s[0][1][0].left, s[1][0][0].left.x, "norm_b1");
         testAbs(s[0][1][0].right, s[1][0][0].right.x, "norm_b2");
@@ -951,5 +987,52 @@ if (enableTests) {
     testGetFacePoints();
     testGetFaceSide2Ds();
     testGetNormalizedFaceSides();
-    testGetBranchEndPoints();
+    testGetBranchPoints();
+    testGetBranchSide2Ds();
 }
+function makeState() {
+    var graph = makeGraph();
+    var graphic = makeGraphic();
+    if (graph === undefined || graphic === undefined) {
+        console.error("Couldn't get drawing context");
+        return undefined;
+    }
+    var snowflake = createInitialSnowflake();
+    var currentGrowthType = undefined;
+    var graphMargin = 10;
+    var writableGraphWidth = graph.canvas.width - 2 * graphMargin;
+    var writableGraphHeight = graph.canvas.height;
+    var controls = makeControls(graphic);
+    var step = 0;
+    var intervalId = undefined;
+    var updateInterval = 5;
+    var maxSteps = 6000;
+    return {
+        graph: graph,
+        graphic: graphic,
+        snowflake: snowflake,
+        currentGrowthType: currentGrowthType,
+        graphMargin: graphMargin,
+        writableGraphWidth: writableGraphWidth,
+        writableGraphHeight: writableGraphHeight,
+        controls: controls,
+        step: step,
+        intervalId: intervalId,
+        updateInterval: updateInterval,
+        maxSteps: maxSteps
+    };
+}
+function resetSnowflake(state) {
+    state.snowflake = createInitialSnowflake();
+    state.step = 0;
+    state.currentGrowthType = undefined;
+    clearSnowflakeCanvas(state.graphic);
+}
+(function () {
+    var state = makeState();
+    if (state === undefined) {
+        return;
+    }
+    registerControlsEventListeners(state);
+    state.intervalId = window.setInterval(function () { return update(state); }, state.updateInterval);
+})();

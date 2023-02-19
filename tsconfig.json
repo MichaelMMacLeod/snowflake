@@ -1,5 +1,8 @@
 {
     "compilerOptions": {
+        "strict": true,
+        "alwaysStrict": true,
+        "noImplicitAny": false, //fixme
         "lib": ["es2016", "dom"],
         "module": "esnext",
         "moduleResolution": "node",

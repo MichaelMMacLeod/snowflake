@@ -27,17 +27,20 @@ type Graphic = {
   ctx: CanvasRenderingContext2D,
 };
 
-function makeGraphic(): Graphic {
+function makeGraphic(): Graphic | undefined {
   const canvas = document.getElementById('snowflake') as HTMLCanvasElement;
   const ctx = canvas.getContext('2d');
+
+  if (ctx === null) {
+    return undefined;
+  }
+  
   const lightBlue = 'rgba(90, 211, 255, 1.0)';
   
   ctx.fillStyle = lightBlue;
   
   return { canvas, ctx };
 }
-
-const graphic = makeGraphic();
 
 type RGBA = `rgba(${number}, ${number}, ${number}, ${number})`;
 
@@ -50,12 +53,17 @@ type Graph = {
   background: RGBA,
 };
 
-function makeGraph(): Graph {
+function makeGraph(): Graph | undefined {
   const canvas = document.getElementById('graph') as HTMLCanvasElement;
   const ctx = canvas.getContext('2d');
+
+  if (ctx === null) {
+    return undefined;
+  }
+  
   const graphMouse = { x: 0, y: 0 };
   const background: RGBA = 'rgba(90, 211, 255, 0.5)';
-  const result = {
+  const result: Graph = {
     canvas,
     ctx,
     handleBeingDragged: undefined,
@@ -81,22 +89,25 @@ function makeGraph(): Graph {
   return result;
 };
 
-const graph = makeGraph();
-
 type Controls = {
   pause: HTMLButtonElement;
   reset: HTMLButtonElement;
   playing: boolean;
 };
 
-function makeControls(): Controls {
+function makeControls(graphic: Graphic): Controls {
   const pause = document.getElementById('pause') as HTMLButtonElement;
   const reset = document.getElementById('reset') as HTMLButtonElement;
-  const result = { pause, reset, playing: true };
-  
+  return { pause, reset, playing: true };  
+}
+
+function registerControlsEventListeners(state: State): void {
+  const { controls, graphic } = state;
+  const { pause, reset } = controls;
+
   pause.addEventListener('click', e => {
-    result.playing = !result.playing;
-    if (result.playing) {
+    controls.playing = !controls.playing;
+    if (controls.playing) {
       pause.innerHTML = 'pause';
       graphic.canvas.className = '';
     } else {
@@ -106,13 +117,9 @@ function makeControls(): Controls {
   });
 
   reset.addEventListener('click', e => {
-    resetSnowflake();
+    resetSnowflake(state);
   });
-  
-  return result;
 }
-
-const controls = makeControls();
 
 const oneSixthCircle = Math.PI * 2 / 6;
 
@@ -127,12 +134,9 @@ const directions = [
 
 type Direction = 0 | 1 | 2 | 3 | 4 | 5;
 
-function parseDirection(i: number): Direction | undefined {
-  if (i === 0 || i === 1 || i === 2 ||
-    i === 3 || i === 4 || i === 5) {
-    return i;
-  }
-  return undefined;
+function isDirection(i: number): i is Direction {
+  return i === 0 || i === 1 || i === 2 ||
+    i === 3 || i === 4 || i === 5;
 }
 
 function nextDirection(d: Direction): Direction {
@@ -214,14 +218,14 @@ function branchEnd(branch: Branch): Point {
   return { x, y };
 }
 
-function drawSnowflake(snowflake: Snowflake): void {
-  snowflake.faces.growing.forEach(drawFace);
-  snowflake.faces.grown.forEach(drawFace);
-  snowflake.branches.growing.forEach(drawBranch);
-  snowflake.branches.grown.forEach(drawBranch);
+function drawSnowflake(graphic: Graphic, snowflake: Snowflake): void {
+  snowflake.faces.growing.forEach(f => drawFace(graphic, f));
+  snowflake.faces.grown.forEach(f => drawFace(graphic, f));
+  snowflake.branches.growing.forEach(b => drawBranch(graphic, b));
+  snowflake.branches.grown.forEach(b => drawBranch(graphic, b));
 }
 
-function worldToViewTransform(p: Point): Point {
+function worldToViewTransform(graphic: Graphic, p: Point): Point {
   const w = graphic.canvas.width;
   const h = graphic.canvas.height;
   // affine transform:
@@ -235,10 +239,10 @@ function worldToViewTransform(p: Point): Point {
   return r;
 }
 
-function drawFace(face: Face): void {
+function drawFace(graphic: Graphic, face: Face): void {
   graphic.ctx.beginPath();
   getFacePoints(face).forEach((p, i) => {
-    const { x, y } = worldToViewTransform(p);
+    const { x, y } = worldToViewTransform(graphic, p);
     if (i === 0) {
       graphic.ctx.moveTo(x, y);
     } else {
@@ -254,10 +258,10 @@ function rem(x: number, m: number): number {
   return ((x % m) + m) % m;
 }
 
-function drawBranch(branch: Branch): void {
+function drawBranch(graphic: Graphic, branch: Branch): void {
   graphic.ctx.beginPath();
   getBranchPoints(branch).forEach((p, i) => {
-    const { x, y } = worldToViewTransform(p);
+    const { x, y } = worldToViewTransform(graphic, p);
     if (i === 0) {
       graphic.ctx.moveTo(x, y);
     } else {
@@ -266,11 +270,6 @@ function drawBranch(branch: Branch): void {
   });
   graphic.ctx.closePath();
   graphic.ctx.fill();
-}
-
-function toCanvasSize(n: number): number {
-  const smallestDimension = Math.min(graphic.canvas.width, graphic.canvas.height);
-  return n * smallestDimension;
 }
 
 // function toCanvasPoint(p: Point): Point {
@@ -407,6 +406,7 @@ const yChoices: Array<number> =
   [-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1];
 
 function drawGraphHandle(
+  graph: Graph,
   x: number,
   y: number,
   isSelected: boolean,
@@ -451,19 +451,34 @@ function drawGraphHandle(
   graph.ctx.setLineDash(oldLineDash);
 }
 
-function growthHandlePosition(i: number): Point {
+function growthHandlePosition(
+  writableGraphWidth: number,
+  writableGraphHeight: number,
+  graphMargin: number,
+  i: number): Point
+{
   return {
     x: writableGraphWidth / (growthInput.length - 1) * i + graphMargin,
     y: 4 * yChoices[growthInput[i]] * (writableGraphHeight / yChoices.length) + writableGraphHeight * 0.5,
   };
 }
 
-function nearestGrowthHandle(canvasPoint: Point): number {
+function nearestGrowthHandle(state: State, canvasPoint: Point): number {
+  const {
+    writableGraphWidth,
+    writableGraphHeight,
+    graphMargin,
+  } = state;
+
   let nearestDist = Infinity;
   let nearest = 0;
 
   for (let i = 0; i < growthInput.length; i += 1) {
-    const p = growthHandlePosition(i);
+    const p = growthHandlePosition(
+      writableGraphWidth,
+      writableGraphHeight,
+      graphMargin,
+      i);
     const dx = p.x - canvasPoint.x;
     const dist = dx * dx;
     if (dist < nearestDist) {
@@ -475,11 +490,16 @@ function nearestGrowthHandle(canvasPoint: Point): number {
   return nearest;
 }
 
-const graphMargin = 10;
-const writableGraphWidth = graph.canvas.width - 2 * graphMargin;
-const writableGraphHeight = graph.canvas.height;
+function drawGrowthInput(state: State): void {
+  const {
+    graph,
+    writableGraphWidth,
+    writableGraphHeight,
+    graphMargin,
+    step,
+    maxSteps,
+  } = state;
 
-function drawGrowthInput(): void {
   const dx = writableGraphWidth / (growthInput.length - 1);
   const dy = writableGraphHeight / yChoices.length;
   const percentDone = step / maxSteps;
@@ -496,20 +516,32 @@ function drawGrowthInput(): void {
   graph.ctx.beginPath();
 
   {
-    const p = growthHandlePosition(0);
+    const p = growthHandlePosition(
+      writableGraphWidth,
+      writableGraphHeight,
+      graphMargin,
+      0);
     graph.ctx.moveTo(p.x, p.y);
   }
   for (let i = 1; i < growthInput.length; i += 1) {
-    const p = growthHandlePosition(i);
+    const p = growthHandlePosition(
+      writableGraphWidth,
+      writableGraphHeight,
+      graphMargin,
+      i);
     graph.ctx.lineTo(p.x, p.y);
   }
   graph.ctx.strokeStyle = 'black';
   graph.ctx.stroke();
 
-  const nearest = nearestGrowthHandle(graph.graphMouse);
+  const nearest = nearestGrowthHandle(state, graph.graphMouse);
   for (let i = 0; i < growthInput.length; i += 1) {
-    const p = growthHandlePosition(i);
-    drawGraphHandle(p.x, p.y, i === nearest, i === graph.handleBeingDragged);
+    const p = growthHandlePosition(
+      writableGraphWidth,
+      writableGraphHeight,
+      graphMargin,
+      i);
+    drawGraphHandle(graph, p.x, p.y, i === nearest, i === graph.handleBeingDragged);
   }
 
   graph.ctx.beginPath();
@@ -578,9 +610,9 @@ function buildRay(theta: number): Ray {
   };
 }
 
-function drawRay(ray: Ray): void {
-  const start = worldToViewTransform(ray.start);
-  const end = worldToViewTransform({ x: 0, y: 0 });
+function drawRay(graphic: Graphic, ray: Ray): void {
+  const start = worldToViewTransform(graphic, ray.start);
+  const end = worldToViewTransform(graphic, { x: 0, y: 0 });
   graphic.ctx.beginPath();
   graphic.ctx.moveTo(start.x, start.y);
   graphic.ctx.lineTo(end.x, end.y);
@@ -695,7 +727,7 @@ function createCirclesAlongBranch(branch: Branch): Array<Circle> {
     return [];
   }
 
-  const result = [];
+  const result: Array<Circle> = [];
   const numCircles = Math.min(Math.ceil(branch.length / branch.size), 10);
   const end = branchEnd(branch);
   const dx = (end.x - branch.start.x) / numCircles;
@@ -791,8 +823,12 @@ function testFindCircleRayIntersection(): void {
     }
   };
   let r1 = findCircleRayIntersection(circle, ray);
-  test(Math.abs(r1.x - 10.39) < 0.01, "testFindRayCircleIntersection1");
-  test(Math.abs(r1.y - -6.70) < 0.01, "testFindRayCircleIntersection2");
+  if (r1 === undefined) {
+    console.error("no intersection");
+  } else {
+    test(Math.abs(r1.x - 10.39) < 0.01, "testFindRayCircleIntersection1");
+    test(Math.abs(r1.y - -6.70) < 0.01, "testFindRayCircleIntersection2");
+  }
 }
 
 type Circle = {
@@ -815,30 +851,18 @@ function rayCircleDiscriminant(ray: Ray, circle: Circle): number {
   return discriminant;
 }
 
-const updateInterval = 5;
-const maxSteps = 6000;
-let snowflake = createInitialSnowflake();
-let step = 0;
-let intervalId = undefined;
-let currentGrowthType = undefined;
-
-function resetSnowflake(): void {
-  snowflake = createInitialSnowflake();
-  step = 0;
-  currentGrowthType = undefined;
-  clearSnowflakeCanvas();
-}
-
-function currentTime(): number {
+function currentTime(state: State): number {
+  const { step, maxSteps } = state;
   return step / maxSteps;
 }
 
-function updateGraph(): void {
+function updateGraph(state: State): void {
+  const { graph, writableGraphHeight } = state;
   if (graph.handleBeingDragged !== undefined || graph.mouseRecentlyExitedGraph) {
     graph.mouseRecentlyExitedGraph = false;
-    const handle = (() => {
+    const handle: number | undefined = (() => {
       if (graph.handleBeingDragged === 'needs lookup') {
-        return nearestGrowthHandle(graph.graphMouse);
+        return nearestGrowthHandle(state, graph.graphMouse);
       } else {
         return graph.handleBeingDragged;
       }
@@ -850,13 +874,9 @@ function updateGraph(): void {
 
     const dy = writableGraphHeight / yChoices.length;
     const i = Math.floor(graph.graphMouse.y / dy);
-    growthInput[handle] = clamp(i, 0, yChoices.length - 1);
-    //while (growthInput[handle] > 0 && growthHandlePosition(handle).y > graph.graphMouse.y) {
-    //  growthInput[handle] -= 1;
-    //}
-    //while (growthInput[handle] < yChoices.length && growthHandlePosition(handle).y < graph.graphMouse.y) {
-    //  growthInput[handle] += 1;
-    //}
+    if (handle !== undefined) {
+      growthInput[handle] = clamp(i, 0, yChoices.length - 1);
+    }
   }
 }
 
@@ -877,7 +897,7 @@ function deleteSortedElementsFromSortedArray<T>(removeArray: Array<T>, elements:
   removeArray.splice(completed);
 }
 
-function moveBranchesAndFaces() {
+function moveBranchesAndFaces(snowflake: Snowflake) {
   deleteSortedElementsFromSortedArray(snowflake.faces.growing, snowflake.faces.waiting);
   deleteSortedElementsFromSortedArray(snowflake.branches.growing, snowflake.branches.waiting);
   snowflake.faces.grown.splice(snowflake.faces.grown.length, 0, ...snowflake.faces.waiting);
@@ -886,49 +906,54 @@ function moveBranchesAndFaces() {
   snowflake.branches.waiting.splice(0);
 }
 
-function update(): void {
-  if (step < maxSteps && controls.playing) {
-    step += 1;
+function update(state: State): void {
+  const {
+    snowflake,
+    graph,
+    graphic,
+    maxSteps,
+    controls,
+  } = state;
+  if (state.step < maxSteps && controls.playing) {
+    state.step += 1;
 
     castRaysAtGrowingParts(snowflake);
 
-    const growth = interpretGrowth(currentTime());
+    const growth = interpretGrowth(currentTime(state));
 
-    if (currentGrowthType === undefined) {
-      currentGrowthType = growth.growthType;
+    if (state.currentGrowthType === undefined) {
+      state.currentGrowthType = growth.growthType;
     }
 
-    if (currentGrowthType !== growth.growthType) {
-      currentGrowthType = growth.growthType;
-      if (currentGrowthType === 'branching') {
+    if (state.currentGrowthType !== growth.growthType) {
+      state.currentGrowthType = growth.growthType;
+      if (state.currentGrowthType === 'branching') {
         addBranchesToGrowingFaces(snowflake);
       } else {
         addFacesToGrowingBranches(snowflake);
       }
     }
 
-    moveBranchesAndFaces();
+    moveBranchesAndFaces(snowflake);
 
-    if (currentGrowthType === 'branching') {
+    if (state.currentGrowthType === 'branching') {
       enlargeGrowingBranches(snowflake, growth.scale);
     } else {
       enlargeGrowingFaces(snowflake, growth.scale);
     }
 
-    clearSnowflakeCanvas();
-    drawSnowflake(snowflake);
+    clearSnowflakeCanvas(graphic);
+    drawSnowflake(graphic, snowflake);
   }
 
-  updateGraph();
+  updateGraph(state);
   graph.ctx.clearRect(0, 0, graph.canvas.width, graph.canvas.height);
-  drawGrowthInput();
+  drawGrowthInput(state);
 }
 
-function clearSnowflakeCanvas(): void {
+function clearSnowflakeCanvas(graphic: Graphic): void {
   graphic.ctx.clearRect(0, 0, graphic.canvas.width, graphic.canvas.height);
 }
-
-intervalId = window.setInterval(update, updateInterval);
 
 function test(cond: boolean, name: string): void {
   if (!cond) {
@@ -1011,7 +1036,7 @@ function testRotatePoint() {
 
 function getFacePoints(face: Face): Array<Point> {
   const dir: Direction = face.direction === 'none' ? 0 : face.direction;
-  const result = [];
+  const result: Array<Point> = [];
   for (let i = 0; i < directions.length; i += 1) {
     const d = directions[(dir + i) % directions.length];
     result.push({
@@ -1079,19 +1104,19 @@ function branchEndFace(branch: Branch): Face {
 }
 
 function getBranchPoints(branch: Branch): Array<Point> {
-  const result = [];
+  const result: Array<Point> = [];
   const startPoints = getFacePoints(branchStartFace(branch));
   const endPoints = getFacePoints(branchEndFace(branch));
+  result.push(endPoints[0]);
+  result.push(endPoints[1]);
   result.push(startPoints[2]);
   result.push(startPoints[3]);
   result.push(startPoints[4]);
   result.push(endPoints[5]);
-  result.push(endPoints[0]);
-  result.push(endPoints[1]);
   return result;
 }
 
-function testGetBranchEndPoints() {
+function testGetBranchPoints() {
   {
     const b: Branch = {
       ...defaultBranch,
@@ -1101,17 +1126,69 @@ function testGetBranchEndPoints() {
       size: 1,
     };
     const p = getBranchPoints(b);
-    testEq(p.length, 6, "gbep_a1");
-    testAbs(p[4].x, 11, "gbep_a2");
-    testAbs(p[4].y, 0, "gbep_a3");
-    testAbs(p[3].x, 10 + Math.cos(5 * oneSixthCircle), "gbep_a4");
-    testAbs(p[3].y, Math.sin(5 * oneSixthCircle), "gbep_a5");
+    testEq(p.length, 6, "gbp_a1");
+    testAbs(p[0].x, 11, "gbp_a2");
+    testAbs(p[0].y, 0, "gbp_a3");
+    testAbs(p[5].x, 10 + Math.cos(5 * oneSixthCircle), "gbp_a4");
+    testAbs(p[5].y, Math.sin(5 * oneSixthCircle), "gbp_a5");
   }
+}
+
+function getBranchSide2Ds(branch: Branch): Array<Side2D> {
+  const points = getBranchPoints(branch);
+  const result: Array<Side2D> = [];
+  for (let i = 0; i < directions.length; i += 1) {
+    if (i === directions.length - 1) {
+      result.push({ right: points[i], left: points[0] });
+    } else {
+      result.push({ right: points[i], left: points[i + 1] });
+    }
+  }
+  return result;
+}
+
+function testGetBranchSide2Ds() {
+  {
+    const b: Branch = {
+      ...defaultBranch,
+      start: { x: 0, y: 0 },
+      size: 1,
+      length: 10,
+      direction: 2,
+    };
+    const p = getBranchSide2Ds(b);
+    testEq(p.length, 6, "gbs_a1");
+    testAbs(p[4].right.x, Math.cos(0 * oneSixthCircle), "gbs_a2");
+    testAbs(p[4].right.y, Math.sin(0 * oneSixthCircle), "gbs_a3");
+    testAbs(p[4].left.x,
+            10 * Math.cos(2 * oneSixthCircle) + Math.cos(oneSixthCircle),
+            "gbs_a4");
+    testAbs(p[4].left.y,
+            10 * Math.sin(2 * oneSixthCircle) + Math.sin(oneSixthCircle),
+            "gbs_a5");
+    testAbs(p[3].right.x, Math.cos(5 * oneSixthCircle), "gbs_a6");
+    testAbs(p[3].right.y, Math.sin(5 * oneSixthCircle), "gbs_a7");
+    testAbs(p[3].left.x, p[4].right.x, "gbs_a8");
+    testAbs(p[3].left.y, p[4].right.y, "gbs_a9");
+  }
+}
+
+function getNormalizedBranchSides(branch: Branch): Array<Side> {
+  return getBranchSide2Ds(branch).map((s, i) => {
+    const theta = oneSixthCircle * (1 - i);
+    const left = rotatePoint(s.left, theta);
+    const right = rotatePoint(s.right, theta);
+    return {
+      left: left.x,
+      right: right.x,
+      height: left.y,
+    };
+  });
 }
 
 function getFaceSide2Ds(face: Face): Array<Side2D> {
   const points = getFacePoints(face);
-  const result = [];
+  const result: Array<Side2D> = [];
   for (let i = 0; i < directions.length; i += 1) {
     if (i === directions.length - 1) {
       result.push({ right: points[i], left: points[0] });
@@ -1179,13 +1256,18 @@ function testGetNormalizedFaceSides() {
   }
   {
     const s: Array<[Array<Side2D>, Array<Side>]> = directions.map((d, i) => {
-      const f: Face = {
-        ...defaultFace,
-        size: 10,
-        direction: parseDirection(i), /* doesn't matter, but might as well */
-        center: rotatePoint({ x: 50, y: 0 }, d),
-      };
-      return [getFaceSide2Ds(f), getNormalizedFaceSides(f)];
+      if (isDirection(i)) {
+        const f: Face = {
+          ...defaultFace,
+          size: 10,
+          direction: i,
+          center: rotatePoint({ x: 50, y: 0 }, d),
+        };
+        return [getFaceSide2Ds(f), getNormalizedFaceSides(f)];
+      } else {
+        console.error('problem in norm');
+        return [getFaceSide2Ds(defaultFace), getNormalizedFaceSides(defaultFace)];
+      }
     });
     testAbs(s[0][1][0].left, s[1][0][0].left.x, "norm_b1");
     testAbs(s[0][1][0].right, s[1][0][0].right.x, "norm_b2");
@@ -1211,5 +1293,72 @@ if (enableTests) {
   testGetFacePoints();
   testGetFaceSide2Ds();
   testGetNormalizedFaceSides();
-  testGetBranchEndPoints();
+  testGetBranchPoints();
+  testGetBranchSide2Ds();
 }
+
+type State = {
+  graph: Graph,
+  graphic: Graphic,
+  snowflake: Snowflake,
+  currentGrowthType: GrowthType | undefined,
+  graphMargin: number,
+  writableGraphWidth: number,
+  writableGraphHeight: number,
+  controls: Controls,
+  step: number,
+  intervalId: undefined | number,
+  updateInterval: number,
+  maxSteps: number,
+};
+
+function makeState(): State | undefined {
+  const graph = makeGraph();
+  const graphic = makeGraphic();
+  if (graph === undefined || graphic === undefined) {
+    console.error("Couldn't get drawing context");
+    return undefined;
+  }
+  const snowflake = createInitialSnowflake();
+  const currentGrowthType = undefined;
+  const graphMargin = 10;
+  const writableGraphWidth = graph.canvas.width - 2 * graphMargin;
+  const writableGraphHeight = graph.canvas.height;
+  const controls = makeControls(graphic);
+  const step = 0;
+  const intervalId = undefined;
+  const updateInterval = 5;
+  const maxSteps = 6000;
+  return {
+    graph,
+    graphic,
+    snowflake,
+    currentGrowthType,
+    graphMargin,
+    writableGraphWidth,
+    writableGraphHeight,
+    controls,
+    step,
+    intervalId,
+    updateInterval,
+    maxSteps,
+  };
+}
+
+function resetSnowflake(state: State): void {
+  state.snowflake = createInitialSnowflake();
+  state.step = 0;
+  state.currentGrowthType = undefined;
+  clearSnowflakeCanvas(state.graphic);
+}
+
+(() => {
+  const state = makeState();
+  if (state === undefined) {
+    return;
+  }
+  registerControlsEventListeners(state);
+  state.intervalId = window.setInterval(
+    () => update(state),
+    state.updateInterval);
+})();
