@@ -2,7 +2,7 @@
     "compilerOptions": {
         "strict": true,
         "alwaysStrict": true,
-        "noImplicitAny": false, //fixme
+        "noImplicitAny": true, //fixme
         "lib": ["es2016", "dom"],
         "module": "esnext",
         "moduleResolution": "node",

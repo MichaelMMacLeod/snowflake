@@ -574,11 +574,11 @@ function drawGrowthInput(state: State): void {
   //);
 }
 
-function lerp(a, b, n) {
+function lerp(a: number, b: number, n: number) {
   return (1 - n) * a + n * b;
 }
 
-function fracPart(n) {
+function fracPart(n: number) {
   return n % 1;
 }
 
