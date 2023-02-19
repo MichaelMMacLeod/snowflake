@@ -22,10 +22,10 @@ canvas {
 }
 
 #snowflake {
-  animation-name: spin;
-  animation-duration: 20000ms;
-  animation-iteration-count: infinite;
-  animation-timing-function: linear;
+  /* animation-name: spin; */
+  /* animation-duration: 20000ms; */
+  /* animation-iteration-count: infinite; */
+  /* animation-timing-function: linear; */
   position: relative;
   top: -5em;
 }

@@ -1,3 +1,37 @@
+// Coordinate system(s):
+//
+// 1: "World" space. This is two dimensional (x,y) with the origin,
+// (0,0), in the center. X values increase towards positive infinity
+// to the right and decrease to negative infinity to the left. Y
+// values increase towards positive infinity going up and decrease to
+// negative infinity going down. Radians refer to the angle that lines
+// make with the line starting at (0,0) and extending directly right
+// towards positive 'X', counterclockwise. So, for example, a vector
+// emerging from the origin and going straight up (towards positive Y)
+// would be at pi/2 radians. The part of the world that is visible on
+// screen is a 2x2 square centered at the origin.
+//
+// 2: "Screen" space. This is two dimensional (x,y) with the origin,
+// (0,0), in the top left corner. X values increase towards positive
+// infinity to the right and decrease to negative infinity to the
+// left. Y values increase going *down* towards positive infinity and
+// decrease towards negative infinity going *up*.
+//
+// World space is used for doing all the logical calculations
+// necessary to grow the snowflake. All coordinates stored in objects
+// are in world space. Screen space is used to draw the snowflake on
+// the screen and these coordinates are never saved anywhere.
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
         if (ar || !(i in from)) {
@@ -75,6 +109,13 @@ var directions = [
     4 * oneSixthCircle,
     5 * oneSixthCircle,
 ];
+function parseDirection(i) {
+    if (i === 0 || i === 1 || i === 2 ||
+        i === 3 || i === 4 || i === 5) {
+        return i;
+    }
+    return undefined;
+}
 function nextDirection(d) {
     return ((d + 1) % directions.length);
 }
@@ -84,6 +125,25 @@ function previousDirection(d) {
 function copyPoint(p) {
     return { x: p.x, y: p.y };
 }
+function addPoints(p1, p2) {
+    return { x: p1.x + p2.x, y: p1.y + p2.y };
+}
+var defaultPoint = { x: 0, y: 0 };
+var defaultFace = {
+    rayHits: 0,
+    center: defaultPoint,
+    size: 0.0025,
+    direction: 'none',
+    growthScale: 1
+};
+var defaultBranch = {
+    rayHits: 0,
+    start: defaultPoint,
+    size: 0.0025,
+    length: 0.005,
+    direction: 0,
+    growthScale: 1
+};
 function branchEnd(branch) {
     var d = directions[branch.direction];
     var l = branch.length;
@@ -97,45 +157,48 @@ function drawSnowflake(snowflake) {
     snowflake.branches.growing.forEach(drawBranch);
     snowflake.branches.grown.forEach(drawBranch);
 }
+function worldToViewTransform(p) {
+    var w = graphic.canvas.width;
+    var h = graphic.canvas.height;
+    // affine transform:
+    // |r.x|   |w/2   0   w/2|   |p.x|
+    // |r.y| = |0   -h/2  h/2| * |p.y|
+    // | 1 |   |0     0    1 |   | 1 |
+    var r = {
+        x: p.x * w * 0.5 + w * 0.5,
+        y: p.y * -h * 0.5 + h * 0.5
+    };
+    return r;
+}
 function drawFace(face) {
-    var center = toCanvasPoint(face.center);
-    var size = toCanvasSize(face.size);
     graphic.ctx.beginPath();
-    graphic.ctx.moveTo(center.x + size, center.y);
-    for (var dir = 1; dir < 6; dir += 1) {
-        var x = center.x + size * Math.cos(directions[dir]);
-        var y = center.y - size * Math.sin(directions[dir]);
-        graphic.ctx.lineTo(x, y);
-    }
+    getFacePoints(face).forEach(function (p, i) {
+        var _a = worldToViewTransform(p), x = _a.x, y = _a.y;
+        if (i === 0) {
+            graphic.ctx.moveTo(x, y);
+        }
+        else {
+            graphic.ctx.lineTo(x, y);
+        }
+    });
     graphic.ctx.closePath();
+    graphic.ctx.fillStyle = 'rgba(0, 0, 255, 0.2)';
     graphic.ctx.fill();
 }
 function rem(x, m) {
     return ((x % m) + m) % m;
 }
 function drawBranch(branch) {
-    var startCenter = toCanvasPoint(branch.start);
-    var endCenter = toCanvasPoint(branchEnd(branch));
-    var size = toCanvasSize(branch.size);
-    var dir = rem(branch.direction - 2, directions.length);
     graphic.ctx.beginPath();
-    {
-        var x = startCenter.x + size * Math.cos(directions[dir]);
-        var y = startCenter.y - size * Math.sin(directions[dir]);
-        graphic.ctx.moveTo(x, y);
-    }
-    for (var i = 0; i < 2; i += 1) {
-        dir = rem(dir - 1, directions.length);
-        var x = startCenter.x + size * Math.cos(directions[dir]);
-        var y = startCenter.y - size * Math.sin(directions[dir]);
-        graphic.ctx.lineTo(x, y);
-    }
-    for (var i = 0; i < 3; i += 1) {
-        dir = rem(dir - 1, directions.length);
-        var x = endCenter.x + size * Math.cos(directions[dir]);
-        var y = endCenter.y - size * Math.sin(directions[dir]);
-        graphic.ctx.lineTo(x, y);
-    }
+    getBranchPoints(branch).forEach(function (p, i) {
+        var _a = worldToViewTransform(p), x = _a.x, y = _a.y;
+        if (i === 0) {
+            graphic.ctx.moveTo(x, y);
+        }
+        else {
+            graphic.ctx.lineTo(x, y);
+        }
+    });
     graphic.ctx.closePath();
     graphic.ctx.fill();
 }
@@ -143,14 +206,14 @@ function toCanvasSize(n) {
     var smallestDimension = Math.min(graphic.canvas.width, graphic.canvas.height);
     return n * smallestDimension;
 }
-function toCanvasPoint(p) {
-    var result = { x: p.x, y: p.y };
-    result.x *= graphic.canvas.width / 2;
-    result.y *= -graphic.canvas.height / 2;
-    result.x += graphic.canvas.width * 0.5;
-    result.y += graphic.canvas.height * 0.5;
-    return result;
-}
+// function toCanvasPoint(p: Point): Point {
+//   const result = { x: p.x, y: p.y };
+//   result.x *= graphic.canvas.width / 2;
+//   result.y *= -graphic.canvas.height / 2;
+//   result.x += graphic.canvas.width * 0.5;
+//   result.y += graphic.canvas.height * 0.5;
+//   return result;
+// }
 function createInitialSnowflake() {
     return {
         faces: {
@@ -173,8 +236,8 @@ function enlargeGrowingFaces(snowflake, scale) {
     snowflake.faces.growing.forEach(function (face) {
         face.size += 0.75 * scale * growthScalar * face.growthScale;
         if (face.direction !== 'none') {
-            var dx = 0.75 * 2 * scale * growthScalar * Math.cos(directions[face.direction]) * face.growthScale;
-            var dy = 0.75 * 2 * scale * growthScalar * Math.sin(directions[face.direction]) * face.growthScale;
+            var dx = 0.75 * 1 * scale * growthScalar * Math.cos(directions[face.direction]) * face.growthScale;
+            var dy = 0.75 * 1 * scale * growthScalar * Math.sin(directions[face.direction]) * face.growthScale;
             face.center.x += dx;
             face.center.y += dy;
         }
@@ -203,7 +266,7 @@ function addFacesToGrowingBranches(snowflake) {
 function addBranchesToFace(snowflake, face) {
     var initialFraction = 0.01;
     var sizeOfNewBranches = face.size * initialFraction;
-    var distFromCenter = 2 * face.size * (1 - initialFraction);
+    var distFromCenter = 1 * face.size * (1 - initialFraction);
     var cx = face.center.x;
     var cy = face.center.y;
     var _a = (function () {
@@ -223,7 +286,7 @@ function addBranchesToFace(snowflake, face) {
             if (face.direction === 'none' || i === 1) {
                 return face.growthScale * 0.9;
             }
-            var randomAdjust = Math.random() * 0.5 + 0.5;
+            var randomAdjust = 1;
             return face.growthScale * 0.5 * randomAdjust;
         })();
         snowflake.branches.growing.push({
@@ -392,8 +455,8 @@ function buildRay(theta) {
     };
 }
 function drawRay(ray) {
-    var start = toCanvasPoint(ray.start);
-    var end = toCanvasPoint({ x: 0, y: 0 });
+    var start = worldToViewTransform(ray.start);
+    var end = worldToViewTransform({ x: 0, y: 0 });
     graphic.ctx.beginPath();
     graphic.ctx.moveTo(start.x, start.y);
     graphic.ctx.lineTo(end.x, end.y);
@@ -679,6 +742,23 @@ function test(cond, name) {
         console.log("Test success: ".concat(name));
     }
 }
+function testEq(a, b, name) {
+    if (a === b) {
+        console.log("Test success: ".concat(name));
+    }
+    else {
+        console.error("Test failure: ".concat(name, "; ").concat(a, " === ").concat(b, " is false"));
+    }
+}
+function testAbs(a, b, name, tol) {
+    if (tol === void 0) { tol = 0.01; }
+    if (Math.abs(a - b) < tol) {
+        console.log("Test success: ".concat(name));
+    }
+    else {
+        console.error("Test failure: ".concat(name, "; |").concat(a, " - ").concat(b, "| < ").concat(tol, " is false"));
+    }
+}
 function arraysEqual(xs, ys) {
     if (xs === ys)
         return true;
@@ -703,4 +783,173 @@ function testDelete() {
         deleteSortedElementsFromSortedArray(letters, vowels);
         test(arraysEqual(letters, ['b', 'c', 'd', 'f', 'g', 'h']), "2: Letters was ".concat(letters));
     }
+}
+// Rotates 'point' by 'theta' around (0,0)
+function rotatePoint(point, theta) {
+    return {
+        x: point.x * Math.cos(theta) - point.y * Math.sin(theta),
+        y: point.x * Math.sin(theta) + point.y * Math.cos(theta)
+    };
+}
+function testRotatePoint() {
+    {
+        var p = { x: 10, y: 0 };
+        var r1 = rotatePoint(p, Math.PI / 2);
+        test(Math.abs(r1.x) < 0.01, "testRotatePoint1x: ".concat(r1.x));
+        test(Math.abs(r1.y - 10) < 0.01, "testRotatePoint1y: ".concat(r1.y));
+        var r2 = rotatePoint(p, Math.PI);
+        test(Math.abs(r2.x + 10) < 0.01, "testRotatePoint2x: ".concat(r2.x));
+        test(Math.abs(r2.y) < 0.01, "testRotatePoint2y: ".concat(r2.y));
+    }
+}
+function getFacePoints(face) {
+    var dir = face.direction === 'none' ? 0 : face.direction;
+    var result = [];
+    for (var i = 0; i < directions.length; i += 1) {
+        var d = directions[(dir + i) % directions.length];
+        result.push({
+            x: face.center.x + face.size * Math.cos(d),
+            y: face.center.y + face.size * Math.sin(d)
+        });
+    }
+    return result;
+}
+function testGetFacePoints() {
+    {
+        var f = __assign(__assign({}, defaultFace), { center: { x: 0, y: 0 }, size: 10 });
+        var ps = getFacePoints(f);
+        testEq(ps.length, 6, "gfp_1a");
+        testAbs(ps[0].x, 10, "gfp_1b");
+        testAbs(ps[0].y, 0, "gfp_1c");
+        testAbs(ps[1].x, 10 * Math.cos(oneSixthCircle), "gfp_1d");
+        testAbs(ps[1].y, 10 * Math.sin(oneSixthCircle), "gfp_1e");
+        testAbs(ps[2].x, 10 * Math.cos(2 * oneSixthCircle), "gfp_1f");
+        testAbs(ps[2].y, 10 * Math.sin(2 * oneSixthCircle), "gfp_1g");
+        testAbs(ps[2].y, ps[1].y, "gfp_1h");
+        testAbs(ps[1].y, -ps[5].y, "gfp_1i");
+    }
+    {
+        var f = __assign(__assign({}, defaultFace), { center: { x: 0, y: 0 }, size: 10, direction: 1 });
+        var ps = getFacePoints(f);
+        testEq(ps.length, 6, "gfp_b1");
+        testAbs(ps[0].x, 10 * Math.cos(oneSixthCircle), "gfp_b2");
+        testAbs(ps[0].y, 10 * Math.sin(oneSixthCircle), "gfp_b3");
+    }
+}
+function branchStartFace(branch) {
+    return __assign(__assign({}, defaultFace), { center: copyPoint(branch.start), size: branch.size, direction: branch.direction });
+}
+function branchEndFace(branch) {
+    return __assign(__assign({}, defaultFace), { center: addPoints(branch.start, {
+            x: branch.length * Math.cos(directions[branch.direction]),
+            y: branch.length * Math.sin(directions[branch.direction])
+        }), size: branch.size, direction: branch.direction });
+}
+function getBranchPoints(branch) {
+    var result = [];
+    var startPoints = getFacePoints(branchStartFace(branch));
+    var endPoints = getFacePoints(branchEndFace(branch));
+    result.push(startPoints[2]);
+    result.push(startPoints[3]);
+    result.push(startPoints[4]);
+    result.push(endPoints[5]);
+    result.push(endPoints[0]);
+    result.push(endPoints[1]);
+    return result;
+}
+function testGetBranchEndPoints() {
+    {
+        var b = __assign(__assign({}, defaultBranch), { start: { x: 0, y: 0 }, direction: 0, length: 10, size: 1 });
+        var p = getBranchPoints(b);
+        testEq(p.length, 6, "gbep_a1");
+        testAbs(p[4].x, 11, "gbep_a2");
+        testAbs(p[4].y, 0, "gbep_a3");
+        testAbs(p[3].x, 10 + Math.cos(5 * oneSixthCircle), "gbep_a4");
+        testAbs(p[3].y, Math.sin(5 * oneSixthCircle), "gbep_a5");
+    }
+}
+function getFaceSide2Ds(face) {
+    var points = getFacePoints(face);
+    var result = [];
+    for (var i = 0; i < directions.length; i += 1) {
+        if (i === directions.length - 1) {
+            result.push({ right: points[i], left: points[0] });
+        }
+        else {
+            result.push({ right: points[i], left: points[i + 1] });
+        }
+    }
+    return result;
+}
+function testGetFaceSide2Ds() {
+    {
+        var f = __assign(__assign({}, defaultFace), { center: { x: 0, y: 0 }, size: 10 });
+        var s = getFaceSide2Ds(f);
+        var p = getFacePoints(f);
+        testEq(s.length, 6, "gfp_a1");
+        testEq(p.length, 6, "gfp_a2");
+        testAbs(s[0].right.x, p[0].x, "gfp_a3");
+        testAbs(s[0].left.x, p[1].x, "gfp_a4");
+        testAbs(s[0].right.y, p[0].y, "gfp_a5");
+        testAbs(s[0].left.y, p[1].y, "gfp_a6");
+        testAbs(s[5].left.x, p[0].x, "gfp_a7");
+        testAbs(s[5].left.y, p[0].y, "gfp_a8");
+        testAbs(s[5].right.x, p[5].x, "gfp_a9");
+        testAbs(s[5].right.x, p[5].x, "gfp_a10");
+    }
+}
+// Returns an array of sides of the face but where every side is
+// rotated around the origin so that it is horizontal.
+function getNormalizedFaceSides(face) {
+    return getFaceSide2Ds(face).map(function (s, i) {
+        var theta = oneSixthCircle * (1 - i);
+        var left = rotatePoint(s.left, theta);
+        var right = rotatePoint(s.right, theta);
+        return {
+            left: left.x,
+            right: right.x,
+            height: left.y
+        };
+    });
+}
+function testGetNormalizedFaceSides() {
+    {
+        var f = __assign(__assign({}, defaultFace), { size: 10, direction: 0, center: { x: 0, y: 0 } });
+        var s = getNormalizedFaceSides(f);
+        var left = 10 * Math.cos(2 * oneSixthCircle);
+        var right = 10 * Math.cos(oneSixthCircle);
+        var height = 10 * Math.sin(oneSixthCircle);
+        for (var t = 0; t < 6; t += 1) {
+            testAbs(s[t].left, left, "norm_a".concat(t, "_left"));
+            testAbs(s[t].right, right, "norm_a".concat(t, "_right"));
+            testAbs(s[t].height, height, "norm_a".concat(t, "_height"));
+        }
+    }
+    {
+        var s = directions.map(function (d, i) {
+            var f = __assign(__assign({}, defaultFace), { size: 10, direction: parseDirection(i), center: rotatePoint({ x: 50, y: 0 }, d) });
+            return [getFaceSide2Ds(f), getNormalizedFaceSides(f)];
+        });
+        testAbs(s[0][1][0].left, s[1][0][0].left.x, "norm_b1");
+        testAbs(s[0][1][0].right, s[1][0][0].right.x, "norm_b2");
+        testAbs(s[5][1][5].left, s[1][0][5].left.x, "norm_b3");
+        testAbs(s[5][1][5].right, s[1][0][5].right.x, "norm_b4");
+        testAbs(s[0][1][1].left, s[0][0][1].left.x, "norm_b5");
+        testAbs(s[0][1][1].right, s[0][0][1].right.x, "norm_b6");
+    }
+}
+// import IntervalTree from '@flatten-js/interval-tree';
+// function makeIntervalTreeForDirection(snowflake: Snowflake, direction: Direction): IntervalTree {
+//   const tree = new IntervalTree();
+//   return tree;
+// }
+var enableTests = true;
+if (enableTests) {
+    testFindCircleRayIntersection();
+    testDelete();
+    testRotatePoint();
+    testGetFacePoints();
+    testGetFaceSide2Ds();
+    testGetNormalizedFaceSides();
+    testGetBranchEndPoints();
 }

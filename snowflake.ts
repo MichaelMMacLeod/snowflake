@@ -1,3 +1,27 @@
+// Coordinate system(s):
+//
+// 1: "World" space. This is two dimensional (x,y) with the origin,
+// (0,0), in the center. X values increase towards positive infinity
+// to the right and decrease to negative infinity to the left. Y
+// values increase towards positive infinity going up and decrease to
+// negative infinity going down. Radians refer to the angle that lines
+// make with the line starting at (0,0) and extending directly right
+// towards positive 'X', counterclockwise. So, for example, a vector
+// emerging from the origin and going straight up (towards positive Y)
+// would be at pi/2 radians. The part of the world that is visible on
+// screen is a 2x2 square centered at the origin.
+//
+// 2: "Screen" space. This is two dimensional (x,y) with the origin,
+// (0,0), in the top left corner. X values increase towards positive
+// infinity to the right and decrease to negative infinity to the
+// left. Y values increase going *down* towards positive infinity and
+// decrease towards negative infinity going *up*.
+//
+// World space is used for doing all the logical calculations
+// necessary to grow the snowflake. All coordinates stored in objects
+// are in world space. Screen space is used to draw the snowflake on
+// the screen and these coordinates are never saved anywhere.
+
 type Graphic = {
   canvas: HTMLCanvasElement,
   ctx: CanvasRenderingContext2D,
@@ -103,6 +127,14 @@ const directions = [
 
 type Direction = 0 | 1 | 2 | 3 | 4 | 5;
 
+function parseDirection(i: number): Direction | undefined {
+  if (i === 0 || i === 1 || i === 2 ||
+    i === 3 || i === 4 || i === 5) {
+    return i;
+  }
+  return undefined;
+}
+
 function nextDirection(d: Direction): Direction {
   return ((d + 1) % directions.length) as Direction;
 }
@@ -115,6 +147,10 @@ type Point = { x: number, y: number };
 
 function copyPoint(p: Point): Point {
   return { x: p.x, y: p.y };
+}
+
+function addPoints(p1: Point, p2: Point): Point {
+  return { x: p1.x + p2.x, y: p1.y + p2.y };
 }
 
 type Faces = {
@@ -142,6 +178,16 @@ type Face = {
   growthScale: number,
 };
 
+const defaultPoint: Point = { x: 0, y: 0 };
+
+const defaultFace: Face = {
+  rayHits: 0,
+  center: defaultPoint,
+  size: 0.0025,
+  direction: 'none',
+  growthScale: 1,
+};
+
 type Branch = {
   rayHits: number,
   start: Point,
@@ -150,6 +196,15 @@ type Branch = {
   direction: Direction,
   growthScale: number,
 }
+
+const defaultBranch: Branch = {
+  rayHits: 0,
+  start: defaultPoint,
+  size: 0.0025,
+  length: 0.005,
+  direction: 0,
+  growthScale: 1,
+};
 
 function branchEnd(branch: Branch): Point {
   let d = directions[branch.direction];
@@ -166,17 +221,32 @@ function drawSnowflake(snowflake: Snowflake): void {
   snowflake.branches.grown.forEach(drawBranch);
 }
 
+function worldToViewTransform(p: Point): Point {
+  const w = graphic.canvas.width;
+  const h = graphic.canvas.height;
+  // affine transform:
+  // |r.x|   |w/2   0   w/2|   |p.x|
+  // |r.y| = |0   -h/2  h/2| * |p.y|
+  // | 1 |   |0     0    1 |   | 1 |
+  const r: Point = {
+    x: p.x * w * 0.5 + w * 0.5,
+    y: p.y * -h * 0.5 + h * 0.5, 
+  };
+  return r;
+}
+
 function drawFace(face: Face): void {
-  const center = toCanvasPoint(face.center);
-  const size = toCanvasSize(face.size);
   graphic.ctx.beginPath();
-  graphic.ctx.moveTo(center.x + size, center.y);
-  for (let dir: Direction = 1; dir < 6; dir += 1) {
-    const x = center.x + size * Math.cos(directions[dir]);
-    const y = center.y - size * Math.sin(directions[dir]);
-    graphic.ctx.lineTo(x, y);
-  }
+  getFacePoints(face).forEach((p, i) => {
+    const { x, y } = worldToViewTransform(p);
+    if (i === 0) {
+      graphic.ctx.moveTo(x, y);
+    } else {
+      graphic.ctx.lineTo(x, y);
+    }
+  });
   graphic.ctx.closePath();
+  graphic.ctx.fillStyle = 'rgba(0, 0, 255, 0.2)';
   graphic.ctx.fill();
 }
 
@@ -185,28 +255,15 @@ function rem(x: number, m: number): number {
 }
 
 function drawBranch(branch: Branch): void {
-  const startCenter = toCanvasPoint(branch.start);
-  const endCenter = toCanvasPoint(branchEnd(branch));
-  const size = toCanvasSize(branch.size);
-  let dir = rem(branch.direction - 2, directions.length);
   graphic.ctx.beginPath();
-  {
-    const x = startCenter.x + size * Math.cos(directions[dir]);
-    const y = startCenter.y - size * Math.sin(directions[dir]);
-    graphic.ctx.moveTo(x, y);
-  }
-  for (let i = 0; i < 2; i += 1) {
-    dir = rem(dir - 1, directions.length);
-    const x = startCenter.x + size * Math.cos(directions[dir]);
-    const y = startCenter.y - size * Math.sin(directions[dir]);
-    graphic.ctx.lineTo(x, y);
-  }
-  for (let i = 0; i < 3; i += 1) {
-    dir = rem(dir - 1, directions.length);
-    const x = endCenter.x + size * Math.cos(directions[dir]);
-    const y = endCenter.y - size * Math.sin(directions[dir]);
-    graphic.ctx.lineTo(x, y);
-  }
+  getBranchPoints(branch).forEach((p, i) => {
+    const { x, y } = worldToViewTransform(p);
+    if (i === 0) {
+      graphic.ctx.moveTo(x, y);
+    } else {
+      graphic.ctx.lineTo(x, y);
+    }
+  });
   graphic.ctx.closePath();
   graphic.ctx.fill();
 }
@@ -216,17 +273,17 @@ function toCanvasSize(n: number): number {
   return n * smallestDimension;
 }
 
-function toCanvasPoint(p: Point): Point {
-  const result = { x: p.x, y: p.y };
+// function toCanvasPoint(p: Point): Point {
+//   const result = { x: p.x, y: p.y };
 
-  result.x *= graphic.canvas.width / 2;
-  result.y *= -graphic.canvas.height / 2;
+//   result.x *= graphic.canvas.width / 2;
+//   result.y *= -graphic.canvas.height / 2;
 
-  result.x += graphic.canvas.width * 0.5;
-  result.y += graphic.canvas.height * 0.5;
+//   result.x += graphic.canvas.width * 0.5;
+//   result.y += graphic.canvas.height * 0.5;
 
-  return result;
-}
+//   return result;
+// }
 
 function createInitialSnowflake(): Snowflake {
   return {
@@ -252,8 +309,8 @@ function enlargeGrowingFaces(snowflake: Snowflake, scale: number): void {
   snowflake.faces.growing.forEach(face => {
     face.size += 0.75 * scale * growthScalar * face.growthScale;
     if (face.direction !== 'none') {
-      const dx = 0.75 * 2 * scale * growthScalar * Math.cos(directions[face.direction]) * face.growthScale;
-      const dy = 0.75 * 2 * scale * growthScalar * Math.sin(directions[face.direction]) * face.growthScale;
+      const dx = 0.75 * 1 * scale * growthScalar * Math.cos(directions[face.direction]) * face.growthScale;
+      const dy = 0.75 * 1 * scale * growthScalar * Math.sin(directions[face.direction]) * face.growthScale;
       face.center.x += dx;
       face.center.y += dy;
     }
@@ -286,7 +343,7 @@ function addFacesToGrowingBranches(snowflake: Snowflake): void {
 function addBranchesToFace(snowflake: Snowflake, face: Face): void {
   const initialFraction = 0.01;
   const sizeOfNewBranches = face.size * initialFraction;
-  const distFromCenter = 2 * face.size * (1 - initialFraction);
+  const distFromCenter = 1 * face.size * (1 - initialFraction);
   const cx = face.center.x;
   const cy = face.center.y;
 
@@ -522,8 +579,8 @@ function buildRay(theta: number): Ray {
 }
 
 function drawRay(ray: Ray): void {
-  const start = toCanvasPoint(ray.start);
-  const end = toCanvasPoint({ x: 0, y: 0 });
+  const start = worldToViewTransform(ray.start);
+  const end = worldToViewTransform({ x: 0, y: 0 });
   graphic.ctx.beginPath();
   graphic.ctx.moveTo(start.x, start.y);
   graphic.ctx.lineTo(end.x, end.y);
@@ -737,7 +794,6 @@ function testFindCircleRayIntersection(): void {
   test(Math.abs(r1.x - 10.39) < 0.01, "testFindRayCircleIntersection1");
   test(Math.abs(r1.y - -6.70) < 0.01, "testFindRayCircleIntersection2");
 }
-//testFindCircleRayIntersection();
 
 type Circle = {
   center: Point,
@@ -882,6 +938,22 @@ function test(cond: boolean, name: string): void {
   }
 }
 
+function testEq(a: any, b: any, name: string): void {
+  if (a === b) {
+    console.log(`Test success: ${name}`);
+  } else {
+    console.error(`Test failure: ${name}; ${a} === ${b} is false`);
+  }
+}
+
+function testAbs(a: number, b: number, name: string, tol: number = 0.01): void {
+  if (Math.abs(a - b) < tol) {
+    console.log(`Test success: ${name}`);
+  } else {
+    console.error(`Test failure: ${name}; |${a} - ${b}| < ${tol} is false`);
+  }
+}
+
 function arraysEqual<T>(xs: Array<T>, ys: Array<T>) {
   if (xs === ys) return true;
   if (xs.length !== ys.length) return false;
@@ -904,4 +976,240 @@ function testDelete() {
     deleteSortedElementsFromSortedArray(letters, vowels);
     test(arraysEqual(letters, ['b','c','d','f','g','h']), `2: Letters was ${letters}`);
   }
+}
+
+type Side2D = {
+  left: Point,
+  right: Point,
+};
+
+type Side = {
+  left: number,
+  right: number,
+  height: number,
+};
+
+// Rotates 'point' by 'theta' around (0,0)
+function rotatePoint(point: Point, theta: number): Point {
+  return {
+    x: point.x * Math.cos(theta) - point.y * Math.sin(theta),
+    y: point.x * Math.sin(theta) + point.y * Math.cos(theta),
+  };
+}
+
+function testRotatePoint() {
+  {
+    const p = { x: 10, y: 0 };
+    const r1 = rotatePoint(p, Math.PI / 2);
+    test(Math.abs(r1.x) < 0.01, `testRotatePoint1x: ${r1.x}`);
+    test(Math.abs(r1.y - 10) < 0.01, `testRotatePoint1y: ${r1.y}`);
+    const r2 = rotatePoint(p, Math.PI);
+    test(Math.abs(r2.x + 10) < 0.01, `testRotatePoint2x: ${r2.x}`);
+    test(Math.abs(r2.y) < 0.01, `testRotatePoint2y: ${r2.y}`);
+  }
+}
+
+function getFacePoints(face: Face): Array<Point> {
+  const dir: Direction = face.direction === 'none' ? 0 : face.direction;
+  const result = [];
+  for (let i = 0; i < directions.length; i += 1) {
+    const d = directions[(dir + i) % directions.length];
+    result.push({
+      x: face.center.x + face.size * Math.cos(d),
+      y: face.center.y + face.size * Math.sin(d),
+    });
+  }
+  return result;
+}
+
+function testGetFacePoints() {
+  {
+    const f = {
+      ...defaultFace,
+      center: { x: 0, y: 0 },
+      size: 10,
+    };
+    const ps = getFacePoints(f);
+    testEq(ps.length, 6, "gfp_1a");
+    testAbs(ps[0].x, 10, "gfp_1b");
+    testAbs(ps[0].y, 0, "gfp_1c");
+    testAbs(ps[1].x, 10 * Math.cos(oneSixthCircle), "gfp_1d");
+    testAbs(ps[1].y, 10 * Math.sin(oneSixthCircle), "gfp_1e");
+    testAbs(ps[2].x, 10 * Math.cos(2 * oneSixthCircle), "gfp_1f");
+    testAbs(ps[2].y, 10 * Math.sin(2 * oneSixthCircle), "gfp_1g");
+    testAbs(ps[2].y, ps[1].y, "gfp_1h");
+    testAbs(ps[1].y, -ps[5].y, "gfp_1i");
+  }
+  
+  {
+    const f: Face = {
+      ...defaultFace,
+      center: { x: 0, y: 0 },
+      size: 10,
+      direction: 1,
+    };
+    const ps = getFacePoints(f);
+    testEq(ps.length, 6, "gfp_b1");
+    testAbs(ps[0].x, 10 * Math.cos(oneSixthCircle), "gfp_b2");
+    testAbs(ps[0].y, 10 * Math.sin(oneSixthCircle), "gfp_b3");
+  }
+}
+
+function branchStartFace(branch: Branch): Face {
+  return {
+    ...defaultFace,
+    center: copyPoint(branch.start),
+    size: branch.size,
+    direction: branch.direction,
+  };
+}
+
+function branchEndFace(branch: Branch): Face {
+  return {
+    ...defaultFace,
+    center: addPoints(
+      branch.start,
+      {
+        x: branch.length * Math.cos(directions[branch.direction]),
+        y: branch.length * Math.sin(directions[branch.direction]),
+      }),
+    size: branch.size,
+    direction: branch.direction,
+  };
+}
+
+function getBranchPoints(branch: Branch): Array<Point> {
+  const result = [];
+  const startPoints = getFacePoints(branchStartFace(branch));
+  const endPoints = getFacePoints(branchEndFace(branch));
+  result.push(startPoints[2]);
+  result.push(startPoints[3]);
+  result.push(startPoints[4]);
+  result.push(endPoints[5]);
+  result.push(endPoints[0]);
+  result.push(endPoints[1]);
+  return result;
+}
+
+function testGetBranchEndPoints() {
+  {
+    const b: Branch = {
+      ...defaultBranch,
+      start: { x: 0, y: 0 },
+      direction: 0,
+      length: 10,
+      size: 1,
+    };
+    const p = getBranchPoints(b);
+    testEq(p.length, 6, "gbep_a1");
+    testAbs(p[4].x, 11, "gbep_a2");
+    testAbs(p[4].y, 0, "gbep_a3");
+    testAbs(p[3].x, 10 + Math.cos(5 * oneSixthCircle), "gbep_a4");
+    testAbs(p[3].y, Math.sin(5 * oneSixthCircle), "gbep_a5");
+  }
+}
+
+function getFaceSide2Ds(face: Face): Array<Side2D> {
+  const points = getFacePoints(face);
+  const result = [];
+  for (let i = 0; i < directions.length; i += 1) {
+    if (i === directions.length - 1) {
+      result.push({ right: points[i], left: points[0] });
+    } else {
+      result.push({ right: points[i], left: points[i + 1] });
+    }
+  }
+  return result;
+}
+
+function testGetFaceSide2Ds() {
+  {
+     const f = {
+      ...defaultFace,
+      center: { x: 0, y: 0 },
+      size: 10,
+    };
+    const s = getFaceSide2Ds(f);
+    const p = getFacePoints(f);
+    testEq(s.length, 6, "gfp_a1");
+    testEq(p.length, 6, "gfp_a2");
+    testAbs(s[0].right.x, p[0].x, "gfp_a3");
+    testAbs(s[0].left.x, p[1].x, "gfp_a4");
+    testAbs(s[0].right.y, p[0].y, "gfp_a5");
+    testAbs(s[0].left.y, p[1].y, "gfp_a6");
+    testAbs(s[5].left.x, p[0].x, "gfp_a7");
+    testAbs(s[5].left.y, p[0].y, "gfp_a8");
+    testAbs(s[5].right.x, p[5].x, "gfp_a9");
+    testAbs(s[5].right.x, p[5].x, "gfp_a10");
+  }
+}
+
+// Returns an array of sides of the face but where every side is
+// rotated around the origin so that it is horizontal.
+function getNormalizedFaceSides(face: Face): Array<Side> {
+  return getFaceSide2Ds(face).map((s, i) => {
+    const theta = oneSixthCircle * (1 - i);
+    const left = rotatePoint(s.left, theta);
+    const right = rotatePoint(s.right, theta);
+    return {
+      left: left.x,
+      right: right.x,
+      height: left.y,
+    };
+  });
+}
+
+function testGetNormalizedFaceSides() {
+  {
+    const f: Face = {
+      ...defaultFace,
+      size: 10,
+      direction: 0,
+      center: { x: 0, y: 0 },
+    };
+    const s = getNormalizedFaceSides(f);
+    const left = 10 * Math.cos(2 * oneSixthCircle);
+    const right = 10 * Math.cos(oneSixthCircle);
+    const height = 10 * Math.sin(oneSixthCircle);
+    for (let t = 0; t < 6; t += 1) {
+      testAbs(s[t].left, left, `norm_a${t}_left`);
+      testAbs(s[t].right, right, `norm_a${t}_right`);
+      testAbs(s[t].height, height, `norm_a${t}_height`);
+    }
+  }
+  {
+    const s: Array<[Array<Side2D>, Array<Side>]> = directions.map((d, i) => {
+      const f: Face = {
+        ...defaultFace,
+        size: 10,
+        direction: parseDirection(i), /* doesn't matter, but might as well */
+        center: rotatePoint({ x: 50, y: 0 }, d),
+      };
+      return [getFaceSide2Ds(f), getNormalizedFaceSides(f)];
+    });
+    testAbs(s[0][1][0].left, s[1][0][0].left.x, "norm_b1");
+    testAbs(s[0][1][0].right, s[1][0][0].right.x, "norm_b2");
+    testAbs(s[5][1][5].left, s[1][0][5].left.x, "norm_b3");
+    testAbs(s[5][1][5].right, s[1][0][5].right.x, "norm_b4");
+    testAbs(s[0][1][1].left, s[0][0][1].left.x, "norm_b5");
+    testAbs(s[0][1][1].right, s[0][0][1].right.x, "norm_b6");
+  }
+}
+
+// import IntervalTree from '@flatten-js/interval-tree';
+
+// function makeIntervalTreeForDirection(snowflake: Snowflake, direction: Direction): IntervalTree {
+//   const tree = new IntervalTree();
+//   return tree;
+// }
+
+const enableTests = true;
+if (enableTests) {
+  testFindCircleRayIntersection();
+  testDelete();
+  testRotatePoint();
+  testGetFacePoints();
+  testGetFaceSide2Ds();
+  testGetNormalizedFaceSides();
+  testGetBranchEndPoints();
 }

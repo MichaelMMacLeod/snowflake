@@ -1,5 +1,8 @@
 {
   "devDependencies": {
     "typescript": "^4.5.5"
+  },
+  "dependencies": {
+    "@flatten-js/interval-tree": "^1.0.20"
   }
 }

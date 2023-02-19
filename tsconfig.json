@@ -1,5 +1,7 @@
 {
     "compilerOptions": {
-        "lib": ["es2015", "dom"]
+        "lib": ["es2016", "dom"],
+        "module": "esnext",
+        "moduleResolution": "node",
     }
 }
