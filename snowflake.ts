@@ -239,7 +239,28 @@ function worldToViewTransform(graphic: Graphic, p: Point): Point {
   return r;
 }
 
+function drawSide(graphic: Graphic, side: Side, index: number): void {
+  // if (index !== 4) {
+  //   return;
+  // }
+  graphic.ctx.beginPath();
+  const h = 1/6 * (index + 1);
+  const left = worldToViewTransform(graphic, { x: side.left, y: h } );
+  const right = worldToViewTransform(graphic, { x: side.right, y: h });
+  graphic.ctx.moveTo(left.x, left.y);
+  graphic.ctx.lineTo(right.x, right.y);
+  const oldWidth = graphic.ctx.lineWidth;
+  graphic.ctx.lineWidth = 10;
+  graphic.ctx.strokeStyle = `rgba(${255 / 6 * (index + 1)}, 0, 255, 0.2)`;
+  graphic.ctx.stroke();
+  graphic.ctx.lineWidth = oldWidth;
+}
+
 function drawFace(graphic: Graphic, face: Face): void {
+  getNormalizedFaceSides(face).forEach((side, i) => {
+    const dir = face.direction === "none" ? 0 : face.direction;
+    drawSide(graphic, side, dir);
+  });
   graphic.ctx.beginPath();
   getFacePoints(face).forEach((p, i) => {
     const { x, y } = worldToViewTransform(graphic, p);
@@ -366,7 +387,7 @@ function addBranchesToFace(snowflake: Snowflake, face: Face): void {
         return face.growthScale * 0.9;
       }
 
-      const randomAdjust = 1;
+      const randomAdjust = Math.random() * 0.5 + 0.5;
       return face.growthScale * 0.5 * randomAdjust;
     })();
     snowflake.branches.growing.push({
@@ -1224,8 +1245,9 @@ function testGetFaceSide2Ds() {
 // Returns an array of sides of the face but where every side is
 // rotated around the origin so that it is horizontal.
 function getNormalizedFaceSides(face: Face): Array<Side> {
+  const dir = face.direction === "none" ? 0 : face.direction;
   return getFaceSide2Ds(face).map((s, i) => {
-    const theta = oneSixthCircle * (1 - i);
+    const theta = oneSixthCircle * (1 - i - dir);
     const left = rotatePoint(s.left, theta);
     const right = rotatePoint(s.right, theta);
     return {
@@ -1276,25 +1298,6 @@ function testGetNormalizedFaceSides() {
     testAbs(s[0][1][1].left, s[0][0][1].left.x, "norm_b5");
     testAbs(s[0][1][1].right, s[0][0][1].right.x, "norm_b6");
   }
-}
-
-// import IntervalTree from '@flatten-js/interval-tree';
-
-// function makeIntervalTreeForDirection(snowflake: Snowflake, direction: Direction): IntervalTree {
-//   const tree = new IntervalTree();
-//   return tree;
-// }
-
-const enableTests = true;
-if (enableTests) {
-  testFindCircleRayIntersection();
-  testDelete();
-  testRotatePoint();
-  testGetFacePoints();
-  testGetFaceSide2Ds();
-  testGetNormalizedFaceSides();
-  testGetBranchPoints();
-  testGetBranchSide2Ds();
 }
 
 type State = {
@@ -1352,6 +1355,61 @@ function resetSnowflake(state: State): void {
   clearSnowflakeCanvas(state.graphic);
 }
 
+// Returns true if s1 is above and overlapping s2
+function overlaps(s1: Side, s2: Side): boolean {
+  return s1.height > s2.height &&
+    (s1.left < s2.left && s1.right > s2.left ||
+      s1.left > s2.left && s2.right > s1.left ||
+      s1.left < s2.left && s1.right > s2.right ||
+      s1.left > s2.left && s1.right < s2.right);
+}
+
+function testOverlaps() {
+  function s(left: number, right: number, height: number): Side {
+    return { left, right, height };
+  }
+  {
+    test(overlaps(s(0, 2, 1), s(1, 3, 0)), "ol1");
+    test(overlaps(s(1, 3, 1), s(0, 2, 0)), "ol2");
+    test(overlaps(s(0, 3, 1), s(1, 2, 0)), "ol3");
+    test(overlaps(s(1, 2, 1), s(0, 3, 0)), "ol4");
+
+    test(!overlaps(s(0, 2, 0), s(1, 3, 1)), "ol5");
+    test(!overlaps(s(1, 3, 0), s(0, 2, 1)), "ol6");
+    test(!overlaps(s(0, 3, 0), s(1, 2, 1)), "ol7");
+    test(!overlaps(s(1, 2, 0), s(0, 3, 1)), "ol8");
+
+    test(!overlaps(s(0, 1, 1), s(2, 3, 0)), "ol9");
+    test(!overlaps(s(2, 3, 1), s(0, 1, 0)), "ol10");
+
+    test(!overlaps(s(0, 1, 0), s(2, 3, 1)), "ol11");
+    test(!overlaps(s(2, 3, 0), s(0, 1, 1)), "ol12");
+
+  }
+}
+
+type Section<P> = {
+  side: Side,
+  part: P,
+};
+
+// function waitingFaces(faces: Array<Face>, direction: Direction): Array<Face> {
+//   const sections: Array<Section<Face>> = [];
+//   faces.forEach(part => {
+//     getNormalizedFaceSides(part).forEach(side => {
+//       sections.push({ side, part });
+//     });
+//   });
+//   sections.sort((a, b) => a.side.height - b.side.height);
+//   const top: Array<Section<Face>> = [];
+//   const waitingFaces: Array<Face> = [];
+//   sections.forEach(s => {
+//     const overlappedSections: Array<Section<Face>> = insertSectionIntoTop(s, top);
+//     overlappedSections.forEach(o => waitingFaces.push(o.part));
+//   });
+//   return []; // fixme
+// }
+
 (() => {
   const state = makeState();
   if (state === undefined) {
@@ -1362,3 +1420,16 @@ function resetSnowflake(state: State): void {
     () => update(state),
     state.updateInterval);
 })();
+
+const enableTests = true;
+if (enableTests) {
+  testFindCircleRayIntersection();
+  testDelete();
+  testRotatePoint();
+  testGetFacePoints();
+  testGetFaceSide2Ds();
+  testGetNormalizedFaceSides();
+  testGetBranchPoints();
+  testGetBranchSide2Ds();
+  testOverlaps();
+}

@@ -1,5 +1,5 @@
 default:
-	npx tsc
+	tsc
 
 watch:
-	npx tsc -w
+	tsc -w
