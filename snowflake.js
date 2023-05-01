@@ -1077,7 +1077,6 @@ function coveredGrowingFaces(growingFaces, grownFaces) {
             result.push(face);
         }
     });
-    console.log(result);
     return result;
 }
 function testGetNormalizedFaceSides() {

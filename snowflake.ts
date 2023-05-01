@@ -1401,7 +1401,6 @@ function coveredGrowingFaces(growingFaces: Array<Face>, grownFaces: Array<Face>)
     }
   });
 
-  console.log(result);
   return result;
 }
 
