@@ -138,7 +138,8 @@ var defaultFace = {
     center: defaultPoint,
     size: 0.0025,
     direction: 'none',
-    growthScale: 1
+    growthScale: 1,
+    id: 0
 };
 var defaultBranch = {
     rayHits: 0,
@@ -174,12 +175,13 @@ function worldToViewTransform(graphic, p) {
     };
     return r;
 }
-function drawSide(graphic, side, index) {
+function drawSide(graphic, side, index, face) {
     // if (index !== 4) {
     //   return;
     // }
     graphic.ctx.beginPath();
-    var h = 1 / 6 * (index + 1);
+    //  const h = 1/6 * (index + 1);
+    var h = side.height;
     var left = worldToViewTransform(graphic, { x: side.left, y: h });
     var right = worldToViewTransform(graphic, { x: side.right, y: h });
     graphic.ctx.moveTo(left.x, left.y);
@@ -190,11 +192,61 @@ function drawSide(graphic, side, index) {
     graphic.ctx.stroke();
     graphic.ctx.lineWidth = oldWidth;
 }
-function drawFace(graphic, face) {
-    getNormalizedFaceSides(face).forEach(function (side, i) {
-        var dir = face.direction === "none" ? 0 : face.direction;
-        drawSide(graphic, side, dir);
+function drawNormalization(graphic, side2d, absoluteDirection) {
+    if (absoluteDirection !== 0)
+        return;
+    var oldWidth = graphic.ctx.lineWidth;
+    var oldStyle = graphic.ctx.strokeStyle;
+    // // draw the side2d
+    // {
+    //   const left = worldToViewTransform(graphic, side2d.left);
+    //   const right = worldToViewTransform(graphic, side2d.right);
+    //   graphic.ctx.beginPath();
+    //   graphic.ctx.moveTo(left.x, left.y);
+    //   graphic.ctx.lineTo(right.x, right.y);
+    //   graphic.ctx.lineWidth = 10;
+    //   graphic.ctx.strokeStyle = `rgba(0, 0, 255, 0.2)`;
+    //   graphic.ctx.stroke();
+    // }
+    // draw the side
+    var side = normalizeSide2D(side2d, absoluteDirection);
+    var left = worldToViewTransform(graphic, { x: side.left, y: side.height });
+    var right = worldToViewTransform(graphic, { x: side.right, y: side.height });
+    graphic.ctx.beginPath();
+    graphic.ctx.moveTo(left.x, left.y);
+    graphic.ctx.lineTo(right.x, right.y);
+    graphic.ctx.lineWidth = 10;
+    graphic.ctx.strokeStyle = "rgba(0, 0, 255, 0.2)";
+    graphic.ctx.stroke();
+    // draw the line
+    var middle2d = worldToViewTransform(graphic, {
+        x: 0.5 * (side2d.left.x + side2d.right.x),
+        y: 0.5 * (side2d.left.y + side2d.right.y)
     });
+    var middle = worldToViewTransform(graphic, {
+        x: 0.5 * (side.left + side.right),
+        y: side.height
+    });
+    graphic.ctx.beginPath();
+    graphic.ctx.moveTo(middle2d.x, middle2d.y);
+    graphic.ctx.lineTo(middle.x, middle.y);
+    graphic.ctx.lineWidth = 1;
+    graphic.ctx.strokeStyle = 'rgba(0, 0, 0, 1)';
+    graphic.ctx.stroke();
+    // cleanup
+    graphic.ctx.lineWidth = oldWidth;
+    graphic.ctx.strokeStyle = oldStyle;
+}
+function drawFace(graphic, face) {
+    var dir = face.direction === "none" ? 0 : face.direction;
+    // getFaceSide2Ds(face).forEach((side2d, i) => {
+    //   drawNormalization(graphic, side2d, (i + dir) % directions.length);
+    // });
+    //   getNormalizedFaceSides(face).forEach((side, i) => {
+    //     const dir = face.direction === "none" ? 0 : face.direction;
+    // //    if ((i + dir) % directions.length === 0) {
+    //     drawSide(graphic, side, (i + dir) % directions.length, face);
+    //   });
     graphic.ctx.beginPath();
     getFacePoints(face).forEach(function (p, i) {
         var _a = worldToViewTransform(graphic, p), x = _a.x, y = _a.y;
@@ -242,7 +294,8 @@ function createInitialSnowflake() {
                     center: { x: 0, y: 0 },
                     size: 0.0025,
                     direction: 'none',
-                    growthScale: 1
+                    growthScale: 1,
+                    id: 0
                 }],
             grown: [],
             waiting: []
@@ -323,13 +376,18 @@ function addBranchesToFace(snowflake, face) {
         _loop_1(i);
     }
 }
+function getId(snowflake) {
+    return snowflake.faces.waiting.length + snowflake.faces.grown.length
+        + snowflake.branches.growing.length + snowflake.branches.grown.length;
+}
 function addFaceToBranch(snowflake, branch) {
     snowflake.faces.growing.push({
         rayHits: 0,
         center: branchEnd(branch),
         size: branch.size,
         direction: branch.direction,
-        growthScale: branch.growthScale
+        growthScale: branch.growthScale,
+        id: getId(snowflake)
     });
 }
 function clamp(x, low, high) {
@@ -701,11 +759,16 @@ function deleteSortedElementsFromSortedArray(removeArray, elements) {
     removeArray.splice(completed);
 }
 function moveBranchesAndFaces(snowflake) {
-    var _a, _b;
+    var _a, _b, _c;
+    (_a = snowflake.faces.waiting).splice.apply(_a, __spreadArray([snowflake.faces.waiting.length, 0], coveredGrowingFaces(snowflake.faces.growing, snowflake.faces.grown), false));
+    var compareFn = function (f1, f2) { return f1.id - f2.id; };
+    snowflake.faces.growing.sort(compareFn);
+    snowflake.faces.grown.sort(compareFn);
+    snowflake.faces.waiting.sort(compareFn);
     deleteSortedElementsFromSortedArray(snowflake.faces.growing, snowflake.faces.waiting);
     deleteSortedElementsFromSortedArray(snowflake.branches.growing, snowflake.branches.waiting);
-    (_a = snowflake.faces.grown).splice.apply(_a, __spreadArray([snowflake.faces.grown.length, 0], snowflake.faces.waiting, false));
-    (_b = snowflake.branches.grown).splice.apply(_b, __spreadArray([snowflake.branches.grown.length, 0], snowflake.branches.waiting, false));
+    (_b = snowflake.faces.grown).splice.apply(_b, __spreadArray([snowflake.faces.grown.length, 0], snowflake.faces.waiting, false));
+    (_c = snowflake.branches.grown).splice.apply(_c, __spreadArray([snowflake.branches.grown.length, 0], snowflake.branches.waiting, false));
     snowflake.faces.waiting.splice(0);
     snowflake.branches.waiting.splice(0);
 }
@@ -713,7 +776,7 @@ function update(state) {
     var snowflake = state.snowflake, graph = state.graph, graphic = state.graphic, maxSteps = state.maxSteps, controls = state.controls;
     if (state.step < maxSteps && controls.playing) {
         state.step += 1;
-        castRaysAtGrowingParts(snowflake);
+        //    castRaysAtGrowingParts(snowflake);
         var growth = interpretGrowth(currentTime(state));
         if (state.currentGrowthType === undefined) {
             state.currentGrowthType = growth.growthType;
@@ -948,20 +1011,74 @@ function testGetFaceSide2Ds() {
         testAbs(s[5].right.x, p[5].x, "gfp_a10");
     }
 }
+// Returns a Side calculated by rotating 'side2d' around the origin
+// until it is horizontal. 'absoluteDirection' should be the
+// non-relative number of the side, starting from the rightmost upward
+// side and going counterclockwise.
+function normalizeSide2D(side2d, absoluteDirection) {
+    var theta = oneSixthCircle * (1 - absoluteDirection);
+    var left = rotatePoint(side2d.left, theta);
+    var right = rotatePoint(side2d.right, theta);
+    return {
+        left: left.x,
+        right: right.x,
+        height: left.y
+    };
+}
 // Returns an array of sides of the face but where every side is
-// rotated around the origin so that it is horizontal.
+// rotated around the origin so that it is horizontal. The sides are
+// returned in counterclockwise order starting with the side touching
+// the vertex in the face's direction and going counterclockwise away
+// from it.
 function getNormalizedFaceSides(face) {
     var dir = face.direction === "none" ? 0 : face.direction;
     return getFaceSide2Ds(face).map(function (s, i) {
-        var theta = oneSixthCircle * (1 - i - dir);
-        var left = rotatePoint(s.left, theta);
-        var right = rotatePoint(s.right, theta);
-        return {
-            left: left.x,
-            right: right.x,
-            height: left.y
-        };
+        return normalizeSide2D(s, (i + dir) % directions.length);
     });
+}
+function coveredGrowingFaces(growingFaces, grownFaces) {
+    var result = [];
+    var normalizedSideFaces = [[], [], [], [], [], []];
+    growingFaces.forEach(function (face) {
+        getNormalizedFaceSides(face).forEach(function (side, i) {
+            var dir = face.direction === "none" ? 0 : face.direction;
+            normalizedSideFaces[(i + dir) % directions.length].push({ side: side, face: face, growing: true });
+        });
+    });
+    grownFaces.forEach(function (face) {
+        getNormalizedFaceSides(face).forEach(function (side, i) {
+            var dir = face.direction === "none" ? 0 : face.direction;
+            normalizedSideFaces[(i + dir) % directions.length].push({ side: side, face: face, growing: false });
+        });
+    });
+    growingFaces.forEach(function (face) {
+        var dir = face.direction === "none" ? 0 : face.direction;
+        var normalizedSides = getNormalizedFaceSides(face);
+        var leftSide = normalizedSides[0];
+        var leftAbsoluteDir = dir;
+        var rightSide = normalizedSides[directions.length - 1];
+        var rightAbsoluteDir = (directions.length - 1 + dir) % directions.length;
+        var coveredCount = 0;
+        for (var i = 0; i < normalizedSideFaces[leftAbsoluteDir].length; i += 1) {
+            var sideFace = normalizedSideFaces[leftAbsoluteDir][i];
+            if (overlaps(sideFace.side, leftSide)) {
+                coveredCount += 1;
+                break;
+            }
+        }
+        for (var i = 0; i < normalizedSideFaces[rightAbsoluteDir].length; i += 1) {
+            var sideFace = normalizedSideFaces[rightAbsoluteDir][i];
+            if (overlaps(sideFace.side, rightSide)) {
+                coveredCount += 1;
+                break;
+            }
+        }
+        if (coveredCount === 2) {
+            result.push(face);
+        }
+    });
+    console.log(result);
+    return result;
 }
 function testGetNormalizedFaceSides() {
     {

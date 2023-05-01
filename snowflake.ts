@@ -180,6 +180,7 @@ type Face = {
   size: number,
   direction: Direction | 'none',
   growthScale: number,
+  id: number,
 };
 
 const defaultPoint: Point = { x: 0, y: 0 };
@@ -190,6 +191,7 @@ const defaultFace: Face = {
   size: 0.0025,
   direction: 'none',
   growthScale: 1,
+  id: 0,
 };
 
 type Branch = {
@@ -239,12 +241,13 @@ function worldToViewTransform(graphic: Graphic, p: Point): Point {
   return r;
 }
 
-function drawSide(graphic: Graphic, side: Side, index: number): void {
+function drawSide(graphic: Graphic, side: Side, index: number, face: Face): void {
   // if (index !== 4) {
   //   return;
   // }
   graphic.ctx.beginPath();
-  const h = 1/6 * (index + 1);
+  //  const h = 1/6 * (index + 1);
+  const h = side.height;
   const left = worldToViewTransform(graphic, { x: side.left, y: h } );
   const right = worldToViewTransform(graphic, { x: side.right, y: h });
   graphic.ctx.moveTo(left.x, left.y);
@@ -256,11 +259,67 @@ function drawSide(graphic: Graphic, side: Side, index: number): void {
   graphic.ctx.lineWidth = oldWidth;
 }
 
-function drawFace(graphic: Graphic, face: Face): void {
-  getNormalizedFaceSides(face).forEach((side, i) => {
-    const dir = face.direction === "none" ? 0 : face.direction;
-    drawSide(graphic, side, dir);
+function drawNormalization(graphic: Graphic, side2d: Side2D, absoluteDirection: number): void {
+  if (absoluteDirection !== 0)
+    return;
+  
+  const oldWidth = graphic.ctx.lineWidth;
+  const oldStyle = graphic.ctx.strokeStyle;
+
+  // // draw the side2d
+  // {
+  //   const left = worldToViewTransform(graphic, side2d.left);
+  //   const right = worldToViewTransform(graphic, side2d.right);
+  //   graphic.ctx.beginPath();
+  //   graphic.ctx.moveTo(left.x, left.y);
+  //   graphic.ctx.lineTo(right.x, right.y);
+  //   graphic.ctx.lineWidth = 10;
+  //   graphic.ctx.strokeStyle = `rgba(0, 0, 255, 0.2)`;
+  //   graphic.ctx.stroke();
+  // }
+
+  // draw the side
+  const side = normalizeSide2D(side2d, absoluteDirection);
+  const left = worldToViewTransform(graphic, { x: side.left, y: side.height });
+  const right = worldToViewTransform(graphic, { x: side.right, y: side.height });
+  graphic.ctx.beginPath();
+  graphic.ctx.moveTo(left.x, left.y);
+  graphic.ctx.lineTo(right.x, right.y);
+  graphic.ctx.lineWidth = 10;
+  graphic.ctx.strokeStyle = `rgba(0, 0, 255, 0.2)`;
+  graphic.ctx.stroke();
+
+  // draw the line
+  const middle2d = worldToViewTransform(graphic, {
+    x: 0.5 * (side2d.left.x + side2d.right.x),
+    y: 0.5 * (side2d.left.y + side2d.right.y),
   });
+  const middle = worldToViewTransform(graphic, {
+    x: 0.5 * (side.left + side.right),
+    y: side.height,
+  });
+  graphic.ctx.beginPath();
+  graphic.ctx.moveTo(middle2d.x, middle2d.y);
+  graphic.ctx.lineTo(middle.x, middle.y);
+  graphic.ctx.lineWidth = 1
+  graphic.ctx.strokeStyle = 'rgba(0, 0, 0, 1)';
+  graphic.ctx.stroke();
+
+  // cleanup
+  graphic.ctx.lineWidth = oldWidth;
+  graphic.ctx.strokeStyle = oldStyle;
+}
+
+function drawFace(graphic: Graphic, face: Face): void {
+  const dir = face.direction === "none" ? 0 : face.direction;
+  // getFaceSide2Ds(face).forEach((side2d, i) => {
+  //   drawNormalization(graphic, side2d, (i + dir) % directions.length);
+  // });
+//   getNormalizedFaceSides(face).forEach((side, i) => {
+//     const dir = face.direction === "none" ? 0 : face.direction;
+// //    if ((i + dir) % directions.length === 0) {
+//     drawSide(graphic, side, (i + dir) % directions.length, face);
+//   });
   graphic.ctx.beginPath();
   getFacePoints(face).forEach((p, i) => {
     const { x, y } = worldToViewTransform(graphic, p);
@@ -314,6 +373,7 @@ function createInitialSnowflake(): Snowflake {
         size: 0.0025,
         direction: 'none',
         growthScale: 1,
+	id: 0,
       }],
       grown: [],
       waiting: [],
@@ -402,6 +462,11 @@ function addBranchesToFace(snowflake: Snowflake, face: Face): void {
   }
 }
 
+function getId(snowflake: Snowflake): number {
+  return snowflake.faces.waiting.length + snowflake.faces.grown.length
+    + snowflake.branches.growing.length + snowflake.branches.grown.length;
+}
+
 function addFaceToBranch(snowflake: Snowflake, branch: Branch): void {
   snowflake.faces.growing.push({
     rayHits: 0,
@@ -409,6 +474,7 @@ function addFaceToBranch(snowflake: Snowflake, branch: Branch): void {
     size: branch.size,
     direction: branch.direction,
     growthScale: branch.growthScale,
+    id: getId(snowflake),
   });
 }
 
@@ -919,6 +985,13 @@ function deleteSortedElementsFromSortedArray<T>(removeArray: Array<T>, elements:
 }
 
 function moveBranchesAndFaces(snowflake: Snowflake) {
+  snowflake.faces.waiting.splice(snowflake.faces.waiting.length, 0, ...coveredGrowingFaces(snowflake.faces.growing, snowflake.faces.grown));
+
+  const compareFn = (f1: Face, f2: Face) => f1.id - f2.id;
+  snowflake.faces.growing.sort(compareFn);
+  snowflake.faces.grown.sort(compareFn);
+  snowflake.faces.waiting.sort(compareFn);
+
   deleteSortedElementsFromSortedArray(snowflake.faces.growing, snowflake.faces.waiting);
   deleteSortedElementsFromSortedArray(snowflake.branches.growing, snowflake.branches.waiting);
   snowflake.faces.grown.splice(snowflake.faces.grown.length, 0, ...snowflake.faces.waiting);
@@ -938,7 +1011,7 @@ function update(state: State): void {
   if (state.step < maxSteps && controls.playing) {
     state.step += 1;
 
-    castRaysAtGrowingParts(snowflake);
+//    castRaysAtGrowingParts(snowflake);
 
     const growth = interpretGrowth(currentTime(state));
 
@@ -1033,6 +1106,12 @@ type Side = {
   left: number,
   right: number,
   height: number,
+};
+
+type SideFace = {
+  side: Side,
+  face: Face,
+  growing: boolean,
 };
 
 // Rotates 'point' by 'theta' around (0,0)
@@ -1242,20 +1321,88 @@ function testGetFaceSide2Ds() {
   }
 }
 
+// Returns a Side calculated by rotating 'side2d' around the origin
+// until it is horizontal. 'absoluteDirection' should be the
+// non-relative number of the side, starting from the rightmost upward
+// side and going counterclockwise.
+function normalizeSide2D(side2d: Side2D, absoluteDirection: number): Side {
+  const theta = oneSixthCircle * (1 - absoluteDirection);
+  const left = rotatePoint(side2d.left, theta);
+  const right = rotatePoint(side2d.right, theta);
+  return {
+    left: left.x,
+    right: right.x,
+    height: left.y,
+  };
+}
+
 // Returns an array of sides of the face but where every side is
-// rotated around the origin so that it is horizontal.
+// rotated around the origin so that it is horizontal. The sides are
+// returned in counterclockwise order starting with the side touching
+// the vertex in the face's direction and going counterclockwise away
+// from it.
 function getNormalizedFaceSides(face: Face): Array<Side> {
   const dir = face.direction === "none" ? 0 : face.direction;
   return getFaceSide2Ds(face).map((s, i) => {
-    const theta = oneSixthCircle * (1 - i - dir);
-    const left = rotatePoint(s.left, theta);
-    const right = rotatePoint(s.right, theta);
-    return {
-      left: left.x,
-      right: right.x,
-      height: left.y,
-    };
+    return normalizeSide2D(s, (i + dir) % directions.length);
   });
+}
+
+type Array6XSideFace = [
+  Array<SideFace>,
+  Array<SideFace>,
+  Array<SideFace>,
+  Array<SideFace>,
+  Array<SideFace>,
+  Array<SideFace>
+];
+
+function coveredGrowingFaces(growingFaces: Array<Face>, grownFaces: Array<Face>): Array<Face> {
+  const result: Array<Face> = [];
+
+  const normalizedSideFaces: Array6XSideFace = [[], [], [], [], [], []];
+  growingFaces.forEach(face => {
+    getNormalizedFaceSides(face).forEach((side, i) => {
+      let dir = face.direction === "none" ? 0 : face.direction;
+      normalizedSideFaces[(i + dir) % directions.length].push({ side, face, growing: true });
+    });
+  });
+  grownFaces.forEach(face => {
+    getNormalizedFaceSides(face).forEach((side, i) => {
+      let dir = face.direction === "none" ? 0 : face.direction;
+      normalizedSideFaces[(i + dir) % directions.length].push({ side, face, growing: false });
+    });
+  });
+
+  growingFaces.forEach(face => {
+    let dir = face.direction === "none" ? 0 : face.direction;
+    const normalizedSides = getNormalizedFaceSides(face);
+    const leftSide = normalizedSides[0];
+    const leftAbsoluteDir = dir;
+    const rightSide = normalizedSides[directions.length - 1];
+    const rightAbsoluteDir = (directions.length - 1 + dir) % directions.length;
+    let coveredCount = 0;
+    for (let i = 0; i < normalizedSideFaces[leftAbsoluteDir].length; i += 1) {
+      const sideFace = normalizedSideFaces[leftAbsoluteDir][i];
+      if (overlaps(sideFace.side, leftSide)) {
+	coveredCount += 1;
+	break;
+      }
+    }
+    for (let i = 0; i < normalizedSideFaces[rightAbsoluteDir].length; i += 1) {
+      const sideFace = normalizedSideFaces[rightAbsoluteDir][i];
+      if (overlaps(sideFace.side, rightSide)) {
+	coveredCount += 1;
+	break;
+      }
+    }
+    if (coveredCount === 2) {
+      result.push(face);
+    }
+  });
+
+  console.log(result);
+  return result;
 }
 
 function testGetNormalizedFaceSides() {
