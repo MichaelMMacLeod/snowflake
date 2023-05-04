@@ -1114,6 +1114,16 @@ type SideFace = {
   growing: boolean,
 };
 
+// Returns a side at the same hight as `side` but scaled by `scale`
+// (scale=1 returns the same side, scale=2 returns twice side, etc.).
+function biggerSide(side: Side, scale: number): Side {
+  return {
+    left: side.left * scale,
+    right: side.right * scale,
+    height: side.height,
+  };
+}
+
 // Rotates 'point' by 'theta' around (0,0)
 function rotatePoint(point: Point, theta: number): Point {
   return {
@@ -1382,18 +1392,27 @@ function coveredGrowingFaces(growingFaces: Array<Face>, grownFaces: Array<Face>)
     const rightSide = normalizedSides[directions.length - 1];
     const rightAbsoluteDir = (directions.length - 1 + dir) % directions.length;
     let coveredCount = 0;
+    const stopDistance = 0.001;
+    const slowdownMultiplier = 0.999;
+    const sideScale = 1.15;
     for (let i = 0; i < normalizedSideFaces[leftAbsoluteDir].length; i += 1) {
       const sideFace = normalizedSideFaces[leftAbsoluteDir][i];
-      if (overlaps(sideFace.side, leftSide)) {
+      const overlap = overlaps(biggerSide(sideFace.side, sideScale), leftSide);
+      if (overlap !== undefined && overlap < stopDistance) {
 	coveredCount += 1;
 	break;
+      } else if (overlap !== undefined) {
+	face.growthScale *= slowdownMultiplier;
       }
     }
     for (let i = 0; i < normalizedSideFaces[rightAbsoluteDir].length; i += 1) {
       const sideFace = normalizedSideFaces[rightAbsoluteDir][i];
-      if (overlaps(sideFace.side, rightSide)) {
+      const overlap = overlaps(biggerSide(sideFace.side, sideScale), rightSide)
+      if (overlap !== undefined && overlap < stopDistance) {
 	coveredCount += 1;
 	break;
+      } else if (overlap !== undefined) {
+	face.growthScale *= slowdownMultiplier;
       }
     }
     if (coveredCount === 2) {
@@ -1501,13 +1520,18 @@ function resetSnowflake(state: State): void {
   clearSnowflakeCanvas(state.graphic);
 }
 
-// Returns true if s1 is above and overlapping s2
-function overlaps(s1: Side, s2: Side): boolean {
-  return s1.height > s2.height &&
+// Returns how far above s1 is from s2 if s1 is above and overlapping
+// s2, otherwise returns undefined.
+function overlaps(s1: Side, s2: Side): number | undefined {
+  if (s1.height > s2.height &&
     (s1.left < s2.left && s1.right > s2.left ||
       s1.left > s2.left && s2.right > s1.left ||
       s1.left < s2.left && s1.right > s2.right ||
-      s1.left > s2.left && s1.right < s2.right);
+      s1.left > s2.left && s1.right < s2.right)) {
+    return s1.height - s2.height;
+  }
+
+  return undefined;
 }
 
 function testOverlaps() {
@@ -1515,21 +1539,21 @@ function testOverlaps() {
     return { left, right, height };
   }
   {
-    test(overlaps(s(0, 2, 1), s(1, 3, 0)), "ol1");
-    test(overlaps(s(1, 3, 1), s(0, 2, 0)), "ol2");
-    test(overlaps(s(0, 3, 1), s(1, 2, 0)), "ol3");
-    test(overlaps(s(1, 2, 1), s(0, 3, 0)), "ol4");
+    test(overlaps(s(0, 2, 1), s(1, 3, 0)) !== undefined, "ol1");
+    test(overlaps(s(1, 3, 1), s(0, 2, 0)) !== undefined, "ol2");
+    test(overlaps(s(0, 3, 1), s(1, 2, 0)) !== undefined, "ol3");
+    test(overlaps(s(1, 2, 1), s(0, 3, 0)) !== undefined, "ol4");
 
-    test(!overlaps(s(0, 2, 0), s(1, 3, 1)), "ol5");
-    test(!overlaps(s(1, 3, 0), s(0, 2, 1)), "ol6");
-    test(!overlaps(s(0, 3, 0), s(1, 2, 1)), "ol7");
-    test(!overlaps(s(1, 2, 0), s(0, 3, 1)), "ol8");
+    test(!overlaps(s(0, 2, 0), s(1, 3, 1)) !== undefined, "ol5");
+    test(!overlaps(s(1, 3, 0), s(0, 2, 1)) !== undefined, "ol6");
+    test(!overlaps(s(0, 3, 0), s(1, 2, 1)) !== undefined, "ol7");
+    test(!overlaps(s(1, 2, 0), s(0, 3, 1)) !== undefined, "ol8");
 
-    test(!overlaps(s(0, 1, 1), s(2, 3, 0)), "ol9");
-    test(!overlaps(s(2, 3, 1), s(0, 1, 0)), "ol10");
+    test(!overlaps(s(0, 1, 1), s(2, 3, 0)) !== undefined, "ol9");
+    test(!overlaps(s(2, 3, 1), s(0, 1, 0)) !== undefined, "ol10");
 
-    test(!overlaps(s(0, 1, 0), s(2, 3, 1)), "ol11");
-    test(!overlaps(s(2, 3, 0), s(0, 1, 1)), "ol12");
+    test(!overlaps(s(0, 1, 0), s(2, 3, 1)) !== undefined, "ol11");
+    test(!overlaps(s(2, 3, 0), s(0, 1, 1)) !== undefined, "ol12");
 
   }
 }
