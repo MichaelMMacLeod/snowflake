@@ -1,5 +1,5 @@
 default:
-	tsc
+	nix shell nixpkgs#typescript -c tsc
 
 watch:
-	tsc -w
+	nix shell nixpkgs#typescript -c tsc -w
