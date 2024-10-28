@@ -49,7 +49,7 @@ type Graph = {
   ctx: CanvasRenderingContext2D,
   handleBeingDragged: undefined | number | 'needs lookup',
   mouseRecentlyExitedGraph: boolean,
-  graphMouse: Point,
+  graphMouse: undefined | Point,
   background: RGBA,
 };
 
@@ -61,7 +61,7 @@ function makeGraph(): Graph | undefined {
     return undefined;
   }
   
-  const graphMouse = { x: 0, y: 0 };
+  const graphMouse = undefined;
   const background: RGBA = `rgba(203, 203, 255, 1)`;
   const result: Graph = {
     canvas,
@@ -73,14 +73,14 @@ function makeGraph(): Graph | undefined {
   };
 
   canvas.addEventListener('mousemove', e => {
-    graphMouse.x = e.offsetX;
-    graphMouse.y = e.offsetY;
+    result.graphMouse = { x: e.offsetX, y: e.offsetY };
   });
   canvas.addEventListener('mousedown', e => {
     result.handleBeingDragged = 'needs lookup';
   });
-  canvas.addEventListener('mouseup', e => {
+  document.addEventListener('mouseup', e => {
     result.handleBeingDragged = undefined;
+    result.graphMouse = undefined;
   });
   canvas.addEventListener('mouseleave', e => {
     result.mouseRecentlyExitedGraph = true;
@@ -629,14 +629,18 @@ function drawGrowthInput(state: State): void {
   graph.ctx.strokeStyle = 'black';
   graph.ctx.stroke();
 
-  const nearest = nearestGrowthHandle(state, graph.graphMouse);
   for (let i = 0; i < growthInput.length; i += 1) {
     const p = growthHandlePosition(
       writableGraphWidth,
       writableGraphHeight,
       graphMargin,
       i);
-    drawGraphHandle(graph, p.x, p.y, i === nearest, i === graph.handleBeingDragged);
+    if (graph.graphMouse !== undefined) {
+      const nearest = nearestGrowthHandle(state, graph.graphMouse);
+      drawGraphHandle(graph, p.x, p.y, i === nearest, i === graph.handleBeingDragged);
+    } else {
+      drawGraphHandle(graph, p.x, p.y, false, false);
+    }
   }
 
   graph.ctx.beginPath();
@@ -802,8 +806,8 @@ function updateGraph(state: State): void {
   const { graph, writableGraphHeight } = state;
   if (graph.handleBeingDragged !== undefined || graph.mouseRecentlyExitedGraph) {
     graph.mouseRecentlyExitedGraph = false;
-    const handle: number | undefined = (() => {
-      if (graph.handleBeingDragged === 'needs lookup') {
+    const handle: undefined | number | 'needs lookup' = (() => {
+      if (graph.handleBeingDragged === 'needs lookup' && graph.graphMouse !== undefined) {
         return nearestGrowthHandle(state, graph.graphMouse);
       } else {
         return graph.handleBeingDragged;
@@ -814,10 +818,12 @@ function updateGraph(state: State): void {
       graph.handleBeingDragged = handle;
     }
 
-    const dy = writableGraphHeight / yChoices.length;
-    const i = Math.floor(graph.graphMouse.y / dy);
-    if (handle !== undefined) {
-      growthInput[handle] = clamp(i, 0, yChoices.length - 1);
+    if (graph.graphMouse !== undefined && handle !== 'needs lookup') {
+      const dy = writableGraphHeight / yChoices.length;
+      const i = Math.floor(graph.graphMouse.y / dy);
+      if (handle !== undefined) {
+        growthInput[handle] = clamp(i, 0, yChoices.length - 1);
+      }
     }
   }
 }

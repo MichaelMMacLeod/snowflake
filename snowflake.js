@@ -58,7 +58,7 @@ function makeGraph() {
     if (ctx === null) {
         return undefined;
     }
-    var graphMouse = { x: 0, y: 0 };
+    var graphMouse = undefined;
     var background = "rgba(203, 203, 255, 1)";
     var result = {
         canvas: canvas,
@@ -69,14 +69,14 @@ function makeGraph() {
         background: background,
     };
     canvas.addEventListener('mousemove', function (e) {
-        graphMouse.x = e.offsetX;
-        graphMouse.y = e.offsetY;
+        result.graphMouse = { x: e.offsetX, y: e.offsetY };
     });
     canvas.addEventListener('mousedown', function (e) {
         result.handleBeingDragged = 'needs lookup';
     });
-    canvas.addEventListener('mouseup', function (e) {
+    document.addEventListener('mouseup', function (e) {
         result.handleBeingDragged = undefined;
+        result.graphMouse = undefined;
     });
     canvas.addEventListener('mouseleave', function (e) {
         result.mouseRecentlyExitedGraph = true;
@@ -479,10 +479,15 @@ function drawGrowthInput(state) {
     }
     graph.ctx.strokeStyle = 'black';
     graph.ctx.stroke();
-    var nearest = nearestGrowthHandle(state, graph.graphMouse);
     for (var i = 0; i < growthInput.length; i += 1) {
         var p = growthHandlePosition(writableGraphWidth, writableGraphHeight, graphMargin, i);
-        drawGraphHandle(graph, p.x, p.y, i === nearest, i === graph.handleBeingDragged);
+        if (graph.graphMouse !== undefined) {
+            var nearest = nearestGrowthHandle(state, graph.graphMouse);
+            drawGraphHandle(graph, p.x, p.y, i === nearest, i === graph.handleBeingDragged);
+        }
+        else {
+            drawGraphHandle(graph, p.x, p.y, false, false);
+        }
     }
     graph.ctx.beginPath();
     var progressX = writableGraphWidth * percentDone + graphMargin;
@@ -594,7 +599,7 @@ function updateGraph(state) {
     if (graph.handleBeingDragged !== undefined || graph.mouseRecentlyExitedGraph) {
         graph.mouseRecentlyExitedGraph = false;
         var handle = (function () {
-            if (graph.handleBeingDragged === 'needs lookup') {
+            if (graph.handleBeingDragged === 'needs lookup' && graph.graphMouse !== undefined) {
                 return nearestGrowthHandle(state, graph.graphMouse);
             }
             else {
@@ -604,10 +609,12 @@ function updateGraph(state) {
         if (graph.handleBeingDragged === 'needs lookup') {
             graph.handleBeingDragged = handle;
         }
-        var dy = writableGraphHeight / yChoices.length;
-        var i = Math.floor(graph.graphMouse.y / dy);
-        if (handle !== undefined) {
-            growthInput[handle] = clamp(i, 0, yChoices.length - 1);
+        if (graph.graphMouse !== undefined && handle !== 'needs lookup') {
+            var dy = writableGraphHeight / yChoices.length;
+            var i = Math.floor(graph.graphMouse.y / dy);
+            if (handle !== undefined) {
+                growthInput[handle] = clamp(i, 0, yChoices.length - 1);
+            }
         }
     }
 }
