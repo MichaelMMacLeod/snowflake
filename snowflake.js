@@ -617,6 +617,15 @@ function updateGraph(state) {
             }
         }
     }
+    var beingDragged = graph.handleBeingDragged !== undefined;
+    var userSelectValue = beingDragged ? 'none' : 'auto';
+    var setStyle = function (e) { return e.setAttribute('style', "user-select: ".concat(userSelectValue)); };
+    Array.from(document.getElementsByClassName('graphLabel')).forEach(setStyle);
+    Array.from(document.getElementsByClassName('control')).forEach(setStyle);
+    var controlContainer = document.getElementById('controlContainer');
+    if (controlContainer !== null) {
+        setStyle(controlContainer);
+    }
 }
 function deleteSortedElementsFromSortedArray(removeArray, elements) {
     var completed = 0;

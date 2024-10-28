@@ -826,6 +826,16 @@ function updateGraph(state: State): void {
       }
     }
   }
+
+  let beingDragged = graph.handleBeingDragged !== undefined;
+  let userSelectValue = beingDragged ? 'none' : 'auto';
+  let setStyle = (e: Element) => e.setAttribute('style', `user-select: ${userSelectValue}`);
+  Array.from(document.getElementsByClassName('graphLabel')).forEach(setStyle);
+  Array.from(document.getElementsByClassName('control')).forEach(setStyle);
+  let controlContainer = document.getElementById('controlContainer');
+  if (controlContainer !== null) {
+    setStyle(controlContainer);
+  }
 }
 
 
