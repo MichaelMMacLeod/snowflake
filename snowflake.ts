@@ -286,7 +286,7 @@ function drawNormalization(graphic: Graphic, side2d: Side2D, absoluteDirection: 
   graphic.ctx.moveTo(left.x, left.y);
   graphic.ctx.lineTo(right.x, right.y);
   graphic.ctx.lineWidth = 10;
-  graphic.ctx.strokeStyle = `rgba(0, 0, 255, 0.2)`;
+  graphic.ctx.strokeStyle = `rgba(203, 203, 255, 1)`;
   graphic.ctx.stroke();
 
   // draw the line
@@ -330,7 +330,7 @@ function drawFace(graphic: Graphic, face: Face): void {
     }
   });
   graphic.ctx.closePath();
-  graphic.ctx.fillStyle = 'rgba(0, 0, 255, 0.2)';
+  graphic.ctx.fillStyle = `rgba(203, 203, 255, 1)`;
   graphic.ctx.fill();
 }
 
@@ -382,7 +382,7 @@ function createInitialSnowflake(): Snowflake {
   };
 }
 
-const growthScalar = 0.0001;
+const growthScalar = 0.001;
 const branchGrowthScalar = growthScalar * 0.3;
 
 function enlargeGrowingFaces(snowflake: Snowflake, scale: number): void {
@@ -707,32 +707,6 @@ function drawRay(graphic: Graphic, ray: Ray): void {
   graphic.ctx.stroke();
 }
 
-function castRaysAtGrowingParts(snowflake: Snowflake): void {
-  snowflake.faces.growing.forEach(face => face.rayHits = 0);
-  snowflake.branches.growing.forEach(branch => branch.rayHits = 0);
-
-  const numRays = 200;
-  const theta = Math.PI * 2 / numRays;
-  for (let i = 0; i < numRays; i += 1) {
-    const ray = buildRay(theta * i);
-    const intersection = firstRayIntersection(snowflake, ray);
-    if (intersection !== undefined) {
-      intersection.rayHits += 1;
-    }
-  }
-
-  snowflake.faces.growing.forEach(face => {
-    if (face.rayHits === 0) {
-      snowflake.faces.waiting.push(face);
-    }
-  });
-  snowflake.branches.growing.forEach(branch => {
-    if (branch.rayHits === 0) {
-      snowflake.branches.waiting.push(branch);
-    }
-  });
-}
-
 function squareDistance(p1: Point, p2: Point): number {
   const dx = p2.x - p1.x;
   const dy = p2.y - p1.y;
@@ -753,61 +727,6 @@ function distance(p1: Point, p2: Point): number {
 //    return r1;
 //  })();
 //}
-
-type RayHit<T> = {
-  ray: Ray,
-  hit: T,
-};
-
-type MaybeRayHit<T> = undefined | RayHit<T>;
-
-function firstRayIntersection(
-  snowflake: Snowflake, ray: Ray
-): undefined | Face | Branch {
-  let smallestDistance = Infinity;
-  let smallestDistancePoint: undefined | Point = undefined;
-  let result: undefined | Face | Branch = undefined;
-
-  function updateIntersection(
-    i: undefined | Point,
-    v: Face | Branch,
-    r: Ray,
-  ): void {
-    if (i === undefined) {
-      return;
-    }
-
-    if (smallestDistancePoint === undefined) {
-      smallestDistancePoint = i;
-    }
-
-    const d = squareDistance(i, r.start);
-    if (d < smallestDistance) {
-      smallestDistance = d;
-      smallestDistancePoint = i;
-      result = v;
-    }
-  }
-
-  snowflake.faces.growing.forEach(face => {
-    const circle = {
-      center: copyPoint(face.center),
-      radius: face.size,
-    };
-    circle.radius = Math.max(circle.radius, 0.01);
-    const intersection = findCircleRayIntersection(circle, ray);
-    updateIntersection(intersection, face, ray);
-  });
-
-  snowflake.branches.growing.forEach(branch => {
-    createCirclesAlongBranch(branch).forEach(circle => {
-      const intersection = findCircleRayIntersection(circle, ray);
-      updateIntersection(intersection, branch, ray);
-    });
-  });
-
-  return result;
-}
 
 function createCirclesAlongBranch(branch: Branch): Array<Circle> {
   if (branch.size === 0) {
@@ -861,82 +780,10 @@ function createCirclesAlongBranch(branch: Branch): Array<Circle> {
 //  return result;
 //}
 
-// Returns the point on the circle's circumference that intersects a straight
-// line that passes through 'ray.start' and (0,0); or undefined, if there isn't
-// such an intersection. If there are two such points, it returns the one
-// furthest from the (0,0).
-function findCircleRayIntersection(circle: Circle, ray: Ray): undefined | Point {
-  const rx = ray.start.x;
-  const ry = ray.start.y;
-  const cx = circle.center.x;
-  const cy = circle.center.y;
-  const cr = circle.radius;
-
-  const cr2 = cr * cr;
-  const cx2 = cx * cx;
-  const cy2 = cy * cy;
-  const rx2 = rx * rx;
-  const ry2 = ry * ry;
-
-  const t1 = (cr2 - cx2) * ry2 + 2 * cx * cy * rx * ry + (cr2 - cy2) * rx2;
-
-  if (t1 < 0) {
-    return undefined;
-  }
-
-  const t1sqrt = Math.sqrt(t1);
-  const t2 = cy * rx * ry + cx * rx2;
-  const t3 = cy * ry2 + cx * rx * ry;
-  const t4 = ry2 + rx2;
-
-  const ix = (rx * t1sqrt + t2) / t4;
-  const iy = (ry * t1sqrt + t3) / t4;
-
-  return { x: ix, y: iy };
-}
-
-function testFindCircleRayIntersection(): void {
-  const circle = {
-    center: {
-      x: 4.4,
-      y: -6.5,
-    },
-    radius: 6,
-  };
-  const ray = {
-    start: {
-      x: 18,
-      y: -11.6,
-    }
-  };
-  let r1 = findCircleRayIntersection(circle, ray);
-  if (r1 === undefined) {
-    console.error("no intersection");
-  } else {
-    test(Math.abs(r1.x - 10.39) < 0.01, "testFindRayCircleIntersection1");
-    test(Math.abs(r1.y - -6.70) < 0.01, "testFindRayCircleIntersection2");
-  }
-}
-
 type Circle = {
   center: Point,
   radius: number,
 };
-
-function rayCircleDiscriminant(ray: Ray, circle: Circle): number {
-  // from https://mathworld.wolfram.com/Circle-LineIntersection.html
-  const x1 = ray.start.x - circle.center.x;
-  const y1 = ray.start.y - circle.center.y;
-  const x2 = -circle.center.x;
-  const y2 = -circle.center.y;
-  const r = circle.radius;
-  const dx = x2 - x1;
-  const dy = y2 - y1;
-  const dr = Math.sqrt(dx * dx + dy * dy);
-  const D = x1 * y2 - x2 * y1;
-  const discriminant = r * r * dr - D * D;
-  return discriminant;
-}
 
 function currentTime(state: State): number {
   const { step, maxSteps } = state;
@@ -1010,8 +857,6 @@ function update(state: State): void {
   } = state;
   if (state.step < maxSteps && controls.playing) {
     state.step += 1;
-
-//    castRaysAtGrowingParts(snowflake);
 
     const growth = interpretGrowth(currentTime(state));
 
@@ -1496,7 +1341,7 @@ function makeState(): State | undefined {
   const step = 0;
   const intervalId = undefined;
   const updateInterval = 5;
-  const maxSteps = 6000;
+  const maxSteps = 1000;
   return {
     graph,
     graphic,
@@ -1593,7 +1438,6 @@ type Section<P> = {
 
 const enableTests = true;
 if (enableTests) {
-  testFindCircleRayIntersection();
   testDelete();
   testRotatePoint();
   testGetFacePoints();

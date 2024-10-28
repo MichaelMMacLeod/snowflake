@@ -66,7 +66,7 @@ function makeGraph() {
         handleBeingDragged: undefined,
         mouseRecentlyExitedGraph: false,
         graphMouse: graphMouse,
-        background: background
+        background: background,
     };
     canvas.addEventListener('mousemove', function (e) {
         graphMouse.x = e.offsetX;
@@ -139,7 +139,7 @@ var defaultFace = {
     size: 0.0025,
     direction: 'none',
     growthScale: 1,
-    id: 0
+    id: 0,
 };
 var defaultBranch = {
     rayHits: 0,
@@ -147,7 +147,7 @@ var defaultBranch = {
     size: 0.0025,
     length: 0.005,
     direction: 0,
-    growthScale: 1
+    growthScale: 1,
 };
 function branchEnd(branch) {
     var d = directions[branch.direction];
@@ -171,7 +171,7 @@ function worldToViewTransform(graphic, p) {
     // | 1 |   |0     0    1 |   | 1 |
     var r = {
         x: p.x * w * 0.5 + w * 0.5,
-        y: p.y * -h * 0.5 + h * 0.5
+        y: p.y * -h * 0.5 + h * 0.5,
     };
     return r;
 }
@@ -216,16 +216,16 @@ function drawNormalization(graphic, side2d, absoluteDirection) {
     graphic.ctx.moveTo(left.x, left.y);
     graphic.ctx.lineTo(right.x, right.y);
     graphic.ctx.lineWidth = 10;
-    graphic.ctx.strokeStyle = "rgba(0, 0, 255, 0.2)";
+    graphic.ctx.strokeStyle = "rgba(203, 203, 255, 1)";
     graphic.ctx.stroke();
     // draw the line
     var middle2d = worldToViewTransform(graphic, {
         x: 0.5 * (side2d.left.x + side2d.right.x),
-        y: 0.5 * (side2d.left.y + side2d.right.y)
+        y: 0.5 * (side2d.left.y + side2d.right.y),
     });
     var middle = worldToViewTransform(graphic, {
         x: 0.5 * (side.left + side.right),
-        y: side.height
+        y: side.height,
     });
     graphic.ctx.beginPath();
     graphic.ctx.moveTo(middle2d.x, middle2d.y);
@@ -258,7 +258,7 @@ function drawFace(graphic, face) {
         }
     });
     graphic.ctx.closePath();
-    graphic.ctx.fillStyle = 'rgba(0, 0, 255, 0.2)';
+    graphic.ctx.fillStyle = "rgba(203, 203, 255, 1)";
     graphic.ctx.fill();
 }
 function rem(x, m) {
@@ -295,15 +295,15 @@ function createInitialSnowflake() {
                     size: 0.0025,
                     direction: 'none',
                     growthScale: 1,
-                    id: 0
+                    id: 0,
                 }],
             grown: [],
-            waiting: []
+            waiting: [],
         },
-        branches: { growing: [], grown: [], waiting: [] }
+        branches: { growing: [], grown: [], waiting: [] },
     };
 }
-var growthScalar = 0.0001;
+var growthScalar = 0.001;
 var branchGrowthScalar = growthScalar * 0.3;
 function enlargeGrowingFaces(snowflake, scale) {
     snowflake.faces.growing.forEach(function (face) {
@@ -368,7 +368,7 @@ function addBranchesToFace(snowflake, face) {
             size: sizeOfNewBranches,
             length: 0,
             direction: dir,
-            growthScale: growthScale
+            growthScale: growthScale,
         });
         dir = nextDirection(dir);
     };
@@ -387,7 +387,7 @@ function addFaceToBranch(snowflake, branch) {
         size: branch.size,
         direction: branch.direction,
         growthScale: branch.growthScale,
-        id: getId(snowflake)
+        id: getId(snowflake),
     });
 }
 function clamp(x, low, high) {
@@ -434,7 +434,7 @@ function drawGraphHandle(graph, x, y, isSelected, isBeingDragged) {
 function growthHandlePosition(writableGraphWidth, writableGraphHeight, graphMargin, i) {
     return {
         x: writableGraphWidth / (growthInput.length - 1) * i + graphMargin,
-        y: 4 * yChoices[growthInput[i]] * (writableGraphHeight / yChoices.length) + writableGraphHeight * 0.5
+        y: 4 * yChoices[growthInput[i]] * (writableGraphHeight / yChoices.length) + writableGraphHeight * 0.5,
     };
 }
 function nearestGrowthHandle(state, canvasPoint) {
@@ -519,7 +519,7 @@ function interpretGrowth(time) {
     var timeScalar = -0.01 * s + 1;
     return {
         scale: timeScalar * Math.abs(signedScale),
-        growthType: signedScale > 0.0 ? 'branching' : 'faceting'
+        growthType: signedScale > 0.0 ? 'branching' : 'faceting',
     };
 }
 function buildRay(theta) {
@@ -527,8 +527,8 @@ function buildRay(theta) {
     return {
         start: {
             x: radius * Math.cos(theta),
-            y: radius * Math.sin(theta)
-        }
+            y: radius * Math.sin(theta),
+        },
     };
 }
 function drawRay(graphic, ray) {
@@ -540,29 +540,6 @@ function drawRay(graphic, ray) {
     graphic.ctx.closePath();
     graphic.ctx.stroke();
 }
-function castRaysAtGrowingParts(snowflake) {
-    snowflake.faces.growing.forEach(function (face) { return face.rayHits = 0; });
-    snowflake.branches.growing.forEach(function (branch) { return branch.rayHits = 0; });
-    var numRays = 200;
-    var theta = Math.PI * 2 / numRays;
-    for (var i = 0; i < numRays; i += 1) {
-        var ray = buildRay(theta * i);
-        var intersection = firstRayIntersection(snowflake, ray);
-        if (intersection !== undefined) {
-            intersection.rayHits += 1;
-        }
-    }
-    snowflake.faces.growing.forEach(function (face) {
-        if (face.rayHits === 0) {
-            snowflake.faces.waiting.push(face);
-        }
-    });
-    snowflake.branches.growing.forEach(function (branch) {
-        if (branch.rayHits === 0) {
-            snowflake.branches.waiting.push(branch);
-        }
-    });
-}
 function squareDistance(p1, p2) {
     var dx = p2.x - p1.x;
     var dy = p2.y - p1.y;
@@ -571,41 +548,16 @@ function squareDistance(p1, p2) {
 function distance(p1, p2) {
     return Math.sqrt(squareDistance(p1, p2));
 }
-function firstRayIntersection(snowflake, ray) {
-    var smallestDistance = Infinity;
-    var smallestDistancePoint = undefined;
-    var result = undefined;
-    function updateIntersection(i, v, r) {
-        if (i === undefined) {
-            return;
-        }
-        if (smallestDistancePoint === undefined) {
-            smallestDistancePoint = i;
-        }
-        var d = squareDistance(i, r.start);
-        if (d < smallestDistance) {
-            smallestDistance = d;
-            smallestDistancePoint = i;
-            result = v;
-        }
-    }
-    snowflake.faces.growing.forEach(function (face) {
-        var circle = {
-            center: copyPoint(face.center),
-            radius: face.size
-        };
-        circle.radius = Math.max(circle.radius, 0.01);
-        var intersection = findCircleRayIntersection(circle, ray);
-        updateIntersection(intersection, face, ray);
-    });
-    snowflake.branches.growing.forEach(function (branch) {
-        createCirclesAlongBranch(branch).forEach(function (circle) {
-            var intersection = findCircleRayIntersection(circle, ray);
-            updateIntersection(intersection, branch, ray);
-        });
-    });
-    return result;
-}
+//function recordRayIntersections(snowflake: Snowflake, ray: Ray): void {
+//  const r = (() => {
+//    const r1 = firstRayFaceIntersection(snowflake.faces, ray);
+//    const r2 = firstRayBranchIntersection(snowflake.branches, ray);
+//    if (r1 === undefined) {
+//      return r2;
+//    }
+//    return r1;
+//  })();
+//}
 function createCirclesAlongBranch(branch) {
     if (branch.size === 0) {
         return [];
@@ -621,100 +573,10 @@ function createCirclesAlongBranch(branch) {
         var y = branch.start.y + dy * i;
         result.push({
             center: { x: x, y: y },
-            radius: radius
+            radius: radius,
         });
     }
     return result;
-}
-//function firstRayFaceIntersection(
-//  faces: Array<Face>, ray: Ray
-//): MaybeRayHit<Face> {
-//  const smallestDistance = Infinity;
-//  let result = undefined;
-//
-//  for (let i = 0; i < faces.length; i += 1) {
-//    const face = faces[i];
-//    const circle = {
-//      center: copyPoint(face.center),
-//      radius: face.size,
-//    };
-//    const maybeIntersection = findCircleRayIntersection(circle, ray);
-//    if (maybeIntersection !== undefined) {
-//      const dist = squareDistance(ray.start, circle.center);
-//      if (dist < smallestDistance) {
-//        result = {
-//          ray,
-//          hit: face,
-//        };
-//      }
-//    }
-//  }
-//
-//  return result;
-//}
-// Returns the point on the circle's circumference that intersects a straight
-// line that passes through 'ray.start' and (0,0); or undefined, if there isn't
-// such an intersection. If there are two such points, it returns the one
-// furthest from the (0,0).
-function findCircleRayIntersection(circle, ray) {
-    var rx = ray.start.x;
-    var ry = ray.start.y;
-    var cx = circle.center.x;
-    var cy = circle.center.y;
-    var cr = circle.radius;
-    var cr2 = cr * cr;
-    var cx2 = cx * cx;
-    var cy2 = cy * cy;
-    var rx2 = rx * rx;
-    var ry2 = ry * ry;
-    var t1 = (cr2 - cx2) * ry2 + 2 * cx * cy * rx * ry + (cr2 - cy2) * rx2;
-    if (t1 < 0) {
-        return undefined;
-    }
-    var t1sqrt = Math.sqrt(t1);
-    var t2 = cy * rx * ry + cx * rx2;
-    var t3 = cy * ry2 + cx * rx * ry;
-    var t4 = ry2 + rx2;
-    var ix = (rx * t1sqrt + t2) / t4;
-    var iy = (ry * t1sqrt + t3) / t4;
-    return { x: ix, y: iy };
-}
-function testFindCircleRayIntersection() {
-    var circle = {
-        center: {
-            x: 4.4,
-            y: -6.5
-        },
-        radius: 6
-    };
-    var ray = {
-        start: {
-            x: 18,
-            y: -11.6
-        }
-    };
-    var r1 = findCircleRayIntersection(circle, ray);
-    if (r1 === undefined) {
-        console.error("no intersection");
-    }
-    else {
-        test(Math.abs(r1.x - 10.39) < 0.01, "testFindRayCircleIntersection1");
-        test(Math.abs(r1.y - -6.70) < 0.01, "testFindRayCircleIntersection2");
-    }
-}
-function rayCircleDiscriminant(ray, circle) {
-    // from https://mathworld.wolfram.com/Circle-LineIntersection.html
-    var x1 = ray.start.x - circle.center.x;
-    var y1 = ray.start.y - circle.center.y;
-    var x2 = -circle.center.x;
-    var y2 = -circle.center.y;
-    var r = circle.radius;
-    var dx = x2 - x1;
-    var dy = y2 - y1;
-    var dr = Math.sqrt(dx * dx + dy * dy);
-    var D = x1 * y2 - x2 * y1;
-    var discriminant = r * r * dr - D * D;
-    return discriminant;
 }
 function currentTime(state) {
     var step = state.step, maxSteps = state.maxSteps;
@@ -776,7 +638,6 @@ function update(state) {
     var snowflake = state.snowflake, graph = state.graph, graphic = state.graphic, maxSteps = state.maxSteps, controls = state.controls;
     if (state.step < maxSteps && controls.playing) {
         state.step += 1;
-        //    castRaysAtGrowingParts(snowflake);
         var growth = interpretGrowth(currentTime(state));
         if (state.currentGrowthType === undefined) {
             state.currentGrowthType = growth.growthType;
@@ -863,14 +724,14 @@ function biggerSide(side, scale) {
     return {
         left: side.left * scale,
         right: side.right * scale,
-        height: side.height
+        height: side.height,
     };
 }
 // Rotates 'point' by 'theta' around (0,0)
 function rotatePoint(point, theta) {
     return {
         x: point.x * Math.cos(theta) - point.y * Math.sin(theta),
-        y: point.x * Math.sin(theta) + point.y * Math.cos(theta)
+        y: point.x * Math.sin(theta) + point.y * Math.cos(theta),
     };
 }
 function testRotatePoint() {
@@ -891,7 +752,7 @@ function getFacePoints(face) {
         var d = directions[(dir + i) % directions.length];
         result.push({
             x: face.center.x + face.size * Math.cos(d),
-            y: face.center.y + face.size * Math.sin(d)
+            y: face.center.y + face.size * Math.sin(d),
         });
     }
     return result;
@@ -924,7 +785,7 @@ function branchStartFace(branch) {
 function branchEndFace(branch) {
     return __assign(__assign({}, defaultFace), { center: addPoints(branch.start, {
             x: branch.length * Math.cos(directions[branch.direction]),
-            y: branch.length * Math.sin(directions[branch.direction])
+            y: branch.length * Math.sin(directions[branch.direction]),
         }), size: branch.size, direction: branch.direction });
 }
 function getBranchPoints(branch) {
@@ -986,7 +847,7 @@ function getNormalizedBranchSides(branch) {
         return {
             left: left.x,
             right: right.x,
-            height: left.y
+            height: left.y,
         };
     });
 }
@@ -1031,7 +892,7 @@ function normalizeSide2D(side2d, absoluteDirection) {
     return {
         left: left.x,
         right: right.x,
-        height: left.y
+        height: left.y,
     };
 }
 // Returns an array of sides of the face but where every side is
@@ -1147,7 +1008,7 @@ function makeState() {
     var step = 0;
     var intervalId = undefined;
     var updateInterval = 5;
-    var maxSteps = 6000;
+    var maxSteps = 1000;
     return {
         graph: graph,
         graphic: graphic,
@@ -1160,7 +1021,7 @@ function makeState() {
         step: step,
         intervalId: intervalId,
         updateInterval: updateInterval,
-        maxSteps: maxSteps
+        maxSteps: maxSteps,
     };
 }
 function resetSnowflake(state) {
@@ -1226,7 +1087,6 @@ function testOverlaps() {
 })();
 var enableTests = true;
 if (enableTests) {
-    testFindCircleRayIntersection();
     testDelete();
     testRotatePoint();
     testGetFacePoints();
