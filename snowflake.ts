@@ -62,7 +62,7 @@ function makeGraph(): Graph | undefined {
   }
   
   const graphMouse = { x: 0, y: 0 };
-  const background: RGBA = 'rgba(90, 211, 255, 0.5)';
+  const background: RGBA = `rgba(203, 203, 255, 1)`;
   const result: Graph = {
     canvas,
     ctx,
@@ -488,7 +488,15 @@ function clamp(x: number, low: number, high: number): number {
   return Math.min(Math.max(x, low), high);
 }
 
-let growthInput: NonEmptyArray<number> = [0, 5, 8, 8, 3, 5, 3, 2, 6, 3, 6, 3];
+function createRandomGrowthInput(): NonEmptyArray<number> {
+  let result: NonEmptyArray<number> = [0];
+  for (let i = 0; i < 12; i++) {
+    result[i] = Math.floor(Math.random() * 9);
+  }
+  return result;
+}
+
+let growthInput: NonEmptyArray<number> = createRandomGrowthInput();
 const yChoices: Array<number> =
   [-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1];
 

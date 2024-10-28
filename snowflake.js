@@ -59,7 +59,7 @@ function makeGraph() {
         return undefined;
     }
     var graphMouse = { x: 0, y: 0 };
-    var background = 'rgba(90, 211, 255, 0.5)';
+    var background = "rgba(203, 203, 255, 1)";
     var result = {
         canvas: canvas,
         ctx: ctx,
@@ -393,7 +393,14 @@ function addFaceToBranch(snowflake, branch) {
 function clamp(x, low, high) {
     return Math.min(Math.max(x, low), high);
 }
-var growthInput = [0, 5, 8, 8, 3, 5, 3, 2, 6, 3, 6, 3];
+function createRandomGrowthInput() {
+    var result = [0];
+    for (var i = 0; i < 12; i++) {
+        result[i] = Math.floor(Math.random() * 9);
+    }
+    return result;
+}
+var growthInput = createRandomGrowthInput();
 var yChoices = [-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1];
 function drawGraphHandle(graph, x, y, isSelected, isBeingDragged) {
     var oldFillStyle = graph.ctx.fillStyle;
