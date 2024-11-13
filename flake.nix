@@ -31,7 +31,7 @@
           rm -rf "$HOME/.config/VSCodium/GPUCache"
         '';
       in {
-        system.default = pkgs.stdenv.mkDerivation {
+        packages.default = pkgs.stdenv.mkDerivation {
           name = "snowflake-simulator";
           src = self;
           buildPhase = "${pkgs.nodePackages.typescript}/bin/tsc snowflake.ts";
@@ -44,7 +44,7 @@
             nativeBuildInputs = [
               jq
               nixfmt-rfc-style
-              tsc
+              typescript
               (vscode-with-extensions.override {
                 vscode = vscodium;
                 vscodeExtensions = with vscode-extensions;
