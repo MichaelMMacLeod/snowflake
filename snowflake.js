@@ -134,7 +134,6 @@ function addPoints(p1, p2) {
 }
 var defaultPoint = { x: 0, y: 0 };
 var defaultFace = {
-    rayHits: 0,
     center: defaultPoint,
     size: 0.0025,
     direction: 'none',
@@ -301,7 +300,6 @@ function createInitialSnowflake() {
     return {
         faces: {
             growing: [{
-                    rayHits: 0,
                     center: { x: 0, y: 0 },
                     size: 0.0025,
                     direction: 'none',
@@ -395,7 +393,6 @@ function getId(snowflake) {
 }
 function addFaceToBranch(snowflake, branch) {
     snowflake.faces.growing.push({
-        rayHits: 0,
         center: branchEnd(branch),
         size: branch.size,
         direction: branch.direction,
@@ -657,11 +654,17 @@ function deleteSortedElementsFromSortedArray(removeArray, elements) {
     removeArray.splice(completed);
 }
 function moveBranchesAndFaces(snowflake) {
-    var _a, _b, _c, _d;
-    (_a = snowflake.faces.waiting).splice.apply(_a, __spreadArray([snowflake.faces.waiting.length,
-        0], coveredGrowingFaces(snowflake.faces.growing, snowflake.faces.grown), false));
-    (_b = snowflake.branches.waiting).splice.apply(_b, __spreadArray([snowflake.branches.waiting.length,
-        0], coveredGrowingBranches(snowflake.branches.growing, snowflake.branches.grown), false));
+    // snowflake.faces.waiting.splice(
+    //   snowflake.faces.waiting.length,
+    //   0,
+    //   ...coveredGrowingFaces(snowflake.faces.growing, snowflake.faces.grown)
+    // );
+    // snowflake.branches.waiting.splice(
+    //   snowflake.branches.waiting.length,
+    //   0,
+    //   ...coveredGrowingBranches(snowflake.branches.growing, snowflake.branches.grown)
+    // );
+    var _a, _b;
     var compareFace = function (f1, f2) { return f1.id - f2.id; };
     var compareBranch = function (b1, b2) { return b1.id - b2.id; };
     snowflake.faces.growing.sort(compareFace);
@@ -672,8 +675,8 @@ function moveBranchesAndFaces(snowflake) {
     snowflake.branches.waiting.sort(compareBranch);
     deleteSortedElementsFromSortedArray(snowflake.faces.growing, snowflake.faces.waiting);
     deleteSortedElementsFromSortedArray(snowflake.branches.growing, snowflake.branches.waiting);
-    (_c = snowflake.faces.grown).splice.apply(_c, __spreadArray([snowflake.faces.grown.length, 0], snowflake.faces.waiting, false));
-    (_d = snowflake.branches.grown).splice.apply(_d, __spreadArray([snowflake.branches.grown.length, 0], snowflake.branches.waiting, false));
+    (_a = snowflake.faces.grown).splice.apply(_a, __spreadArray([snowflake.faces.grown.length, 0], snowflake.faces.waiting, false));
+    (_b = snowflake.branches.grown).splice.apply(_b, __spreadArray([snowflake.branches.grown.length, 0], snowflake.branches.waiting, false));
     snowflake.faces.waiting.splice(0);
     snowflake.branches.waiting.splice(0);
 }
@@ -949,111 +952,107 @@ function getNormalizedFaceSides(face) {
         return normalizeSide2D(s, (i + dir) % directions.length);
     });
 }
-var stopDistance = 0.001;
-var slowdownMultiplier = 0.999;
-var sideScale = 1.15;
-function coveredGrowingBranches(growingBranches, grownBranches) {
-    var result = [];
-    var normalizedSideBranches = [[], [], [], [], [], []];
-    growingBranches.forEach(function (branch) {
-        getNormalizedBranchSides(branch).forEach(function (side, i) {
-            var dir = branch.direction;
-            normalizedSideBranches[(i + dir) % directions.length].push({ side: side, branch: branch, growing: true });
-        });
-    });
-    grownBranches.forEach(function (branch) {
-        getNormalizedBranchSides(branch).forEach(function (side, i) {
-            var dir = branch.direction;
-            normalizedSideBranches[(i + dir) % directions.length].push({ side: side, branch: branch, growing: false });
-        });
-    });
-    growingBranches.forEach(function (branch) {
-        var dir = branch.direction;
-        var normalizedSides = getNormalizedBranchSides(branch);
-        var leftSide = normalizedSides[0];
-        var leftAbsoluteDir = dir;
-        var rightSide = normalizedSides[directions.length - 1];
-        var rightAbsoluteDir = (directions.length - 1 + dir) % directions.length;
-        var coveredCount = 0;
-        for (var i = 0; i < normalizedSideBranches[leftAbsoluteDir].length; i += 1) {
-            var sideBranch = normalizedSideBranches[leftAbsoluteDir][i];
-            var overlap = overlaps(biggerSide(sideBranch.side, sideScale), leftSide);
-            if (overlap !== undefined && overlap < stopDistance) {
-                coveredCount += 1;
-                break;
-            }
-            else if (overlap !== undefined) {
-                // branch.growthScale *= slowdownMultiplier;
-            }
-        }
-        for (var i = 0; i < normalizedSideBranches[rightAbsoluteDir].length; i += 1) {
-            var sideBranch = normalizedSideBranches[rightAbsoluteDir][i];
-            var overlap = overlaps(biggerSide(sideBranch.side, sideScale), rightSide);
-            if (overlap !== undefined && overlap < stopDistance) {
-                coveredCount += 1;
-                break;
-            }
-            else if (overlap !== undefined) {
-                // branch.growthScale *= slowdownMultiplier;
-            }
-        }
-        if (coveredCount === 2) {
-            result.push(branch);
-        }
-    });
-    return result;
-}
-function coveredGrowingFaces(growingFaces, grownFaces) {
-    var result = [];
-    var normalizedSideFaces = [[], [], [], [], [], []];
-    growingFaces.forEach(function (face) {
-        getNormalizedFaceSides(face).forEach(function (side, i) {
-            var dir = face.direction === "none" ? 0 : face.direction;
-            normalizedSideFaces[(i + dir) % directions.length].push({ side: side, face: face, growing: true });
-        });
-    });
-    grownFaces.forEach(function (face) {
-        getNormalizedFaceSides(face).forEach(function (side, i) {
-            var dir = face.direction === "none" ? 0 : face.direction;
-            normalizedSideFaces[(i + dir) % directions.length].push({ side: side, face: face, growing: false });
-        });
-    });
-    growingFaces.forEach(function (face) {
-        var dir = face.direction === "none" ? 0 : face.direction;
-        var normalizedSides = getNormalizedFaceSides(face);
-        var leftSide = normalizedSides[0];
-        var leftAbsoluteDir = dir;
-        var rightSide = normalizedSides[directions.length - 1];
-        var rightAbsoluteDir = (directions.length - 1 + dir) % directions.length;
-        var coveredCount = 0;
-        for (var i = 0; i < normalizedSideFaces[leftAbsoluteDir].length; i += 1) {
-            var sideFace = normalizedSideFaces[leftAbsoluteDir][i];
-            var overlap = overlaps(biggerSide(sideFace.side, sideScale), leftSide);
-            if (overlap !== undefined && overlap < stopDistance) {
-                coveredCount += 1;
-                break;
-            }
-            else if (overlap !== undefined) {
-                face.growthScale *= slowdownMultiplier;
-            }
-        }
-        for (var i = 0; i < normalizedSideFaces[rightAbsoluteDir].length; i += 1) {
-            var sideFace = normalizedSideFaces[rightAbsoluteDir][i];
-            var overlap = overlaps(biggerSide(sideFace.side, sideScale), rightSide);
-            if (overlap !== undefined && overlap < stopDistance) {
-                coveredCount += 1;
-                break;
-            }
-            else if (overlap !== undefined) {
-                face.growthScale *= slowdownMultiplier;
-            }
-        }
-        if (coveredCount === 2) {
-            result.push(face);
-        }
-    });
-    return result;
-}
+// const stopDistance = 0.001;
+// const slowdownMultiplier = 0.999;
+// const sideScale = 1.15;
+// function coveredGrowingBranches(growingBranches: Array<Branch>, grownBranches: Array<Branch>): Array<Branch> {
+//   const result: Array<Branch> = [];
+//   const normalizedSideBranches: Array6XSideBranch = [[], [], [], [], [], []];
+//   growingBranches.forEach(branch => {
+//     getNormalizedBranchSides(branch).forEach((side, i) => {
+//       let dir = branch.direction;
+//       normalizedSideBranches[(i + dir) % directions.length].push({ side, branch, growing: true });
+//     });
+//   });
+//   grownBranches.forEach(branch => {
+//     getNormalizedBranchSides(branch).forEach((side, i) => {
+//       let dir = branch.direction;
+//       normalizedSideBranches[(i + dir) % directions.length].push({ side, branch, growing: false });
+//     });
+//   });
+//   growingBranches.forEach(branch => {
+//     let dir = branch.direction;
+//     const normalizedSides = getNormalizedBranchSides(branch);
+//     const leftSide = normalizedSides[0];
+//     const leftAbsoluteDir = dir;
+//     const rightSide = normalizedSides[directions.length - 1];
+//     const rightAbsoluteDir = (directions.length - 1 + dir) % directions.length;
+//     let coveredCount = 0;
+//     for (let i = 0; i < normalizedSideBranches[leftAbsoluteDir].length; i += 1) {
+//       const sideBranch = normalizedSideBranches[leftAbsoluteDir][i];
+//       const overlap = overlaps(biggerSide(sideBranch.side, sideScale), leftSide);
+//       if (overlap !== undefined && overlap < stopDistance) {
+//         coveredCount += 1;
+//         break;
+//       } else if (overlap !== undefined) {
+//         // branch.growthScale *= slowdownMultiplier;
+//       }
+//     }
+//     for (let i = 0; i < normalizedSideBranches[rightAbsoluteDir].length; i += 1) {
+//       const sideBranch = normalizedSideBranches[rightAbsoluteDir][i];
+//       const overlap = overlaps(biggerSide(sideBranch.side, sideScale), rightSide);
+//       if (overlap !== undefined && overlap < stopDistance) {
+//         coveredCount += 1;
+//         break;
+//       } else if (overlap !== undefined) {
+//         // branch.growthScale *= slowdownMultiplier;
+//       }
+//     }
+//     if (coveredCount === 2) {
+//       result.push(branch);
+//     }
+//   });
+//   return result;
+// }
+// function coveredGrowingFaces(growingFaces: Array<Face>, grownFaces: Array<Face>): Array<Face> {
+//   const result: Array<Face> = [];
+//   const normalizedSideFaces: Array6XSideFace = [[], [], [], [], [], []];
+//   growingFaces.forEach(face => {
+//     getNormalizedFaceSides(face).forEach((side, i) => {
+//       let dir = face.direction === "none" ? 0 : face.direction;
+//       normalizedSideFaces[(i + dir) % directions.length].push({ side, face, growing: true });
+//     });
+//   });
+//   grownFaces.forEach(face => {
+//     getNormalizedFaceSides(face).forEach((side, i) => {
+//       let dir = face.direction === "none" ? 0 : face.direction;
+//       normalizedSideFaces[(i + dir) % directions.length].push({ side, face, growing: false });
+//     });
+//   });
+//   growingFaces.forEach(face => {
+//     let dir = face.direction === "none" ? 0 : face.direction;
+//     const normalizedSides = getNormalizedFaceSides(face);
+//     const leftSide = normalizedSides[0];
+//     const leftAbsoluteDir = dir;
+//     const rightSide = normalizedSides[directions.length - 1];
+//     const rightAbsoluteDir = (directions.length - 1 + dir) % directions.length;
+//     let coveredCount = 0;
+//     for (let i = 0; i < normalizedSideFaces[leftAbsoluteDir].length; i += 1) {
+//       const sideFace = normalizedSideFaces[leftAbsoluteDir][i];
+//       const overlap = overlaps(biggerSide(sideFace.side, sideScale), leftSide);
+//       if (overlap !== undefined && overlap < stopDistance) {
+//         coveredCount += 1;
+//         break;
+//       } else if (overlap !== undefined) {
+//         face.growthScale *= slowdownMultiplier;
+//       }
+//     }
+//     for (let i = 0; i < normalizedSideFaces[rightAbsoluteDir].length; i += 1) {
+//       const sideFace = normalizedSideFaces[rightAbsoluteDir][i];
+//       const overlap = overlaps(biggerSide(sideFace.side, sideScale), rightSide)
+//       if (overlap !== undefined && overlap < stopDistance) {
+//         coveredCount += 1;
+//         break;
+//       } else if (overlap !== undefined) {
+//         face.growthScale *= slowdownMultiplier;
+//       }
+//     }
+//     if (coveredCount === 2) {
+//       result.push(face);
+//     }
+//   });
+//   return result;
+// }
 function testGetNormalizedFaceSides() {
     {
         var f = __assign(__assign({}, defaultFace), { size: 10, direction: 0, center: { x: 0, y: 0 } });
