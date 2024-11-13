@@ -34,11 +34,11 @@ function makeGraphic(): Graphic | undefined {
   if (ctx === null) {
     return undefined;
   }
-  
+
   const lightBlue = 'rgba(90, 211, 255, 1.0)';
-  
+
   ctx.fillStyle = lightBlue;
-  
+
   return { canvas, ctx };
 }
 
@@ -60,7 +60,7 @@ function makeGraph(): Graph | undefined {
   if (ctx === null) {
     return undefined;
   }
-  
+
   const graphMouse = undefined;
   const background: RGBA = `rgba(203, 203, 255, 1)`;
   const result: Graph = {
@@ -85,7 +85,7 @@ function makeGraph(): Graph | undefined {
   canvas.addEventListener('mouseleave', e => {
     result.mouseRecentlyExitedGraph = true;
   });
-  
+
   return result;
 };
 
@@ -98,7 +98,7 @@ type Controls = {
 function makeControls(graphic: Graphic): Controls {
   const pause = document.getElementById('pause') as HTMLButtonElement;
   const reset = document.getElementById('reset') as HTMLButtonElement;
-  return { pause, reset, playing: true };  
+  return { pause, reset, playing: true };
 }
 
 function registerControlsEventListeners(state: State): void {
@@ -248,7 +248,7 @@ function worldToViewTransform(graphic: Graphic, p: Point): Point {
   // | 1 |   |0     0    1 |   | 1 |
   const r: Point = {
     x: p.x * w * 0.5 + w * 0.5,
-    y: p.y * -h * 0.5 + h * 0.5, 
+    y: p.y * -h * 0.5 + h * 0.5,
   };
   return r;
 }
@@ -260,7 +260,7 @@ function drawSide(graphic: Graphic, side: Side, index: number, face: Face): void
   graphic.ctx.beginPath();
   //  const h = 1/6 * (index + 1);
   const h = side.height;
-  const left = worldToViewTransform(graphic, { x: side.left, y: h } );
+  const left = worldToViewTransform(graphic, { x: side.left, y: h });
   const right = worldToViewTransform(graphic, { x: side.right, y: h });
   graphic.ctx.moveTo(left.x, left.y);
   graphic.ctx.lineTo(right.x, right.y);
@@ -274,7 +274,7 @@ function drawSide(graphic: Graphic, side: Side, index: number, face: Face): void
 function drawNormalization(graphic: Graphic, side2d: Side2D, absoluteDirection: number): void {
   if (absoluteDirection !== 0)
     return;
-  
+
   const oldWidth = graphic.ctx.lineWidth;
   const oldStyle = graphic.ctx.strokeStyle;
 
@@ -327,11 +327,11 @@ function drawFace(graphic: Graphic, face: Face): void {
   // getFaceSide2Ds(face).forEach((side2d, i) => {
   //   drawNormalization(graphic, side2d, (i + dir) % directions.length);
   // });
-//   getNormalizedFaceSides(face).forEach((side, i) => {
-//     const dir = face.direction === "none" ? 0 : face.direction;
-// //    if ((i + dir) % directions.length === 0) {
-//     drawSide(graphic, side, (i + dir) % directions.length, face);
-//   });
+  //   getNormalizedFaceSides(face).forEach((side, i) => {
+  //     const dir = face.direction === "none" ? 0 : face.direction;
+  // //    if ((i + dir) % directions.length === 0) {
+  //     drawSide(graphic, side, (i + dir) % directions.length, face);
+  //   });
   graphic.ctx.beginPath();
   getFacePoints(face).forEach((p, i) => {
     const { x, y } = worldToViewTransform(graphic, p);
@@ -385,12 +385,12 @@ function createInitialSnowflake(): Snowflake {
         size: 0.0025,
         direction: 'none',
         growthScale: 1,
-	id: 0,
+        id: 0,
       }],
       grown: [],
       waiting: [],
     },
-    branches: {growing: [], grown: [], waiting: [] },
+    branches: { growing: [], grown: [], waiting: [] },
   };
 }
 
@@ -564,8 +564,7 @@ function growthHandlePosition(
   writableGraphWidth: number,
   writableGraphHeight: number,
   graphMargin: number,
-  i: number): Point
-{
+  i: number): Point {
   return {
     x: writableGraphWidth / (growthInput.length - 1) * i + graphMargin,
     y: 4 * yChoices[growthInput[i]] * (writableGraphHeight / yChoices.length) + writableGraphHeight * 0.5,
@@ -980,16 +979,16 @@ function arraysEqual<T>(xs: Array<T>, ys: Array<T>) {
 
 function testDelete() {
   {
-    const letters = ['a','b','c','d','e','f','g','h','i'];
-    const vowels = ['a','e','i'];
+    const letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'];
+    const vowels = ['a', 'e', 'i'];
     deleteSortedElementsFromSortedArray(letters, vowels);
-    test(arraysEqual(letters, ['b','c','d','f','g','h']), `1: Letters was ${letters}`);
+    test(arraysEqual(letters, ['b', 'c', 'd', 'f', 'g', 'h']), `1: Letters was ${letters}`);
   }
   {
-    const letters = ['a','b','c','d','e','f','g','h'];
-    const vowels = ['a','e'];
+    const letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+    const vowels = ['a', 'e'];
     deleteSortedElementsFromSortedArray(letters, vowels);
-    test(arraysEqual(letters, ['b','c','d','f','g','h']), `2: Letters was ${letters}`);
+    test(arraysEqual(letters, ['b', 'c', 'd', 'f', 'g', 'h']), `2: Letters was ${letters}`);
   }
 }
 
@@ -1077,7 +1076,7 @@ function testGetFacePoints() {
     testAbs(ps[2].y, ps[1].y, "gfp_1h");
     testAbs(ps[1].y, -ps[5].y, "gfp_1i");
   }
-  
+
   {
     const f: Face = {
       ...defaultFace,
@@ -1173,11 +1172,11 @@ function testGetBranchSide2Ds() {
     testAbs(p[4].right.x, Math.cos(0 * oneSixthCircle), "gbs_a2");
     testAbs(p[4].right.y, Math.sin(0 * oneSixthCircle), "gbs_a3");
     testAbs(p[4].left.x,
-            10 * Math.cos(2 * oneSixthCircle) + Math.cos(oneSixthCircle),
-            "gbs_a4");
+      10 * Math.cos(2 * oneSixthCircle) + Math.cos(oneSixthCircle),
+      "gbs_a4");
     testAbs(p[4].left.y,
-            10 * Math.sin(2 * oneSixthCircle) + Math.sin(oneSixthCircle),
-            "gbs_a5");
+      10 * Math.sin(2 * oneSixthCircle) + Math.sin(oneSixthCircle),
+      "gbs_a5");
     testAbs(p[3].right.x, Math.cos(5 * oneSixthCircle), "gbs_a6");
     testAbs(p[3].right.y, Math.sin(5 * oneSixthCircle), "gbs_a7");
     testAbs(p[3].left.x, p[4].right.x, "gbs_a8");
@@ -1213,7 +1212,7 @@ function getFaceSide2Ds(face: Face): Array<Side2D> {
 
 function testGetFaceSide2Ds() {
   {
-     const f = {
+    const f = {
       ...defaultFace,
       center: { x: 0, y: 0 },
       size: 10,
@@ -1331,7 +1330,7 @@ function coveredGrowingBranches(growingBranches: Array<Branch>, grownBranches: A
       result.push(branch);
     }
   });
-  
+
   return result;
 }
 
@@ -1364,20 +1363,20 @@ function coveredGrowingFaces(growingFaces: Array<Face>, grownFaces: Array<Face>)
       const sideFace = normalizedSideFaces[leftAbsoluteDir][i];
       const overlap = overlaps(biggerSide(sideFace.side, sideScale), leftSide);
       if (overlap !== undefined && overlap < stopDistance) {
-	coveredCount += 1;
-	break;
+        coveredCount += 1;
+        break;
       } else if (overlap !== undefined) {
-	face.growthScale *= slowdownMultiplier;
+        face.growthScale *= slowdownMultiplier;
       }
     }
     for (let i = 0; i < normalizedSideFaces[rightAbsoluteDir].length; i += 1) {
       const sideFace = normalizedSideFaces[rightAbsoluteDir][i];
       const overlap = overlaps(biggerSide(sideFace.side, sideScale), rightSide)
       if (overlap !== undefined && overlap < stopDistance) {
-	coveredCount += 1;
-	break;
+        coveredCount += 1;
+        break;
       } else if (overlap !== undefined) {
-	face.growthScale *= slowdownMultiplier;
+        face.growthScale *= slowdownMultiplier;
       }
     }
     if (coveredCount === 2) {
