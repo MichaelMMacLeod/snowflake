@@ -201,6 +201,7 @@ type Branch = {
   length: number,
   direction: Direction,
   growthScale: number,
+  id: number,
 }
 
 const defaultBranch: Branch = {
@@ -210,6 +211,7 @@ const defaultBranch: Branch = {
   length: 0.005,
   direction: 0,
   growthScale: 1,
+  id: 0,
 };
 
 function branchEnd(branch: Branch): Point {
@@ -221,9 +223,19 @@ function branchEnd(branch: Branch): Point {
 }
 
 function drawSnowflake(graphic: Graphic, snowflake: Snowflake): void {
-  snowflake.faces.growing.forEach(f => drawFace(graphic, f));
+  snowflake.faces.growing.forEach(f => {
+    drawFace(graphic, f)
+    // getNormalizedFaceSides(f).forEach((s, i) => {
+    //   drawSide(graphic, s, i, f);
+    // });
+  });
   snowflake.faces.grown.forEach(f => drawFace(graphic, f));
-  snowflake.branches.growing.forEach(b => drawBranch(graphic, b));
+  snowflake.branches.growing.forEach(b => {
+    drawBranch(graphic, b);
+    // getNormalizedBranchSides(b).forEach((s, i) => {
+    //   drawSide(graphic, s, i, defaultFace);
+    // });
+  });
   snowflake.branches.grown.forEach(b => drawBranch(graphic, b));
 }
 
@@ -447,7 +459,8 @@ function addBranchesToFace(snowflake: Snowflake, face: Face): void {
         return face.growthScale * 0.9;
       }
 
-      const randomAdjust = Math.random() * 0.5 + 0.5;
+      //const randomAdjust = Math.random() * 0.5 + 0.5;
+      const randomAdjust = 1;
       return face.growthScale * 0.5 * randomAdjust;
     })();
     snowflake.branches.growing.push({
@@ -457,6 +470,7 @@ function addBranchesToFace(snowflake: Snowflake, face: Face): void {
       length: 0,
       direction: dir as Direction,
       growthScale,
+      id: getId(snowflake),
     });
     dir = nextDirection(dir);
   }
@@ -490,7 +504,7 @@ function clamp(x: number, low: number, high: number): number {
 
 function createRandomGrowthInput(): NonEmptyArray<number> {
   let result: NonEmptyArray<number> = [0];
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 16; i++) {
     result[i] = Math.floor(Math.random() * 9);
   }
   return result;
@@ -856,12 +870,25 @@ function deleteSortedElementsFromSortedArray<T>(removeArray: Array<T>, elements:
 }
 
 function moveBranchesAndFaces(snowflake: Snowflake) {
-  snowflake.faces.waiting.splice(snowflake.faces.waiting.length, 0, ...coveredGrowingFaces(snowflake.faces.growing, snowflake.faces.grown));
+  snowflake.faces.waiting.splice(
+    snowflake.faces.waiting.length,
+    0,
+    ...coveredGrowingFaces(snowflake.faces.growing, snowflake.faces.grown)
+  );
+  snowflake.branches.waiting.splice(
+    snowflake.branches.waiting.length,
+    0,
+    ...coveredGrowingBranches(snowflake.branches.growing, snowflake.branches.grown)
+  );
 
-  const compareFn = (f1: Face, f2: Face) => f1.id - f2.id;
-  snowflake.faces.growing.sort(compareFn);
-  snowflake.faces.grown.sort(compareFn);
-  snowflake.faces.waiting.sort(compareFn);
+  const compareFace = (f1: Face, f2: Face) => f1.id - f2.id;
+  const compareBranch = (b1: Branch, b2: Branch) => b1.id - b2.id;
+  snowflake.faces.growing.sort(compareFace);
+  snowflake.faces.grown.sort(compareFace);
+  snowflake.faces.waiting.sort(compareFace);
+  snowflake.branches.growing.sort(compareBranch);
+  snowflake.branches.grown.sort(compareBranch);
+  snowflake.branches.waiting.sort(compareBranch);
 
   deleteSortedElementsFromSortedArray(snowflake.faces.growing, snowflake.faces.waiting);
   deleteSortedElementsFromSortedArray(snowflake.branches.growing, snowflake.branches.waiting);
@@ -980,6 +1007,12 @@ type Side = {
 type SideFace = {
   side: Side,
   face: Face,
+  growing: boolean,
+};
+
+type SideBranch = {
+  side: Side,
+  branch: Branch,
   growing: boolean,
 };
 
@@ -1236,6 +1269,72 @@ type Array6XSideFace = [
   Array<SideFace>
 ];
 
+type Array6XSideBranch = [
+  Array<SideBranch>,
+  Array<SideBranch>,
+  Array<SideBranch>,
+  Array<SideBranch>,
+  Array<SideBranch>,
+  Array<SideBranch>
+];
+
+const stopDistance = 0.001;
+const slowdownMultiplier = 0.999;
+const sideScale = 1.15;
+
+function coveredGrowingBranches(growingBranches: Array<Branch>, grownBranches: Array<Branch>): Array<Branch> {
+  const result: Array<Branch> = [];
+
+  const normalizedSideBranches: Array6XSideBranch = [[], [], [], [], [], []];
+  growingBranches.forEach(branch => {
+    getNormalizedBranchSides(branch).forEach((side, i) => {
+      let dir = branch.direction;
+      normalizedSideBranches[(i + dir) % directions.length].push({ side, branch, growing: true });
+    });
+  });
+  grownBranches.forEach(branch => {
+    getNormalizedBranchSides(branch).forEach((side, i) => {
+      let dir = branch.direction;
+      normalizedSideBranches[(i + dir) % directions.length].push({ side, branch, growing: false });
+    });
+  });
+
+  growingBranches.forEach(branch => {
+    let dir = branch.direction;
+    const normalizedSides = getNormalizedBranchSides(branch);
+    const leftSide = normalizedSides[0];
+    const leftAbsoluteDir = dir;
+    const rightSide = normalizedSides[directions.length - 1];
+    const rightAbsoluteDir = (directions.length - 1 + dir) % directions.length;
+    let coveredCount = 0;
+    for (let i = 0; i < normalizedSideBranches[leftAbsoluteDir].length; i += 1) {
+      const sideBranch = normalizedSideBranches[leftAbsoluteDir][i];
+      const overlap = overlaps(biggerSide(sideBranch.side, sideScale), leftSide);
+      if (overlap !== undefined && overlap < stopDistance) {
+        coveredCount += 1;
+        break;
+      } else if (overlap !== undefined) {
+        // branch.growthScale *= slowdownMultiplier;
+      }
+    }
+    for (let i = 0; i < normalizedSideBranches[rightAbsoluteDir].length; i += 1) {
+      const sideBranch = normalizedSideBranches[rightAbsoluteDir][i];
+      const overlap = overlaps(biggerSide(sideBranch.side, sideScale), rightSide);
+      if (overlap !== undefined && overlap < stopDistance) {
+        coveredCount += 1;
+        break;
+      } else if (overlap !== undefined) {
+        // branch.growthScale *= slowdownMultiplier;
+      }
+    }
+    if (coveredCount === 2) {
+      result.push(branch);
+    }
+  });
+  
+  return result;
+}
+
 function coveredGrowingFaces(growingFaces: Array<Face>, grownFaces: Array<Face>): Array<Face> {
   const result: Array<Face> = [];
 
@@ -1261,9 +1360,6 @@ function coveredGrowingFaces(growingFaces: Array<Face>, grownFaces: Array<Face>)
     const rightSide = normalizedSides[directions.length - 1];
     const rightAbsoluteDir = (directions.length - 1 + dir) % directions.length;
     let coveredCount = 0;
-    const stopDistance = 0.001;
-    const slowdownMultiplier = 0.999;
-    const sideScale = 1.15;
     for (let i = 0; i < normalizedSideFaces[leftAbsoluteDir].length; i += 1) {
       const sideFace = normalizedSideFaces[leftAbsoluteDir][i];
       const overlap = overlaps(biggerSide(sideFace.side, sideScale), leftSide);

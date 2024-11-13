@@ -148,6 +148,7 @@ var defaultBranch = {
     length: 0.005,
     direction: 0,
     growthScale: 1,
+    id: 0,
 };
 function branchEnd(branch) {
     var d = directions[branch.direction];
@@ -157,9 +158,19 @@ function branchEnd(branch) {
     return { x: x, y: y };
 }
 function drawSnowflake(graphic, snowflake) {
-    snowflake.faces.growing.forEach(function (f) { return drawFace(graphic, f); });
+    snowflake.faces.growing.forEach(function (f) {
+        drawFace(graphic, f);
+        // getNormalizedFaceSides(f).forEach((s, i) => {
+        //   drawSide(graphic, s, i, f);
+        // });
+    });
     snowflake.faces.grown.forEach(function (f) { return drawFace(graphic, f); });
-    snowflake.branches.growing.forEach(function (b) { return drawBranch(graphic, b); });
+    snowflake.branches.growing.forEach(function (b) {
+        drawBranch(graphic, b);
+        // getNormalizedBranchSides(b).forEach((s, i) => {
+        //   drawSide(graphic, s, i, defaultFace);
+        // });
+    });
     snowflake.branches.grown.forEach(function (b) { return drawBranch(graphic, b); });
 }
 function worldToViewTransform(graphic, p) {
@@ -359,7 +370,8 @@ function addBranchesToFace(snowflake, face) {
             if (face.direction === 'none' || i === 1) {
                 return face.growthScale * 0.9;
             }
-            var randomAdjust = Math.random() * 0.5 + 0.5;
+            //const randomAdjust = Math.random() * 0.5 + 0.5;
+            var randomAdjust = 1;
             return face.growthScale * 0.5 * randomAdjust;
         })();
         snowflake.branches.growing.push({
@@ -369,6 +381,7 @@ function addBranchesToFace(snowflake, face) {
             length: 0,
             direction: dir,
             growthScale: growthScale,
+            id: getId(snowflake),
         });
         dir = nextDirection(dir);
     };
@@ -395,7 +408,7 @@ function clamp(x, low, high) {
 }
 function createRandomGrowthInput() {
     var result = [0];
-    for (var i = 0; i < 12; i++) {
+    for (var i = 0; i < 16; i++) {
         result[i] = Math.floor(Math.random() * 9);
     }
     return result;
@@ -644,16 +657,23 @@ function deleteSortedElementsFromSortedArray(removeArray, elements) {
     removeArray.splice(completed);
 }
 function moveBranchesAndFaces(snowflake) {
-    var _a, _b, _c;
-    (_a = snowflake.faces.waiting).splice.apply(_a, __spreadArray([snowflake.faces.waiting.length, 0], coveredGrowingFaces(snowflake.faces.growing, snowflake.faces.grown), false));
-    var compareFn = function (f1, f2) { return f1.id - f2.id; };
-    snowflake.faces.growing.sort(compareFn);
-    snowflake.faces.grown.sort(compareFn);
-    snowflake.faces.waiting.sort(compareFn);
+    var _a, _b, _c, _d;
+    (_a = snowflake.faces.waiting).splice.apply(_a, __spreadArray([snowflake.faces.waiting.length,
+        0], coveredGrowingFaces(snowflake.faces.growing, snowflake.faces.grown), false));
+    (_b = snowflake.branches.waiting).splice.apply(_b, __spreadArray([snowflake.branches.waiting.length,
+        0], coveredGrowingBranches(snowflake.branches.growing, snowflake.branches.grown), false));
+    var compareFace = function (f1, f2) { return f1.id - f2.id; };
+    var compareBranch = function (b1, b2) { return b1.id - b2.id; };
+    snowflake.faces.growing.sort(compareFace);
+    snowflake.faces.grown.sort(compareFace);
+    snowflake.faces.waiting.sort(compareFace);
+    snowflake.branches.growing.sort(compareBranch);
+    snowflake.branches.grown.sort(compareBranch);
+    snowflake.branches.waiting.sort(compareBranch);
     deleteSortedElementsFromSortedArray(snowflake.faces.growing, snowflake.faces.waiting);
     deleteSortedElementsFromSortedArray(snowflake.branches.growing, snowflake.branches.waiting);
-    (_b = snowflake.faces.grown).splice.apply(_b, __spreadArray([snowflake.faces.grown.length, 0], snowflake.faces.waiting, false));
-    (_c = snowflake.branches.grown).splice.apply(_c, __spreadArray([snowflake.branches.grown.length, 0], snowflake.branches.waiting, false));
+    (_c = snowflake.faces.grown).splice.apply(_c, __spreadArray([snowflake.faces.grown.length, 0], snowflake.faces.waiting, false));
+    (_d = snowflake.branches.grown).splice.apply(_d, __spreadArray([snowflake.branches.grown.length, 0], snowflake.branches.waiting, false));
     snowflake.faces.waiting.splice(0);
     snowflake.branches.waiting.splice(0);
 }
@@ -929,6 +949,60 @@ function getNormalizedFaceSides(face) {
         return normalizeSide2D(s, (i + dir) % directions.length);
     });
 }
+var stopDistance = 0.001;
+var slowdownMultiplier = 0.999;
+var sideScale = 1.15;
+function coveredGrowingBranches(growingBranches, grownBranches) {
+    var result = [];
+    var normalizedSideBranches = [[], [], [], [], [], []];
+    growingBranches.forEach(function (branch) {
+        getNormalizedBranchSides(branch).forEach(function (side, i) {
+            var dir = branch.direction;
+            normalizedSideBranches[(i + dir) % directions.length].push({ side: side, branch: branch, growing: true });
+        });
+    });
+    grownBranches.forEach(function (branch) {
+        getNormalizedBranchSides(branch).forEach(function (side, i) {
+            var dir = branch.direction;
+            normalizedSideBranches[(i + dir) % directions.length].push({ side: side, branch: branch, growing: false });
+        });
+    });
+    growingBranches.forEach(function (branch) {
+        var dir = branch.direction;
+        var normalizedSides = getNormalizedBranchSides(branch);
+        var leftSide = normalizedSides[0];
+        var leftAbsoluteDir = dir;
+        var rightSide = normalizedSides[directions.length - 1];
+        var rightAbsoluteDir = (directions.length - 1 + dir) % directions.length;
+        var coveredCount = 0;
+        for (var i = 0; i < normalizedSideBranches[leftAbsoluteDir].length; i += 1) {
+            var sideBranch = normalizedSideBranches[leftAbsoluteDir][i];
+            var overlap = overlaps(biggerSide(sideBranch.side, sideScale), leftSide);
+            if (overlap !== undefined && overlap < stopDistance) {
+                coveredCount += 1;
+                break;
+            }
+            else if (overlap !== undefined) {
+                // branch.growthScale *= slowdownMultiplier;
+            }
+        }
+        for (var i = 0; i < normalizedSideBranches[rightAbsoluteDir].length; i += 1) {
+            var sideBranch = normalizedSideBranches[rightAbsoluteDir][i];
+            var overlap = overlaps(biggerSide(sideBranch.side, sideScale), rightSide);
+            if (overlap !== undefined && overlap < stopDistance) {
+                coveredCount += 1;
+                break;
+            }
+            else if (overlap !== undefined) {
+                // branch.growthScale *= slowdownMultiplier;
+            }
+        }
+        if (coveredCount === 2) {
+            result.push(branch);
+        }
+    });
+    return result;
+}
 function coveredGrowingFaces(growingFaces, grownFaces) {
     var result = [];
     var normalizedSideFaces = [[], [], [], [], [], []];
@@ -952,9 +1026,6 @@ function coveredGrowingFaces(growingFaces, grownFaces) {
         var rightSide = normalizedSides[directions.length - 1];
         var rightAbsoluteDir = (directions.length - 1 + dir) % directions.length;
         var coveredCount = 0;
-        var stopDistance = 0.001;
-        var slowdownMultiplier = 0.999;
-        var sideScale = 1.15;
         for (var i = 0; i < normalizedSideFaces[leftAbsoluteDir].length; i += 1) {
             var sideFace = normalizedSideFaces[leftAbsoluteDir][i];
             var overlap = overlaps(biggerSide(sideFace.side, sideScale), leftSide);
