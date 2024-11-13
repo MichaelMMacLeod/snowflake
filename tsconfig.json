@@ -2,9 +2,11 @@
     "compilerOptions": {
         "strict": true,
         "alwaysStrict": true,
-        "noImplicitAny": true, //fixme
+        "noImplicitAny": true,
         "lib": ["es2016", "dom"],
-        "module": "esnext",
+        "module": "es6",
+        "target": "es5",
         "moduleResolution": "node",
-    }
+        "outDir": "./dist",
+    },
 }

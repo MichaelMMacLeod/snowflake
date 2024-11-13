@@ -45,6 +45,9 @@
               jq
               nixfmt-rfc-style
               typescript
+              nodePackages.webpack
+              nodePackages.webpack-cli
+              nodejs
               (vscode-with-extensions.override {
                 vscode = vscodium;
                 vscodeExtensions = with vscode-extensions;
