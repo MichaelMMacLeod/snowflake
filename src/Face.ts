@@ -66,7 +66,7 @@ export function draw(graphic: Graphic, face: Face): void {
         }
     });
     graphic.ctx.closePath();
-    graphic.ctx.fillStyle = `rgba(203, 203, 255, 1)`;
+    graphic.ctx.fillStyle = `rgba(255, 255, 255, 1)`;
     graphic.ctx.fill();
 }
 
