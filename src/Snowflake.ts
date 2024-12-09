@@ -5,6 +5,10 @@ import * as Branches from "./Branch";
 import { Graphic } from "./Graphic";
 import { Direction } from "./Direction";
 import * as Directions from "./Direction";
+import { Array6, rem } from "./Utils";
+import { Side } from "./Side";
+import * as Sides from "./Side";
+import * as Points from "./Point";
 
 export type Snowflake = {
   faces: Array<Face>,
@@ -32,7 +36,13 @@ export function zero(): Snowflake {
 function addBranchesToFace(snowflake: Snowflake, face: Face): void {
   const initialFraction = 0.01;
   const sizeOfNewBranches = face.size * initialFraction;
-  const distFromCenter = 1 * face.size * (1 - initialFraction);
+
+  // This is the offset from the edge of the face that we add to the start of the branch
+  // so that it does not overlap the face itself when it is first created. Without this,
+  // overlap detection immediatelly kills freshly created branches.
+  const safetyOffset = 0.001;
+
+  const distFromCenter = safetyOffset + 1 * face.size * (1 - initialFraction);
   const cx = face.center.x;
   const cy = face.center.y;
 
@@ -73,7 +83,7 @@ function addBranchesToFace(snowflake: Snowflake, face: Face): void {
 }
 
 export function addBranchesToGrowingFaces(snowflake: Snowflake): void {
-  snowflake.faces.forEach(face => {
+  snowflake.faces.forEach((face) => {
     if (face.growing) {
       addBranchesToFace(snowflake, face);
       face.growing = false;
@@ -100,6 +110,108 @@ export function addFacesToGrowingBranches(snowflake: Snowflake): void {
   })
 }
 
+// Returns the normalized sides of every part (face, branch) in the snowflake. The
+// order of the returned sides is the order of 'snowflake.faces' followed by
+// 'snowflake.branches', so normalizedSides(sf)[0][0] is the first side of sf.faces[0],
+// and normalizedSides(sf)[0][sf.faces.length] is the first side of sf.branches[0]. Sides
+// are returned in one of six slots based on their absolute direction.
+export function normalizedSides(snowflake: Snowflake): Array6<Array<Side>> {
+  const result: Array6<Array<Side>> = [[], [], [], [], [], []];
+  snowflake.faces.forEach(f => {
+    Sides.normalizedFaceSides(f).forEach((s, i) => {
+      const absoluteDirection = (i + Faces.direction(f)) % Directions.values.length;
+      result[absoluteDirection].push(s);
+    });
+  });
+  snowflake.branches.forEach(b => {
+    Sides.normalizedBranchSides(b).forEach((s, i) => {
+      const absoluteDirection = (i + b.direction) % Directions.values.length;
+      result[absoluteDirection].push(s);
+    });
+  });
+  return result;
+}
+
+export function killCoveredFaces(snowflake: Snowflake, sides: Array6<Array<Side>>): void {
+  snowflake.faces.forEach((f, fi) => {
+    if (!f.growing) {
+      return;
+    }
+    const d = Faces.direction(f);
+    const leftDirection = d;
+    const rightDirection = rem(d - 1, Directions.values.length);
+    const leftSide = sides[leftDirection][fi];
+    const rightSide = sides[rightDirection][fi];
+    const otherLeftSides = sides[leftDirection];
+    const otherRightSides = sides[rightDirection];
+    for (let oi = 0; oi < otherLeftSides.length; ++oi) {
+      if (oi === fi) {
+        continue;
+      }
+      const otherLeftSide = otherLeftSides[oi];
+      const distance = Sides.overlaps(otherLeftSide, leftSide);
+      if (distance !== undefined) {
+        f.growing = false;
+        break;
+      }
+    }
+    if (!f.growing) {
+      return;
+    }
+    for (let oi = 0; oi < otherRightSides.length; ++oi) {
+      if (oi === fi) {
+        continue;
+      }
+      const otherRightSide = otherRightSides[oi];
+      const distance = Sides.overlaps(otherRightSide, rightSide);
+      if (distance !== undefined) {
+        f.growing = false;
+        break;
+      }
+    }
+  })
+}
+
+export function killCoveredBranches(snowflake: Snowflake, sides: Array6<Array<Side>>): void {
+  snowflake.branches.forEach((b, bi) => {
+    bi += snowflake.faces.length;
+    if (!b.growing) {
+      return;
+    }
+    const d = b.direction;
+    const leftDirection = d;
+    const rightDirection = rem(d - 1, Directions.values.length);
+    const leftSide = sides[leftDirection][bi];
+    const rightSide = sides[rightDirection][bi];
+    const otherLeftSides = sides[leftDirection];
+    const otherRightSides = sides[rightDirection];
+    for (let oi = 0; oi < otherLeftSides.length; ++oi) {
+      if (oi === bi) {
+        continue;
+      }
+      const otherLeftSide = otherLeftSides[oi];
+      const distance = Sides.overlaps(otherLeftSide, leftSide);
+      if (distance !== undefined) {
+        b.growing = false;
+        break;
+      }
+    }
+    if (!b.growing) {
+      return;
+    }
+    for (let oi = 0; oi < otherRightSides.length; ++oi) {
+      if (oi === bi) {
+        continue;
+      }
+      const otherRightSide = otherRightSides[oi];
+      const distance = Sides.overlaps(otherRightSide, rightSide);
+      if (distance !== undefined) {
+        b.growing = false;
+        break;
+      }
+    }
+  })
+}
 
 
 
@@ -125,21 +237,6 @@ export function addFacesToGrowingBranches(snowflake: Snowflake): void {
 
 
 
-
-
-
-
-
-
-// const defaultBranch: Branch = {
-//   rayHits: 0,
-//   start: defaultPoint,
-//   size: 0.0025,
-//   length: 0.005,
-//   direction: 0,
-//   growthScale: 1,
-//   id: 0,
-// };
 
 
 // function drawSide(graphic: Graphic, side: Side, index: number, face: Face): void {
@@ -271,79 +368,9 @@ export function addFacesToGrowingBranches(snowflake: Snowflake): void {
 //   };
 // }
 
-// // Rotates 'point' by 'theta' around (0,0)
-// function rotatePoint(point: Point, theta: number): Point {
-//   return {
-//     x: point.x * Math.cos(theta) - point.y * Math.sin(theta),
-//     y: point.x * Math.sin(theta) + point.y * Math.cos(theta),
-//   };
-// }
 
-// function getBranchSide2Ds(branch: Branch): Array<Side2D> {
-//   const points = getBranchPoints(branch);
-//   const result: Array<Side2D> = [];
-//   for (let i = 0; i < directions.length; i += 1) {
-//     if (i === directions.length - 1) {
-//       result.push({ right: points[i], left: points[0] });
-//     } else {
-//       result.push({ right: points[i], left: points[i + 1] });
-//     }
-//   }
-//   return result;
-// }
 
-// function getNormalizedBranchSides(branch: Branch): Array<Side> {
-//   return getBranchSide2Ds(branch).map((s, i) => {
-//     const theta = oneSixthCircle * (1 - i);
-//     const left = rotatePoint(s.left, theta);
-//     const right = rotatePoint(s.right, theta);
-//     return {
-//       left: left.x,
-//       right: right.x,
-//       height: left.y,
-//     };
-//   });
-// }
 
-// function getFaceSide2Ds(face: Face): Array<Side2D> {
-//   const points = getFacePoints(face);
-//   const result: Array<Side2D> = [];
-//   for (let i = 0; i < directions.length; i += 1) {
-//     if (i === directions.length - 1) {
-//       result.push({ right: points[i], left: points[0] });
-//     } else {
-//       result.push({ right: points[i], left: points[i + 1] });
-//     }
-//   }
-//   return result;
-// }
-
-// // Returns a Side calculated by rotating 'side2d' around the origin
-// // until it is horizontal. 'absoluteDirection' should be the
-// // non-relative number of the side, starting from the rightmost upward
-// // side and going counterclockwise.
-// function normalizeSide2D(side2d: Side2D, absoluteDirection: number): Side {
-//   const theta = oneSixthCircle * (1 - absoluteDirection);
-//   const left = rotatePoint(side2d.left, theta);
-//   const right = rotatePoint(side2d.right, theta);
-//   return {
-//     left: left.x,
-//     right: right.x,
-//     height: left.y,
-//   };
-// }
-
-// // Returns an array of sides of the face but where every side is
-// // rotated around the origin so that it is horizontal. The sides are
-// // returned in counterclockwise order starting with the side touching
-// // the vertex in the face's direction and going counterclockwise away
-// // from it.
-// function getNormalizedFaceSides(face: Face): Array<Side> {
-//   const dir = face.direction === "none" ? 0 : face.direction;
-//   return getFaceSide2Ds(face).map((s, i) => {
-//     return normalizeSide2D(s, (i + dir) % directions.length);
-//   });
-// }
 
 // type Array6<T> = [
 //   Array<T>,
@@ -482,19 +509,6 @@ export function addFacesToGrowingBranches(snowflake: Snowflake): void {
 //   return result;
 // }
 
-// // Returns how far above s1 is from s2 if s1 is above and overlapping
-// // s2, otherwise returns undefined.
-// function overlaps(s1: Side, s2: Side): number | undefined {
-//   if (s1.height > s2.height &&
-//     (s1.left < s2.left && s1.right > s2.left ||
-//       s1.left > s2.left && s2.right > s1.left ||
-//       s1.left < s2.left && s1.right > s2.right ||
-//       s1.left > s2.left && s1.right < s2.right)) {
-//     return s1.height - s2.height;
-//   }
-
-//   return undefined;
-// }
 
 // type Section<P> = {
 //   side: Side,

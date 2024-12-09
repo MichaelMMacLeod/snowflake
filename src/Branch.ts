@@ -7,6 +7,7 @@ import { worldToViewTransform } from "./CoordinateSystem";
 import * as Faces from "./Face";
 import { Face } from "./Face";
 import { growthScalar, branchGrowthScalar } from "./Constants";
+import { Array6 } from "./Utils";
 
 export type Branch = {
     start: Point,
@@ -48,17 +49,26 @@ function endFace(branch: Branch): Face {
     };
 }
 
-function points(branch: Branch): Array<Point> {
-    const result: Array<Point> = [];
+// Points are returned in order of relative direction:
+//
+//      [2]------------------------------[1]
+//      /                                  \
+//     /                                    \
+//   [3]                                    [0] --- direction --->
+//     \                                    /
+//      \                                  /
+//      [4]------------------------------[5]
+export function points(branch: Branch): Array6<Point> {
     const startPoints = Faces.points(startFace(branch));
     const endPoints = Faces.points(endFace(branch));
-    result.push(endPoints[0]);
-    result.push(endPoints[1]);
-    result.push(startPoints[2]);
-    result.push(startPoints[3]);
-    result.push(startPoints[4]);
-    result.push(endPoints[5]);
-    return result;
+    return [
+        endPoints[0],
+        endPoints[1],
+        startPoints[2],
+        startPoints[3],
+        startPoints[4],
+        endPoints[5],
+    ];
 }
 
 export function draw(graphic: Graphic, branch: Branch): void {
@@ -75,7 +85,7 @@ export function draw(graphic: Graphic, branch: Branch): void {
     graphic.ctx.fill();
 }
 
-export function enlarge(branch : Branch, scale: number): void {
+export function enlarge(branch: Branch, scale: number): void {
     const lengthScalar = -1.5 * scale + 1.5;
     const sizeScalar = 1.5 * scale;
     branch.size += sizeScalar * branchGrowthScalar * branch.growthScale;

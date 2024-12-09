@@ -5,11 +5,17 @@ import * as Directions from "./Direction";
 import { Graphic } from "./Graphic";
 import { worldToViewTransform } from "./CoordinateSystem";
 import { growthScalar } from "./Constants";
+import { Array6, makeArray6 } from "./Utils";
 
 export type Face = {
     center: Point,
     size: number,
+
+    // The 'seed' face is the only one which a direction of none.
+    // It is the only face which sprouts 6 branches. All other faces
+    // sprout 3 branches in their direction.
     direction: Direction | 'none',
+
     growthScale: number,
     growing: boolean,
 };
@@ -24,15 +30,26 @@ export function zero(): Face {
     }
 };
 
-export function points(face: Face): Array<Point> {
+export function direction(face: Face): Direction {
+    return face.direction === "none" ? 0 : face.direction;
+}
+
+// Points are returned in order of relative direction:
+//
+//      [2]-----[1]
+//      /         \
+//     /           \
+//   [3]           [0] --- direction --->
+//     \           /
+//      \         /
+//      [4]-----[5]
+export function points(face: Face): Array6<Point> {
     const dir: Direction = face.direction === 'none' ? 0 : face.direction;
-    const result: Array<Point> = [];
+    const result: Array6<Point> = makeArray6(Points.zero);
     for (let i = 0; i < Directions.values.length; i += 1) {
         const d = Directions.values[(dir + i) % Directions.values.length];
-        result.push({
-            x: face.center.x + face.size * Math.cos(d),
-            y: face.center.y + face.size * Math.sin(d),
-        });
+        result[i].x = face.center.x + face.size * Math.cos(d);
+        result[i].y = face.center.y + face.size * Math.sin(d);
     }
     return result;
 }
