@@ -11,7 +11,20 @@ export type Graph = {
     mouseRecentlyExitedGraph: boolean,
     graphMouse: undefined | Point,
     background: RGBA,
+    growthInput: NonEmptyArray<number>,
 };
+
+export function randomizeGrowthInput(graph: Graph): void {
+    graph.growthInput = createRandomGrowthInput();
+}
+
+function createRandomGrowthInput(): NonEmptyArray<number> {
+    let result: NonEmptyArray<number> = [0];
+    for (let i = 0; i < 16; i++) {
+        result[i] = Math.floor(Math.random() * 9);
+    }
+    return result;
+}
 
 export function make(): Graph | undefined {
     const canvas = document.getElementById('graph') as HTMLCanvasElement;
@@ -30,6 +43,7 @@ export function make(): Graph | undefined {
         mouseRecentlyExitedGraph: false,
         graphMouse,
         background,
+        growthInput: createRandomGrowthInput(),
     };
 
     canvas.addEventListener('mousemove', e => {
@@ -95,24 +109,14 @@ export function drawGraphHandle(
     graph.ctx.setLineDash(oldLineDash);
 }
 
-function createRandomGrowthInput(): NonEmptyArray<number> {
-    let result: NonEmptyArray<number> = [0];
-    for (let i = 0; i < 16; i++) {
-        result[i] = Math.floor(Math.random() * 9);
-    }
-    return result;
-}
-
 export type GrowthType = 'branching' | 'faceting';
 export type Growth = { scale: number, growthType: GrowthType };
 
-export const growthInput: NonEmptyArray<number> = createRandomGrowthInput();
-
-export function interpretGrowth(time: number): Growth {
-    let s = lerp(0, growthInput.length - 1, time);
+export function interpretGrowth(graph: Graph, time: number): Growth {
+    let s = lerp(0, graph.growthInput.length - 1, time);
     let n = fracPart(s);
-    let a = yChoices[growthInput[Math.floor(s)]];
-    let b = yChoices[growthInput[Math.ceil(s)]];
+    let a = yChoices[graph.growthInput[Math.floor(s)]];
+    let b = yChoices[graph.growthInput[Math.ceil(s)]];
     let signedScale = lerp(a, b, n);
     let timeScalar = -0.01 * s + 1;
     return {
@@ -122,13 +126,14 @@ export function interpretGrowth(time: number): Growth {
 }
 
 export function growthHandlePosition(
+    graph: Graph,
     writableGraphWidth: number,
     writableGraphHeight: number,
     graphMargin: number,
     i: number
 ): Point {
     return {
-        x: writableGraphWidth / (growthInput.length - 1) * i + graphMargin,
-        y: 4 * yChoices[growthInput[i]] * (writableGraphHeight / yChoices.length) + writableGraphHeight * 0.5,
+        x: writableGraphWidth / (graph.growthInput.length - 1) * i + graphMargin,
+        y: 4 * yChoices[graph.growthInput[i]] * (writableGraphHeight / yChoices.length) + writableGraphHeight * 0.5,
     };
 }

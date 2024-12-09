@@ -1,7 +1,7 @@
 import { yChoices } from "./Constants";
 import { Control } from "./Control";
 import * as Controls from "./Control";
-import { Graph, growthHandlePosition, growthInput, GrowthType, interpretGrowth } from "./Graph";
+import { Graph, growthHandlePosition, GrowthType, interpretGrowth } from "./Graph";
 import * as Graphs from "./Graph";
 import { Graphic } from "./Graphic";
 import * as Graphics from "./Graphic";
@@ -69,13 +69,15 @@ function nearestGrowthHandle(state: State, canvasPoint: Point): number {
         writableGraphWidth,
         writableGraphHeight,
         graphMargin,
+        graph,
     } = state;
 
     let nearestDist = Infinity;
     let nearest = 0;
 
-    for (let i = 0; i < growthInput.length; i += 1) {
+    for (let i = 0; i < graph.growthInput.length; i += 1) {
         const p = growthHandlePosition(
+            graph,
             writableGraphWidth,
             writableGraphHeight,
             graphMargin,
@@ -111,7 +113,7 @@ function updateGraph(state: State): void {
             const dy = writableGraphHeight / yChoices.length;
             const i = Math.floor(graph.graphMouse.y / dy);
             if (handle !== undefined) {
-                growthInput[handle] = clamp(i, 0, yChoices.length - 1);
+                graph.growthInput[handle] = clamp(i, 0, yChoices.length - 1);
             }
         }
     }
@@ -154,14 +156,16 @@ function drawGrowthInput(state: State): void {
 
     {
         const p = growthHandlePosition(
+            graph,
             writableGraphWidth,
             writableGraphHeight,
             graphMargin,
             0);
         graph.ctx.moveTo(p.x, p.y);
     }
-    for (let i = 1; i < growthInput.length; i += 1) {
+    for (let i = 1; i < graph.growthInput.length; i += 1) {
         const p = growthHandlePosition(
+            graph,
             writableGraphWidth,
             writableGraphHeight,
             graphMargin,
@@ -171,8 +175,9 @@ function drawGrowthInput(state: State): void {
     graph.ctx.strokeStyle = 'black';
     graph.ctx.stroke();
 
-    for (let i = 0; i < growthInput.length; i += 1) {
+    for (let i = 0; i < graph.growthInput.length; i += 1) {
         const p = growthHandlePosition(
+            graph,
             writableGraphWidth,
             writableGraphHeight,
             graphMargin,
@@ -214,7 +219,7 @@ export function update(state: State): void {
     if (state.step < maxSteps && controls.playing) {
         state.step += 1;
 
-        const growth = interpretGrowth(currentTime(state));
+        const growth = interpretGrowth(graph, currentTime(state));
 
         if (state.currentGrowthType === undefined) {
             state.currentGrowthType = growth.growthType;
