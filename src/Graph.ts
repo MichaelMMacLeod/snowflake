@@ -1,6 +1,6 @@
 import { yChoices } from "./Constants";
 import { Point } from "./Point";
-import { fracPart, lerp, NonEmptyArray, RGBA } from "./Utils";
+import { convertRGBAToString, fracPart, lerp, NonEmptyArray, RGBA } from "./Utils";
 
 export type Graph = {
     options: GraphOptions,
@@ -21,10 +21,10 @@ export type GraphOptions = {
 
 export function defaultGraphOptions(): GraphOptions {
     return {
-        progressColor: `rgba(255, 255, 255, 1)`,
-        progressLineColor: `rgba(220, 220, 220, 1)`,
-        backgroundColor: `rgba(0, 0, 0, 1)`,
-        foregroundColor: `rgba(0, 0, 0, 1)`,
+        progressColor: { r: 255, g: 255, b: 255, a: 1},
+        progressLineColor:  { r: 255, g: 255, b: 255, a: 1},
+        backgroundColor:  { r: 0, g: 0, b: 0, a: 1},
+        foregroundColor:  { r: 0, g: 0, b: 0, a: 1},
     }
 }
 
@@ -108,12 +108,12 @@ export function drawGraphHandle(
     graph.ctx.beginPath();
     graph.ctx.arc(x, y, 3, 0, 2 * Math.PI);
     graph.ctx.closePath();
-    graph.ctx.fillStyle = newStyle;
+    graph.ctx.fillStyle = convertRGBAToString(newStyle);
     graph.ctx.fill();
     graph.ctx.closePath();
     graph.ctx.beginPath();
     graph.ctx.arc(x, y, outerRingRadius, 0, 2 * Math.PI);
-    graph.ctx.strokeStyle = newStyle;
+    graph.ctx.strokeStyle = convertRGBAToString(newStyle);
     graph.ctx.setLineDash(newLineDash);
     graph.ctx.stroke();
 

@@ -8,7 +8,7 @@ import * as Graphics from "./Graphic";
 import { Point } from "./Point";
 import { addBranchesToGrowingFaces, addFacesToGrowingBranches, Snowflake } from "./Snowflake";
 import * as Snowflakes from "./Snowflake";
-import { clamp } from "./Utils";
+import { clamp, convertRGBAToString } from "./Utils";
 import * as Branches from "./Branch";
 import * as Faces from "./Face";
 
@@ -27,6 +27,7 @@ export type State = {
     maxSteps: number,
 };
 
+/** @see {isStateOptions} ts-auto-guard:type-guard */
 export type StateOptions = {
     /** The snowflake will be added as a child of this element */
     snowflakeInstallationElement: HTMLElement,
@@ -162,7 +163,7 @@ function drawGrowthInput(state: State): void {
     const percentDone = step / maxSteps;
 
     const old = graph.ctx.fillStyle;
-    graph.ctx.fillStyle = graph.options.progressColor;
+    graph.ctx.fillStyle = convertRGBAToString(graph.options.progressColor);
     graph.ctx.fillRect(
         graphMargin,
         0,
@@ -190,7 +191,7 @@ function drawGrowthInput(state: State): void {
             i);
         graph.ctx.lineTo(p.x, p.y);
     }
-    graph.ctx.strokeStyle = graph.options.foregroundColor;
+    graph.ctx.strokeStyle = convertRGBAToString(graph.options.foregroundColor);
     graph.ctx.stroke();
 
     for (let i = 0; i < graph.growthInput.length; i += 1) {
@@ -212,14 +213,14 @@ function drawGrowthInput(state: State): void {
     const progressX = writableGraphWidth * percentDone + graphMargin;
     graph.ctx.moveTo(progressX, 0);
     graph.ctx.lineTo(progressX, writableGraphHeight);
-    graph.ctx.strokeStyle = graph.options.progressLineColor;
+    graph.ctx.strokeStyle = convertRGBAToString(graph.options.progressLineColor);
     graph.ctx.stroke();
 
     graph.ctx.beginPath();
     const xAxisY = writableGraphHeight * 0.5;
     graph.ctx.moveTo(graphMargin, xAxisY);
     graph.ctx.lineTo(writableGraphWidth + graphMargin, xAxisY);
-    graph.ctx.strokeStyle = graph.options.foregroundColor;
+    graph.ctx.strokeStyle = convertRGBAToString(graph.options.foregroundColor);
     graph.ctx.setLineDash([2, 2]);
     graph.ctx.stroke()
     graph.ctx.setLineDash([]);

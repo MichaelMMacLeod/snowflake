@@ -1,19 +1,23 @@
 import * as States from "./State";
 import { defaultStateOptions, StateOptions } from "./State";
+import { isStateOptions } from "./State.guard";
 
-export function main(onInit: (options: StateOptions) => any) {
+export function main(onInit: (options: StateOptions) => unknown) {
     const options = onInit(defaultStateOptions());
-    if (options instanceof StateOptions) {
 
-    }
-    const state = States.make();
-    if (state === undefined) {
+    if (!isStateOptions(options)) {
+        console.error("Recived bad StateOptions from onInit");
         return;
+    } else {
+        const state = States.make(options);
+        if (state === undefined) {
+            return;
+        }
+        States.registerControlsEventListeners(state);
+        state.intervalId = window.setInterval(
+            () => States.update(state),
+            state.updateInterval);
     }
-    States.registerControlsEventListeners(state);
-    state.intervalId = window.setInterval(
-        () => States.update(state),
-        state.updateInterval);
 }
 
 // main();

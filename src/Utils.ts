@@ -26,4 +26,15 @@ export function mapArray6<T, U>(array: Array6<T>, callbackfn: (value: T, index: 
 
 export type NonEmptyArray<T> = { 0: T } & Array<T>;
 
-export type RGBA = `rgba(${number}, ${number}, ${number}, ${number})`;
+/** @see {isRGBA} ts-auto-guard:type-guard */
+export type RGBA = {
+  r: number,
+  g: number,
+  b: number,
+  a: number,
+};
+
+export function convertRGBAToString(rgba: RGBA): string {
+  const { r, g, b, a } = rgba;
+  return `rgba(${r}, ${g}, ${b}, ${a})`;
+}
