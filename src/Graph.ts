@@ -1,18 +1,32 @@
 import { yChoices } from "./Constants";
 import { Point } from "./Point";
-import { fracPart, lerp, NonEmptyArray } from "./Utils";
-
-type RGBA = `rgba(${number}, ${number}, ${number}, ${number})`;
+import { fracPart, lerp, NonEmptyArray, RGBA } from "./Utils";
 
 export type Graph = {
+    options: GraphOptions,
     canvas: HTMLCanvasElement,
     ctx: CanvasRenderingContext2D,
     handleBeingDragged: undefined | number | 'needs lookup',
     mouseRecentlyExitedGraph: boolean,
     graphMouse: undefined | Point,
-    background: RGBA,
     growthInput: NonEmptyArray<number>,
 };
+
+export type GraphOptions = {
+    progressColor: RGBA,
+    progressLineColor: RGBA,
+    backgroundColor: RGBA,
+    foregroundColor: RGBA,
+};
+
+export function defaultGraphOptions(): GraphOptions {
+    return {
+        progressColor: `rgba(255, 255, 255, 1)`,
+        progressLineColor: `rgba(220, 220, 220, 1)`,
+        backgroundColor: `rgba(0, 0, 0, 1)`,
+        foregroundColor: `rgba(0, 0, 0, 1)`,
+    }
+}
 
 export function randomizeGrowthInput(graph: Graph): void {
     graph.growthInput = createRandomGrowthInput();
@@ -26,7 +40,7 @@ function createRandomGrowthInput(): NonEmptyArray<number> {
     return result;
 }
 
-export function make(): Graph | undefined {
+export function make(options: GraphOptions): Graph | undefined {
     const canvas = document.getElementById('graph') as HTMLCanvasElement;
     const ctx = canvas.getContext('2d');
 
@@ -35,14 +49,13 @@ export function make(): Graph | undefined {
     }
 
     const graphMouse = undefined;
-    const background: RGBA = `rgba(203, 203, 255, 1)`;
     const result: Graph = {
+        options,
         canvas,
         ctx,
         handleBeingDragged: undefined,
         mouseRecentlyExitedGraph: false,
         graphMouse,
-        background,
         growthInput: createRandomGrowthInput(),
     };
 
@@ -74,7 +87,7 @@ export function drawGraphHandle(
     const oldStrokeStyle = graph.ctx.strokeStyle;
     const oldLineDash = graph.ctx.getLineDash();
 
-    const newStyle = 'black';
+    const newStyle = graph.options.foregroundColor;
 
     const outerRingRadius = (() => {
         if (isSelected) {

@@ -1,7 +1,7 @@
 import { yChoices } from "./Constants";
 import { Control } from "./Control";
 import * as Controls from "./Control";
-import { Graph, growthHandlePosition, GrowthType, interpretGrowth } from "./Graph";
+import { defaultGraphOptions, Graph, GraphOptions, growthHandlePosition, GrowthType, interpretGrowth } from "./Graph";
 import * as Graphs from "./Graph";
 import { Graphic } from "./Graphic";
 import * as Graphics from "./Graphic";
@@ -27,8 +27,29 @@ export type State = {
     maxSteps: number,
 };
 
-export function make(): State | undefined {
-    const graph = Graphs.make();
+export type StateOptions = {
+    /** The snowflake will be added as a child of this element */
+    snowflakeInstallationElement: HTMLElement,
+
+    /** The controls will be added as a child of this element. 
+     * If `undefined`, the graph and controls will not be 
+     * installed, and only the snowflake will be visible.
+     */
+    controlsInstallationElement: HTMLElement | undefined,
+
+    graphOptions: GraphOptions,
+}
+
+export function defaultStateOptions(): StateOptions {
+    return {
+        snowflakeInstallationElement: document.body,
+        controlsInstallationElement: document.body,
+        graphOptions: defaultGraphOptions(),
+    }
+}
+
+export function make(options: StateOptions): State | undefined {
+    const graph = Graphs.make(options.graphOptions);
     const graphic = Graphics.make();
     if (graph === undefined || graphic === undefined) {
         console.error("Couldn't get drawing context");
@@ -138,13 +159,10 @@ function drawGrowthInput(state: State): void {
         step,
         maxSteps,
     } = state;
-
-    // const dx = writableGraphWidth / (growthInput.length - 1);
-    // const dy = writableGraphHeight / yChoices.length;
     const percentDone = step / maxSteps;
 
     const old = graph.ctx.fillStyle;
-    graph.ctx.fillStyle = graph.background;
+    graph.ctx.fillStyle = graph.options.progressColor;
     graph.ctx.fillRect(
         graphMargin,
         0,
@@ -172,7 +190,7 @@ function drawGrowthInput(state: State): void {
             i);
         graph.ctx.lineTo(p.x, p.y);
     }
-    graph.ctx.strokeStyle = 'black';
+    graph.ctx.strokeStyle = graph.options.foregroundColor;
     graph.ctx.stroke();
 
     for (let i = 0; i < graph.growthInput.length; i += 1) {
@@ -194,19 +212,18 @@ function drawGrowthInput(state: State): void {
     const progressX = writableGraphWidth * percentDone + graphMargin;
     graph.ctx.moveTo(progressX, 0);
     graph.ctx.lineTo(progressX, writableGraphHeight);
-    graph.ctx.strokeStyle = 'blue';
+    graph.ctx.strokeStyle = graph.options.progressLineColor;
     graph.ctx.stroke();
 
     graph.ctx.beginPath();
     const xAxisY = writableGraphHeight * 0.5;
     graph.ctx.moveTo(graphMargin, xAxisY);
     graph.ctx.lineTo(writableGraphWidth + graphMargin, xAxisY);
-    graph.ctx.strokeStyle = 'black';
+    graph.ctx.strokeStyle = graph.options.foregroundColor;
     graph.ctx.setLineDash([2, 2]);
     graph.ctx.stroke()
     graph.ctx.setLineDash([]);
 }
-
 
 export function update(state: State): void {
     const {

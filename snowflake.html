@@ -31,7 +31,10 @@
 </body>
 <script src="dist/bundle.js"></script>
 <script>
-  Main.main();
+  Main.main(options => {
+    options.graphOptions.foregroundColor = `rgba(255, 0, 0, 1)`;
+    return options;
+  });
 </script>
 
 </html>
