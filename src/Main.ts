@@ -1,6 +1,6 @@
 import * as States from "./State";
 
-function main() {
+export function main() {
     const state = States.make();
     if (state === undefined) {
         return;
@@ -11,4 +11,4 @@ function main() {
         state.updateInterval);
 }
 
-main();
+// main();
