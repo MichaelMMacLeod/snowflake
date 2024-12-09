@@ -34,7 +34,7 @@ export function make(): State | undefined {
         console.error("Couldn't get drawing context");
         return undefined;
     }
-    const snowflake = Snowflakes.zero;
+    const snowflake = Snowflakes.zero();
     const currentGrowthType = undefined;
     const graphMargin = 10;
     const writableGraphWidth = graph.canvas.width - 2 * graphMargin;
@@ -253,7 +253,7 @@ export function update(state: State): void {
 }
 
 export function reset(state: State): void {
-    state.snowflake = Snowflakes.zero;
+    Snowflakes.reset(state.snowflake);
     state.step = 0;
     state.currentGrowthType = undefined;
     Graphics.clear(state.graphic);

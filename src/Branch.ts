@@ -27,7 +27,7 @@ export function end(branch: Branch): Point {
 
 function startFace(branch: Branch): Face {
     return {
-        ...Faces.zero,
+        ...Faces.zero(),
         center: Points.copy(branch.start),
         size: branch.size,
         direction: branch.direction,
@@ -36,7 +36,7 @@ function startFace(branch: Branch): Face {
 
 function endFace(branch: Branch): Face {
     return {
-        ...Faces.zero,
+        ...Faces.zero(),
         center: Points.add(
             branch.start,
             {

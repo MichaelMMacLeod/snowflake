@@ -14,12 +14,14 @@ export type Face = {
     growing: boolean,
 };
 
-export const zero: Face = {
-    center: Points.zero,
-    size: 0.0025,
-    direction: 'none',
-    growthScale: 1,
-    growing: true,
+export function zero(): Face {
+    return {
+        center: Points.zero(),
+        size: 0.0025,
+        direction: 'none',
+        growthScale: 1,
+        growing: true,
+    }
 };
 
 export function points(face: Face): Array<Point> {

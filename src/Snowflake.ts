@@ -11,15 +11,23 @@ export type Snowflake = {
   branches: Array<Branch>,
 };
 
+export function reset(s: Snowflake): void {
+  s.faces.length = 1;
+  s.faces[0] = Faces.zero();
+  s.branches.length = 0;
+}
+
 export function draw(graphic: Graphic, snowflake: Snowflake): void {
   snowflake.faces.forEach(f => Faces.draw(graphic, f));
   snowflake.branches.forEach(b => Branches.draw(graphic, b));
 }
 
-export const zero: Snowflake = {
-  faces: [Faces.zero],
-  branches: [],
-};
+export function zero(): Snowflake {
+  return {
+    faces: [Faces.zero()],
+    branches: [],
+  }
+}
 
 function addBranchesToFace(snowflake: Snowflake, face: Face): void {
   const initialFraction = 0.01;
@@ -91,10 +99,6 @@ export function addFacesToGrowingBranches(snowflake: Snowflake): void {
     }
   })
 }
-
-
-
-
 
 
 

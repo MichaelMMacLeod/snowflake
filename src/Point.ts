@@ -1,9 +1,11 @@
 export type Point = { x: number, y: number };
 
-export const zero: Point = { x: 0, y: 0 };
+export function zero(): Point {
+  return { x: 0, y: 0 }
+};
 
 export function make(x: number, y: number): Point {
-    return { x, y };
+  return { x, y };
 }
 
 export function copy(p: Point): Point {
