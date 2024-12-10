@@ -12,7 +12,7 @@
 <body>
   <div id="canvasContainer">
     <div id="graphContainer">
-      <canvas id="graph" width="600" height="200"></canvas>
+      <!-- <canvas id="graph" width="600" height="200"></canvas>
       <div id="graphLabelContainer">
         <p class="graphLabel">
           faceting
@@ -20,7 +20,7 @@
         <p class="graphLabel">
           branching
         </p>
-      </div>
+      </div> -->
     </div>
     <div id="controlContainer">
       <button class="control" id="pause" type="button">pause</button>
@@ -32,7 +32,8 @@
 <script src="dist/bundle.js"></script>
 <script>
   Main.main(options => {
-    // options.graphOptions.foregroundColor = {r: 0, g: 0, b: 255, a: 1};
+    console.log(options);
+    // options.graphInstallationOptions.canvasParent = document.getElementById('graphContainer');
     return options;
   });
 </script>

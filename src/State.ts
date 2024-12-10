@@ -1,7 +1,7 @@
 import { yChoices } from "./Constants";
 import { Control } from "./Control";
 import * as Controls from "./Control";
-import { defaultGraphOptions, Graph, GraphOptions, growthHandlePosition, GrowthType, interpretGrowth } from "./Graph";
+import { callIfInstalled, defaultGraphInstallationOptions, defaultGraphOptions, drawGrowthInput, errorWithoutInstallation, Graph, GraphInstallation, GraphInstallationOptions, GraphOptions, growthHandlePosition, GrowthType, interpretGrowth, nearestGrowthHandle, updateGraph } from "./Graph";
 import * as Graphs from "./Graph";
 import { Graphic } from "./Graphic";
 import * as Graphics from "./Graphic";
@@ -17,9 +17,6 @@ export type State = {
     graphic: Graphic,
     snowflake: Snowflake,
     currentGrowthType: GrowthType | undefined,
-    graphMargin: number,
-    writableGraphWidth: number,
-    writableGraphHeight: number,
     controls: Control,
     step: number,
     intervalId: undefined | number,
@@ -39,6 +36,7 @@ export type StateOptions = {
     controlsInstallationElement: HTMLElement | undefined,
 
     graphOptions: GraphOptions,
+    graphInstallationOptions: GraphInstallationOptions | undefined,
 }
 
 export function defaultStateOptions(): StateOptions {
@@ -46,21 +44,22 @@ export function defaultStateOptions(): StateOptions {
         snowflakeInstallationElement: document.body,
         controlsInstallationElement: document.body,
         graphOptions: defaultGraphOptions(),
+        graphInstallationOptions: defaultGraphInstallationOptions(),
     }
 }
 
 export function make(options: StateOptions): State | undefined {
     const graph = Graphs.make(options.graphOptions);
+    if (options.graphInstallationOptions !== undefined) {
+        Graphs.install(graph, options.graphInstallationOptions);
+    }
     const graphic = Graphics.make();
-    if (graph === undefined || graphic === undefined) {
+    if (graphic === undefined) {
         console.error("Couldn't get drawing context");
         return undefined;
     }
     const snowflake = Snowflakes.zero();
     const currentGrowthType = undefined;
-    const graphMargin = 10;
-    const writableGraphWidth = graph.canvas.width - 2 * graphMargin;
-    const writableGraphHeight = graph.canvas.height;
     const controls = Controls.make(graphic);
     const step = 0;
     const intervalId = undefined;
@@ -71,9 +70,6 @@ export function make(options: StateOptions): State | undefined {
         graphic,
         snowflake,
         currentGrowthType,
-        graphMargin,
-        writableGraphWidth,
-        writableGraphHeight,
         controls,
         step,
         intervalId,
@@ -84,146 +80,6 @@ export function make(options: StateOptions): State | undefined {
 function currentTime(state: State): number {
     const { step, maxSteps } = state;
     return step / maxSteps;
-}
-
-function nearestGrowthHandle(state: State, canvasPoint: Point): number {
-    const {
-        writableGraphWidth,
-        writableGraphHeight,
-        graphMargin,
-        graph,
-    } = state;
-
-    let nearestDist = Infinity;
-    let nearest = 0;
-
-    for (let i = 0; i < graph.growthInput.length; i += 1) {
-        const p = growthHandlePosition(
-            graph,
-            writableGraphWidth,
-            writableGraphHeight,
-            graphMargin,
-            i);
-        const dx = p.x - canvasPoint.x;
-        const dist = dx * dx;
-        if (dist < nearestDist) {
-            nearestDist = dist;
-            nearest = i;
-        }
-    }
-
-    return nearest;
-}
-
-function updateGraph(state: State): void {
-    const { graph, writableGraphHeight } = state;
-    if (graph.handleBeingDragged !== undefined || graph.mouseRecentlyExitedGraph) {
-        graph.mouseRecentlyExitedGraph = false;
-        const handle: undefined | number | 'needs lookup' = (() => {
-            if (graph.handleBeingDragged === 'needs lookup' && graph.graphMouse !== undefined) {
-                return nearestGrowthHandle(state, graph.graphMouse);
-            } else {
-                return graph.handleBeingDragged;
-            }
-        })();
-
-        if (graph.handleBeingDragged === 'needs lookup') {
-            graph.handleBeingDragged = handle;
-        }
-
-        if (graph.graphMouse !== undefined && handle !== 'needs lookup') {
-            const dy = writableGraphHeight / yChoices.length;
-            const i = Math.floor(graph.graphMouse.y / dy);
-            if (handle !== undefined) {
-                graph.growthInput[handle] = clamp(i, 0, yChoices.length - 1);
-            }
-        }
-    }
-
-    let beingDragged = graph.handleBeingDragged !== undefined;
-    let userSelectValue = beingDragged ? 'none' : 'auto';
-    let setStyle = (e: Element) => e.setAttribute('style', `user-select: ${userSelectValue}`);
-    Array.from(document.getElementsByClassName('graphLabel')).forEach(setStyle);
-    Array.from(document.getElementsByClassName('control')).forEach(setStyle);
-    let controlContainer = document.getElementById('controlContainer');
-    if (controlContainer !== null) {
-        setStyle(controlContainer);
-    }
-}
-
-function drawGrowthInput(state: State): void {
-    const {
-        graph,
-        writableGraphWidth,
-        writableGraphHeight,
-        graphMargin,
-        step,
-        maxSteps,
-    } = state;
-    const percentDone = step / maxSteps;
-
-    const old = graph.ctx.fillStyle;
-    graph.ctx.fillStyle = convertRGBAToString(graph.options.progressColor);
-    graph.ctx.fillRect(
-        graphMargin,
-        0,
-        writableGraphWidth * percentDone,
-        writableGraphHeight
-    );
-    graph.ctx.fillStyle = old;
-    graph.ctx.beginPath();
-
-    {
-        const p = growthHandlePosition(
-            graph,
-            writableGraphWidth,
-            writableGraphHeight,
-            graphMargin,
-            0);
-        graph.ctx.moveTo(p.x, p.y);
-    }
-    for (let i = 1; i < graph.growthInput.length; i += 1) {
-        const p = growthHandlePosition(
-            graph,
-            writableGraphWidth,
-            writableGraphHeight,
-            graphMargin,
-            i);
-        graph.ctx.lineTo(p.x, p.y);
-    }
-    graph.ctx.strokeStyle = convertRGBAToString(graph.options.foregroundColor);
-    graph.ctx.stroke();
-
-    for (let i = 0; i < graph.growthInput.length; i += 1) {
-        const p = growthHandlePosition(
-            graph,
-            writableGraphWidth,
-            writableGraphHeight,
-            graphMargin,
-            i);
-        if (graph.graphMouse !== undefined) {
-            const nearest = nearestGrowthHandle(state, graph.graphMouse);
-            Graphs.drawGraphHandle(graph, p.x, p.y, i === nearest, i === graph.handleBeingDragged);
-        } else {
-            Graphs.drawGraphHandle(graph, p.x, p.y, false, false);
-        }
-    }
-
-    graph.ctx.beginPath();
-    const progressX = writableGraphWidth * percentDone + graphMargin;
-    graph.ctx.moveTo(progressX, 0);
-    graph.ctx.lineTo(progressX, writableGraphHeight);
-    graph.ctx.strokeStyle = convertRGBAToString(graph.options.progressLineColor);
-    graph.ctx.stroke();
-
-    graph.ctx.beginPath();
-    const xAxisY = writableGraphHeight * 0.5;
-    graph.ctx.moveTo(graphMargin, xAxisY);
-    graph.ctx.lineTo(writableGraphWidth + graphMargin, xAxisY);
-    graph.ctx.strokeStyle = convertRGBAToString(graph.options.foregroundColor);
-    graph.ctx.setLineDash([2, 2]);
-    graph.ctx.stroke()
-    graph.ctx.setLineDash([]);
 }
 
 export function update(state: State): void {
@@ -274,9 +130,11 @@ export function update(state: State): void {
         Snowflakes.draw(graphic, snowflake);
     }
 
-    updateGraph(state);
-    graph.ctx.clearRect(0, 0, graph.canvas.width, graph.canvas.height);
-    drawGrowthInput(state);
+    callIfInstalled(graph, i => {
+        updateGraph(graph, i);
+        i.ctx.clearRect(0, 0, i.canvas.width, i.canvas.height);
+        drawGrowthInput(graph, i, state.step, maxSteps);
+    })
 }
 
 export function reset(state: State): void {
