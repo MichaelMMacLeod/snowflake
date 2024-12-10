@@ -1,14 +1,21 @@
-import { yChoices } from "./Constants";
-import { Control } from "./Control";
-import * as Controls from "./Control";
-import { callIfInstalled, defaultGraphInstallationOptions, defaultGraphOptions, drawGrowthInput, errorWithoutInstallation, Graph, GraphInstallation, GraphInstallationOptions, GraphOptions, growthHandlePosition, GrowthType, interpretGrowth, nearestGrowthHandle, randomizeGrowthInput, updateGraph } from "./Graph";
+import {
+    callIfInstalled,
+    defaultGraphInstallationOptions,
+    defaultGraphOptions,
+    drawGrowthInput,
+    Graph,
+    GraphInstallationOptions,
+    GraphOptions,
+    GrowthType,
+    interpretGrowth,
+    randomizeGrowthInput,
+    updateGraph
+} from "./Graph";
 import * as Graphs from "./Graph";
 import { Graphic, GraphicOptions } from "./Graphic";
 import * as Graphics from "./Graphic";
-import { Point } from "./Point";
 import { addBranchesToGrowingFaces, addFacesToGrowingBranches, Snowflake } from "./Snowflake";
 import * as Snowflakes from "./Snowflake";
-import { clamp, convertRGBAToString } from "./Utils";
 import * as Branches from "./Branch";
 import * as Faces from "./Face";
 
@@ -124,33 +131,9 @@ export function handleEvent(state: State, e: StateEvent): void {
 }
 
 export function handleEvents(state: State): void {
-    update(state);
     state.eventQueue.forEach(e => handleEvent(state, e));
     state.eventQueue.length = 0;
-}
-
-/** @see {isStateOptions} ts-auto-guard:type-guard */
-export type StateOptions = {
-    /** The snowflake will be added as a child of this element */
-    snowflakeInstallationElement: HTMLElement,
-
-    /** The controls will be added as a child of this element. 
-     * If `undefined`, the graph and controls will not be 
-     * installed, and only the snowflake will be visible.
-     */
-    controlsInstallationElement: HTMLElement | undefined,
-
-    graphOptions: GraphOptions,
-    graphInstallationOptions: GraphInstallationOptions | undefined,
-}
-
-export function defaultStateOptions(): StateOptions {
-    return {
-        snowflakeInstallationElement: document.body,
-        controlsInstallationElement: document.body,
-        graphOptions: defaultGraphOptions(),
-        graphInstallationOptions: defaultGraphInstallationOptions(),
-    }
+    update(state);
 }
 
 export function make(): State {
@@ -246,22 +229,3 @@ export function update(state: State): void {
         drawGrowthInput(graph, i, state.step, maxSteps);
     })
 }
-
-// export function registerControlsEventListeners(state: State): void {
-//     const { controls, graphic } = state;
-
-//     controls.pause.addEventListener('click', e => {
-//         controls.playing = !controls.playing;
-//         if (controls.playing) {
-//             controls.pause.innerHTML = 'pause';
-//             graphic.canvas.className = '';
-//         } else {
-//             controls.pause.innerHTML = 'play';
-//             graphic.canvas.className = 'paused';
-//         }
-//     });
-
-//     controls.reset.addEventListener('click', e => {
-//         reset(state);
-//     });
-// }
