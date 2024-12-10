@@ -82,7 +82,7 @@ export function draw(graphic: Graphic, branch: Branch): void {
         }
     });
     graphic.ctx.closePath();
-    graphic.ctx.fillStyle = `rgba(255, 255, 255, 1)`;
+    graphic.ctx.fillStyle = `rgba(255, 255, 255, 0.025)`;
     graphic.ctx.fill();
 }
 

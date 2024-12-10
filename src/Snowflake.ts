@@ -22,8 +22,16 @@ export function reset(s: Snowflake): void {
 }
 
 export function draw(graphic: Graphic, snowflake: Snowflake): void {
-  snowflake.faces.forEach(f => Faces.draw(graphic, f));
-  snowflake.branches.forEach(b => Branches.draw(graphic, b));
+  snowflake.faces.forEach(f => {
+    if (f.growing) {
+      Faces.draw(graphic, f)
+    }
+  });
+  snowflake.branches.forEach(b => {
+    if (b.growing) {
+      Branches.draw(graphic, b)
+    }
+  });
 }
 
 export function zero(): Snowflake {

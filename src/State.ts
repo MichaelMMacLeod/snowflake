@@ -218,7 +218,6 @@ export function update(state: State): void {
         }
 
         if (graphic !== undefined) {
-            Graphics.clear(graphic);
             Snowflakes.draw(graphic, snowflake);
         }
     }
