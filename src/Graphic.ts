@@ -3,18 +3,21 @@ export type Graphic = {
     ctx: CanvasRenderingContext2D,
 };
 
-export function make(): Graphic | undefined {
-    const canvas = document.getElementById('snowflake') as HTMLCanvasElement;
-    const ctx = canvas.getContext('2d');
+export type GraphicOptions = {
+    className: string,
+    width: number,
+    height: number,
+}
 
+export function make(options: GraphicOptions): Graphic | undefined {
+    const canvas = document.createElement('canvas');
+    canvas.width = options.width;
+    canvas.height = options.height;
+    canvas.className = options.className;
+    const ctx = canvas.getContext('2d');
     if (ctx === null) {
         return undefined;
     }
-
-    const lightBlue = 'rgba(90, 211, 255, 1.0)';
-
-    ctx.fillStyle = lightBlue;
-
     return { canvas, ctx };
 }
 

@@ -26,17 +26,12 @@
       <button class="control" id="pause" type="button">pause</button>
       <button class="control" id="reset" type="button">reset</button>
     </div>
-    <canvas id="snowflake" width="800" height="800"></canvas>
+    <!-- <canvas id="snowflake" width="800" height="800"></canvas> -->
   </div>
 </body>
 <script src="dist/bundle.js"></script>
 <script>
-  Main.main(options => {
-    console.log(options);
-    // options.graphInstallationOptions = undefined;
-    options.graphInstallationOptions.canvasParent = document.getElementById('graphContainer');
-    return options;
-  });
+  const controller = Main.main();
 </script>
 
 </html>

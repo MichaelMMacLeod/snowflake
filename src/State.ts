@@ -3,7 +3,7 @@ import { Control } from "./Control";
 import * as Controls from "./Control";
 import { callIfInstalled, defaultGraphInstallationOptions, defaultGraphOptions, drawGrowthInput, errorWithoutInstallation, Graph, GraphInstallation, GraphInstallationOptions, GraphOptions, growthHandlePosition, GrowthType, interpretGrowth, nearestGrowthHandle, updateGraph } from "./Graph";
 import * as Graphs from "./Graph";
-import { Graphic } from "./Graphic";
+import { Graphic, GraphicOptions } from "./Graphic";
 import * as Graphics from "./Graphic";
 import { Point } from "./Point";
 import { addBranchesToGrowingFaces, addFacesToGrowingBranches, Snowflake } from "./Snowflake";
@@ -12,17 +12,80 @@ import { clamp, convertRGBAToString } from "./Utils";
 import * as Branches from "./Branch";
 import * as Faces from "./Face";
 
+export type StateEvent =
+    {
+        type: 'installSnowflake', data: {
+            options: GraphicOptions,
+            installCanvas: (snowflake: HTMLCanvasElement) => void,
+            onNoContextFailure: () => void,
+        }
+    }
+// | { type: 'installGraph', data: (graph: HTMLCanvasElement) => void }
+// | { type: 'togglePlaying', data: undefined }
+// | { type: 'reset', data: undefined }
+// | { type: 'randomizeAndReset', data: undefined }
+
+type EventHandlers = { [x in StateEvent["type"]]: (data: Extract<StateEvent, { type: x }>["data"]) => void };
+
 export type State = {
     graph: Graph,
-    graphic: Graphic,
+    graphic: Graphic | undefined,
     snowflake: Snowflake,
     currentGrowthType: GrowthType | undefined,
-    controls: Control,
+    playing: boolean,
     step: number,
+    eventHandlerTimeout: NodeJS.Timeout | undefined,
     intervalId: undefined | number,
-    updateInterval: number,
     maxSteps: number,
+    eventQueue: Array<StateEvent>,
+    eventHandlers: EventHandlers | undefined,
 };
+
+function makeEventHandlers(state: State): EventHandlers {
+    return {
+        // installGraph: function (data: (graph: HTMLCanvasElement) => void): void {
+        //     throw new Error("Function not implemented.");
+        // },
+        // togglePlaying: function (data: undefined): void {
+        //     throw new Error("Function not implemented.");
+        // },
+        // reset: function (data: undefined): void {
+        //     throw new Error("Function not implemented.");
+        // },
+        // randomizeAndReset: function (data: undefined): void {
+        //     throw new Error("Function not implemented.");
+        // },
+        installSnowflake: function (data: {
+            options: GraphicOptions,
+            installCanvas: (snowflake: HTMLCanvasElement) => void,
+            onNoContextFailure: () => void,
+        }): void {
+            if (state.graphic !== undefined) {
+                throw new Error('snowflake already installed');
+            }
+            state.graphic = Graphics.make(data.options);
+            if (state.graphic === undefined) {
+                data.onNoContextFailure();
+            } else {
+                data.installCanvas(state.graphic.canvas);
+            }
+        }
+    };
+}
+
+export function handleEvent(state: State, e: StateEvent): void {
+    if (state.eventHandlers !== undefined) {
+        state.eventHandlers[e.type](e.data);
+    } else {
+        throw new Error("state.eventHandlers is undefined");
+    }
+}
+
+export function handleEvents(state: State): void {
+    update(state);
+    state.eventQueue.forEach(e => handleEvent(state, e));
+    state.eventQueue.length = 0;
+}
 
 /** @see {isStateOptions} ts-auto-guard:type-guard */
 export type StateOptions = {
@@ -48,35 +111,40 @@ export function defaultStateOptions(): StateOptions {
     }
 }
 
-export function make(options: StateOptions): State | undefined {
-    const graph = Graphs.make(options.graphOptions);
-    if (options.graphInstallationOptions !== undefined) {
-        Graphs.install(graph, options.graphInstallationOptions);
-    }
-    const graphic = Graphics.make();
-    if (graphic === undefined) {
-        console.error("Couldn't get drawing context");
-        return undefined;
-    }
+export function make(): State {
+    const graph = Graphs.make(defaultGraphOptions());
+    // if (options.graphInstallationOptions !== undefined) {
+    //     Graphs.install(graph, options.graphInstallationOptions);
+    // }
     const snowflake = Snowflakes.zero();
     const currentGrowthType = undefined;
-    const controls = Controls.make(graphic);
     const step = 0;
     const intervalId = undefined;
-    const updateInterval = 5;
     const maxSteps = 1000;
-    return {
+
+    const result: State = {
         graph,
-        graphic,
+        graphic: undefined,
         snowflake,
         currentGrowthType,
-        controls,
+        playing: true,
         step,
         intervalId,
-        updateInterval,
         maxSteps,
+        eventQueue: [],
+        eventHandlers: undefined,
+        eventHandlerTimeout: undefined,
     };
+    result.eventHandlers = makeEventHandlers(result);
+    result.eventHandlerTimeout = setInterval(() => handleEvents(result), 1000 / 60)
+
+    return result;
 }
+
+export function receiveEvent(state: State, e: StateEvent): void {
+    state.eventQueue.push(e);
+}
+
 function currentTime(state: State): number {
     const { step, maxSteps } = state;
     return step / maxSteps;
@@ -88,9 +156,9 @@ export function update(state: State): void {
         graph,
         graphic,
         maxSteps,
-        controls,
+        playing,
     } = state;
-    if (state.step < maxSteps && controls.playing) {
+    if (state.step < maxSteps && playing) {
         state.step += 1;
 
         const growth = interpretGrowth(graph, currentTime(state));
@@ -126,8 +194,10 @@ export function update(state: State): void {
             });
         }
 
-        Graphics.clear(graphic);
-        Snowflakes.draw(graphic, snowflake);
+        if (graphic !== undefined) {
+            Graphics.clear(graphic);
+            Snowflakes.draw(graphic, snowflake);
+        }
     }
 
     callIfInstalled(graph, i => {
@@ -137,28 +207,28 @@ export function update(state: State): void {
     })
 }
 
-export function reset(state: State): void {
-    Snowflakes.reset(state.snowflake);
-    state.step = 0;
-    state.currentGrowthType = undefined;
-    Graphics.clear(state.graphic);
-}
+// export function reset(state: State): void {
+//     Snowflakes.reset(state.snowflake);
+//     state.step = 0;
+//     state.currentGrowthType = undefined;
+//     Graphics.clear(state.graphic);
+// }
 
-export function registerControlsEventListeners(state: State): void {
-    const { controls, graphic } = state;
+// export function registerControlsEventListeners(state: State): void {
+//     const { controls, graphic } = state;
 
-    controls.pause.addEventListener('click', e => {
-        controls.playing = !controls.playing;
-        if (controls.playing) {
-            controls.pause.innerHTML = 'pause';
-            graphic.canvas.className = '';
-        } else {
-            controls.pause.innerHTML = 'play';
-            graphic.canvas.className = 'paused';
-        }
-    });
+//     controls.pause.addEventListener('click', e => {
+//         controls.playing = !controls.playing;
+//         if (controls.playing) {
+//             controls.pause.innerHTML = 'pause';
+//             graphic.canvas.className = '';
+//         } else {
+//             controls.pause.innerHTML = 'play';
+//             graphic.canvas.className = 'paused';
+//         }
+//     });
 
-    controls.reset.addEventListener('click', e => {
-        reset(state);
-    });
-}
+//     controls.reset.addEventListener('click', e => {
+//         reset(state);
+//     });
+// }

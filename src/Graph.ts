@@ -18,9 +18,6 @@ export type GraphInstallationOptions = {
      */
     mouseUpEventListenerElement: Node,
 
-    /** The element that the graph canvas wil be added to as a child */
-    canvasParent: Node,
-
     /** CSS class of graph canvas */
     canvasClassName: string,
 
@@ -31,7 +28,6 @@ export type GraphInstallationOptions = {
 export function defaultGraphInstallationOptions(): GraphInstallationOptions {
     return {
         mouseUpEventListenerElement: document,
-        canvasParent: document.body,
         canvasClassName: 'graph',
         canvasWidth: 600,
         canvasHeight: 200,
@@ -116,9 +112,8 @@ export function install(graph: Graph, options: GraphInstallationOptions): void {
     canvas.className = options.canvasClassName;
     const ctx = canvas.getContext('2d');
     if (ctx === null) {
-        return undefined;
+        return;
     }
-    options.canvasParent.appendChild(canvas);
 
     const graphMargin = 10;
 
