@@ -7,7 +7,7 @@ import { worldToViewTransform } from "./CoordinateSystem";
 import * as Faces from "./Face";
 import { Face } from "./Face";
 import { growthScalar, branchGrowthScalar } from "./Constants";
-import { Array6 } from "./Utils";
+import { Array6, rem } from "./Utils";
 
 export type Branch = {
     start: Point,
@@ -73,17 +73,42 @@ export function points(branch: Branch): Array6<Point> {
 
 export function draw(graphic: Graphic, branch: Branch): void {
     graphic.ctx.beginPath();
-    points(branch).forEach((p, i) => {
-        const { x, y } = worldToViewTransform(graphic, p);
+    const ps = points(branch);
+    for (let i = 0; i < 3; ++i) {
+        const { x, y } = worldToViewTransform(graphic, ps[rem(i - 1, ps.length)]);
         if (i === 0) {
             graphic.ctx.moveTo(x, y);
         } else {
             graphic.ctx.lineTo(x, y);
         }
-    });
-    graphic.ctx.closePath();
-    graphic.ctx.fillStyle = `rgba(255, 255, 255, 0.025)`;
-    graphic.ctx.fill();
+    }
+    graphic.ctx.strokeStyle = `rgba(255, 255, 255, 0.1)`;
+    graphic.ctx.stroke();
+
+    graphic.ctx.strokeStyle = `rgba(255, 255, 255, 0.05)`;
+
+    graphic.ctx.beginPath();
+    const p4 = worldToViewTransform(graphic, ps[4]);
+    graphic.ctx.moveTo(p4.x, p4.y);
+    const p5 = worldToViewTransform(graphic, ps[5]);
+    graphic.ctx.lineTo(p5.x, p5.y);
+    graphic.ctx.stroke();
+
+    graphic.ctx.beginPath();
+    const p1 = worldToViewTransform(graphic, ps[1]);
+    graphic.ctx.moveTo(p1.x, p1.y);
+    const p2 = worldToViewTransform(graphic, ps[2]);
+    graphic.ctx.lineTo(p2.x, p2.y);
+    graphic.ctx.stroke();
+
+    graphic.ctx.strokeStyle = `rgba(255, 255, 255, 0.1)`;
+
+    graphic.ctx.beginPath();
+    const p0 = worldToViewTransform(graphic, ps[0]);
+    graphic.ctx.moveTo(p0.x, p0.y);
+    const p3 = worldToViewTransform(graphic, Points.scale(ps[0], 0.95));
+    graphic.ctx.lineTo(p3.x, p3.y);
+    graphic.ctx.stroke();
 }
 
 export function enlarge(branch: Branch, scale: number): void {

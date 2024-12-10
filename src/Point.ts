@@ -19,6 +19,25 @@ export function add(p1: Point, p2: Point): Point {
   return { x: p1.x + p2.x, y: p1.y + p2.y };
 }
 
+export function negate(p: Point): Point {
+  return { x: -p.x, y: -p.y };
+}
+
+export function subtract(p1: Point, p2: Point): Point {
+  return add(p1, negate(p2));
+}
+
+export function midpoint(p1: Point, p2: Point): Point {
+  return {
+    x: p1.x + 0.5 * (p2.x - p1.x),
+    y: p1.y + 0.5 * (p2.y - p1.y)
+  }
+}
+
+export function scale(p: Point, scalar: number): Point {
+  return { x: scalar * p.x, y: scalar * p.y };
+}
+
 export function translate(p: Point, direction: Direction, distance: number): Point {
   return {
     x: p.x + distance * Math.cos(Directions.values[direction]),
