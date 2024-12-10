@@ -64,7 +64,6 @@ export type State = {
     playing: boolean,
     step: number,
     eventHandlerTimeout: NodeJS.Timeout | undefined,
-    intervalId: undefined | number,
     maxSteps: number,
     eventQueue: Array<StateEvent>,
     eventHandlers: StateEventHandlers | undefined,
@@ -162,7 +161,6 @@ export function make(): State {
     const snowflake = Snowflakes.zero();
     const currentGrowthType = undefined;
     const step = 0;
-    const intervalId = undefined;
     const maxSteps = 1000;
 
     const result: State = {
@@ -172,7 +170,6 @@ export function make(): State {
         currentGrowthType,
         playing: false,
         step,
-        intervalId,
         maxSteps,
         eventQueue: [],
         eventHandlers: undefined,
