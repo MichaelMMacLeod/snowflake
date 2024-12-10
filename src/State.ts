@@ -39,12 +39,17 @@ type RandomizeEvent = {
     kind: 'randomize',
 };
 
+type HaltEvent = {
+    kind: 'halt',
+};
+
 export type StateEvent =
     InstallSnowflakeEvent
     | InstallGraphEvent
     | PlayEvent
     | ResetEvent
-    | RandomizeEvent;
+    | RandomizeEvent
+    | HaltEvent;
 
 export type EventHandlers<Events extends { kind: string }> = {
     [E in Events as E["kind"]]: (data: E) => void
@@ -103,6 +108,10 @@ function makeEventHandlers(state: State): StateEventHandlers {
         },
         randomize: _ => {
             randomizeGrowthInput(state.graph)
+        },
+        halt: _ => {
+            clearInterval(state.eventHandlerTimeout);
+            state.graph.installation?.removeEventListeners();
         }
     };
 }

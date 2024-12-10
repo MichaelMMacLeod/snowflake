@@ -44,6 +44,7 @@ export type GraphInstallation = {
     graphMargin: number,
     writableGraphWidth: number,
     writableGraphHeight: number,
+    removeEventListeners: () => void,
 }
 
 export type Graph = {
@@ -117,6 +118,40 @@ export function install(graph: Graph, options: GraphInstallationOptions): void {
 
     const graphMargin = 10;
 
+    function mousemove(e: MouseEvent): void {
+        if (graph.installation !== undefined) {
+            graph.installation.graphMouse = { x: e.offsetX, y: e.offsetY };
+        }
+    }
+    function mousedown(): void {
+        if (graph.installation !== undefined) {
+            graph.installation.handleBeingDragged = 'needs lookup';
+        }
+    }
+    function mouseup(): void {
+        if (graph.installation !== undefined) {
+            graph.installation.handleBeingDragged = undefined;
+            graph.installation.graphMouse = undefined;
+        }
+    }
+    function mouseleave(): void {
+        if (graph.installation !== undefined) {
+            graph.installation.mouseRecentlyExitedGraph = true;
+        }
+    }
+
+    canvas.addEventListener('mousemove', mousemove);
+    canvas.addEventListener('mousedown', mousedown);
+    canvas.addEventListener('mouseleave', mouseleave);
+    options.mouseUpEventListenerNode.addEventListener('mouseup', mouseup);
+
+    function removeEventListeners() {
+        canvas.removeEventListener('mousemove', mousemove);
+        canvas.removeEventListener('mousedown', mousedown);
+        canvas.removeEventListener('mouseleave', mouseleave);
+        options.mouseUpEventListenerNode.removeEventListener('mouseup', mouseup);
+    }
+
     graph.installation = {
         options,
         canvas,
@@ -127,29 +162,8 @@ export function install(graph: Graph, options: GraphInstallationOptions): void {
         graphMargin,
         writableGraphWidth: canvas.width - 2 * graphMargin,
         writableGraphHeight: canvas.height,
+        removeEventListeners,
     };
-
-    canvas.addEventListener('mousemove', e => {
-        if (graph.installation !== undefined) {
-            graph.installation.graphMouse = { x: e.offsetX, y: e.offsetY };
-        }
-    });
-    canvas.addEventListener('mousedown', e => {
-        if (graph.installation !== undefined) {
-            graph.installation.handleBeingDragged = 'needs lookup';
-        }
-    });
-    options.mouseUpEventListenerNode.addEventListener('mouseup', e => {
-        if (graph.installation !== undefined) {
-            graph.installation.handleBeingDragged = undefined;
-            graph.installation.graphMouse = undefined;
-        }
-    });
-    canvas.addEventListener('mouseleave', e => {
-        if (graph.installation !== undefined) {
-            graph.installation.mouseRecentlyExitedGraph = true;
-        }
-    });
 }
 
 export function drawGraphHandle(
