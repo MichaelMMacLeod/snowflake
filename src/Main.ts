@@ -8,19 +8,22 @@ export function main(): Controller {
     const state = States.make();
     const controller = Controllers.make(state);
     controller.handle({
-        type: 'installSnowflake', data: {
-            options: {
-                className: "snowflake",
-                width: 800,
-                height: 800
-            },
-            installCanvas: function (snowflake: HTMLCanvasElement): void {
-                document.getElementById('canvasContainer')?.appendChild(snowflake);
-            },
-            onNoContextFailure: function (): void {
-                throw new Error("error getting canvas context");
-            }
+        kind: 'installSnowflake',
+        options: {
+            className: "snowflake",
+            width: 800,
+            height: 800
+        },
+        installCanvas: function (snowflake: HTMLCanvasElement): void {
+            document.getElementById('canvasContainer')?.appendChild(snowflake);
+        },
+        onNoContextFailure: function (): void {
+            throw new Error("error getting canvas context");
         }
+    });
+    controller.handle({
+        kind: 'play',
+        play: true,
     });
     return controller;
     // onInit: (options: StateOptions) => unknown /* StateOptions */

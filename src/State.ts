@@ -1,7 +1,7 @@
 import { yChoices } from "./Constants";
 import { Control } from "./Control";
 import * as Controls from "./Control";
-import { callIfInstalled, defaultGraphInstallationOptions, defaultGraphOptions, drawGrowthInput, errorWithoutInstallation, Graph, GraphInstallation, GraphInstallationOptions, GraphOptions, growthHandlePosition, GrowthType, interpretGrowth, nearestGrowthHandle, updateGraph } from "./Graph";
+import { callIfInstalled, defaultGraphInstallationOptions, defaultGraphOptions, drawGrowthInput, errorWithoutInstallation, Graph, GraphInstallation, GraphInstallationOptions, GraphOptions, growthHandlePosition, GrowthType, interpretGrowth, nearestGrowthHandle, randomizeGrowthInput, updateGraph } from "./Graph";
 import * as Graphs from "./Graph";
 import { Graphic, GraphicOptions } from "./Graphic";
 import * as Graphics from "./Graphic";
@@ -12,20 +12,36 @@ import { clamp, convertRGBAToString } from "./Utils";
 import * as Branches from "./Branch";
 import * as Faces from "./Face";
 
-export type StateEvent =
-    {
-        type: 'installSnowflake', data: {
-            options: GraphicOptions,
-            installCanvas: (snowflake: HTMLCanvasElement) => void,
-            onNoContextFailure: () => void,
-        }
-    }
-// | { type: 'installGraph', data: (graph: HTMLCanvasElement) => void }
-// | { type: 'togglePlaying', data: undefined }
-// | { type: 'reset', data: undefined }
-// | { type: 'randomizeAndReset', data: undefined }
+type InstallSnowflakeEvent = {
+    kind: 'installSnowflake',
+    options: GraphicOptions,
+    installCanvas: (snowflake: HTMLCanvasElement) => void,
+    onNoContextFailure: () => void,
+};
 
-type EventHandlers = { [x in StateEvent["type"]]: (data: Extract<StateEvent, { type: x }>["data"]) => void };
+type PlayEvent = {
+    kind: 'play',
+    play: boolean | 'toggle',
+};
+
+type ResetEvent = {
+    kind: 'reset',
+};
+
+type RandomizeEvent = {
+    kind: 'randomize',
+}
+
+export type StateEvent =
+    InstallSnowflakeEvent
+    | PlayEvent
+    | ResetEvent
+    | RandomizeEvent;
+
+export type EventHandlers<Events extends { kind: string }> = {
+    [E in Events as E["kind"]]: (data: E) => void
+};
+export type StateEventHandlers = EventHandlers<StateEvent>;
 
 export type State = {
     graph: Graph,
@@ -38,44 +54,46 @@ export type State = {
     intervalId: undefined | number,
     maxSteps: number,
     eventQueue: Array<StateEvent>,
-    eventHandlers: EventHandlers | undefined,
+    eventHandlers: StateEventHandlers | undefined,
 };
 
-function makeEventHandlers(state: State): EventHandlers {
+function makeEventHandlers(state: State): StateEventHandlers {
     return {
-        // installGraph: function (data: (graph: HTMLCanvasElement) => void): void {
-        //     throw new Error("Function not implemented.");
-        // },
-        // togglePlaying: function (data: undefined): void {
-        //     throw new Error("Function not implemented.");
-        // },
-        // reset: function (data: undefined): void {
-        //     throw new Error("Function not implemented.");
-        // },
-        // randomizeAndReset: function (data: undefined): void {
-        //     throw new Error("Function not implemented.");
-        // },
-        installSnowflake: function (data: {
-            options: GraphicOptions,
-            installCanvas: (snowflake: HTMLCanvasElement) => void,
-            onNoContextFailure: () => void,
-        }): void {
+        installSnowflake: ({options, installCanvas, onNoContextFailure}) => {
             if (state.graphic !== undefined) {
                 throw new Error('snowflake already installed');
             }
-            state.graphic = Graphics.make(data.options);
+            state.graphic = Graphics.make(options);
             if (state.graphic === undefined) {
-                data.onNoContextFailure();
+                onNoContextFailure();
             } else {
-                data.installCanvas(state.graphic.canvas);
+                installCanvas(state.graphic.canvas);
             }
+        },
+        play: ({play}) => {
+            if (play === 'toggle') {
+                state.playing = !state.playing;
+            } else {
+                state.playing = play;
+            }
+        },
+        reset: _ => {
+            Snowflakes.reset(state.snowflake);
+            state.step = 0;
+            state.currentGrowthType = undefined;
+            if (state.graphic !== undefined) {
+                Graphics.clear(state.graphic);
+            }
+        },
+        randomize: _ => {
+            randomizeGrowthInput(state.graph)
         }
     };
 }
 
 export function handleEvent(state: State, e: StateEvent): void {
     if (state.eventHandlers !== undefined) {
-        state.eventHandlers[e.type](e.data);
+        state.eventHandlers[e.kind](e as any /* FIXME */);
     } else {
         throw new Error("state.eventHandlers is undefined");
     }
@@ -127,7 +145,7 @@ export function make(): State {
         graphic: undefined,
         snowflake,
         currentGrowthType,
-        playing: true,
+        playing: false,
         step,
         intervalId,
         maxSteps,
@@ -136,7 +154,7 @@ export function make(): State {
         eventHandlerTimeout: undefined,
     };
     result.eventHandlers = makeEventHandlers(result);
-    result.eventHandlerTimeout = setInterval(() => handleEvents(result), 1000 / 60)
+    result.eventHandlerTimeout = setInterval(() => handleEvents(result), 1000 / 120)
 
     return result;
 }
@@ -206,13 +224,6 @@ export function update(state: State): void {
         drawGrowthInput(graph, i, state.step, maxSteps);
     })
 }
-
-// export function reset(state: State): void {
-//     Snowflakes.reset(state.snowflake);
-//     state.step = 0;
-//     state.currentGrowthType = undefined;
-//     Graphics.clear(state.graphic);
-// }
 
 // export function registerControlsEventListeners(state: State): void {
 //     const { controls, graphic } = state;

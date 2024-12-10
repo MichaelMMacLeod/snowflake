@@ -23,15 +23,34 @@
       </div> -->
     </div>
     <div id="controlContainer">
-      <button class="control" id="pause" type="button">pause</button>
-      <button class="control" id="reset" type="button">reset</button>
+      <button class="control" id="pause" type="button" onclick="pause()">pause</button>
+      <button class="control" id="reset" type="button" onclick="reset()">reset</button>
+      <button class="control" id="reset" type="button" onclick="random()">random</button>
     </div>
-    <!-- <canvas id="snowflake" width="800" height="800"></canvas> -->
   </div>
 </body>
 <script src="dist/bundle.js"></script>
 <script>
   const controller = Main.main();
+  function pause() {
+    controller.handle({
+      kind: 'play',
+      play: 'toggle',
+    });
+  }
+  function reset() {
+    controller.handle({
+      kind: 'reset',
+    });
+  }
+  function random() {
+    controller.handleAll([
+      { kind: 'play', play: false },
+      { kind: 'randomize' },
+      { kind: 'reset' },
+      { kind: 'play', play: true },
+    ]);
+  }
 </script>
 
 </html>
