@@ -12,15 +12,6 @@
 <body>
   <div id="canvasContainer">
     <div id="graphContainer">
-      <!-- <canvas id="graph" width="600" height="200"></canvas>
-      <div id="graphLabelContainer">
-        <p class="graphLabel">
-          faceting
-        </p>
-        <p class="graphLabel">
-          branching
-        </p>
-      </div> -->
     </div>
     <div id="controlContainer">
       <button class="control" id="pause" type="button" onclick="pause()">pause</button>
@@ -51,6 +42,39 @@
       { kind: 'play', play: true },
     ]);
   }
+  controller.handleAll([
+    {
+      kind: 'installGraph',
+      options: {
+        canvasClassName: 'graph',
+        canvasWidth: 600,
+        canvasHeight: 200,
+        mouseUpEventListenerNode: document,
+      },
+      installCanvas: graph => {
+        document.getElementById('graphContainer')?.appendChild(graph);
+      },
+      onNoContextFailure: () => { throw new Error("error getting graph canvas context") },
+    },
+    {
+      kind: 'installSnowflake',
+      options: {
+        className: "snowflake",
+        width: 800,
+        height: 800
+      },
+      installCanvas: function (snowflake) {
+        document.getElementById('canvasContainer')?.appendChild(snowflake);
+      },
+      onNoContextFailure: function () {
+        throw new Error("error getting snowflake canvas context");
+      }
+    },
+    {
+      kind: 'play',
+      play: true,
+    }
+  ]);
 </script>
 
 </html>

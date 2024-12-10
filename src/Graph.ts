@@ -16,7 +16,7 @@ export type GraphInstallationOptions = {
      * mouse just goes a little bit outside the graph. To fix this, we set the
      * mouse up event listener on a parent node, usually the document itself.
      */
-    mouseUpEventListenerElement: Node,
+    mouseUpEventListenerNode: Node,
 
     /** CSS class of graph canvas */
     canvasClassName: string,
@@ -27,7 +27,7 @@ export type GraphInstallationOptions = {
 
 export function defaultGraphInstallationOptions(): GraphInstallationOptions {
     return {
-        mouseUpEventListenerElement: document,
+        mouseUpEventListenerNode: document,
         canvasClassName: 'graph',
         canvasWidth: 600,
         canvasHeight: 200,
@@ -139,7 +139,7 @@ export function install(graph: Graph, options: GraphInstallationOptions): void {
             graph.installation.handleBeingDragged = 'needs lookup';
         }
     });
-    options.mouseUpEventListenerElement.addEventListener('mouseup', e => {
+    options.mouseUpEventListenerNode.addEventListener('mouseup', e => {
         if (graph.installation !== undefined) {
             graph.installation.handleBeingDragged = undefined;
             graph.installation.graphMouse = undefined;

@@ -19,6 +19,13 @@ type InstallSnowflakeEvent = {
     onNoContextFailure: () => void,
 };
 
+type InstallGraphEvent = {
+    kind: 'installGraph',
+    options: GraphInstallationOptions,
+    installCanvas: (graph: HTMLCanvasElement) => void,
+    onNoContextFailure: () => void,
+};
+
 type PlayEvent = {
     kind: 'play',
     play: boolean | 'toggle',
@@ -30,10 +37,11 @@ type ResetEvent = {
 
 type RandomizeEvent = {
     kind: 'randomize',
-}
+};
 
 export type StateEvent =
     InstallSnowflakeEvent
+    | InstallGraphEvent
     | PlayEvent
     | ResetEvent
     | RandomizeEvent;
@@ -59,7 +67,7 @@ export type State = {
 
 function makeEventHandlers(state: State): StateEventHandlers {
     return {
-        installSnowflake: ({options, installCanvas, onNoContextFailure}) => {
+        installSnowflake: ({ options, installCanvas, onNoContextFailure }) => {
             if (state.graphic !== undefined) {
                 throw new Error('snowflake already installed');
             }
@@ -70,7 +78,15 @@ function makeEventHandlers(state: State): StateEventHandlers {
                 installCanvas(state.graphic.canvas);
             }
         },
-        play: ({play}) => {
+        installGraph: ({ options, installCanvas, onNoContextFailure }) => {
+            Graphs.install(state.graph, options);
+            if (state.graph.installation === undefined) {
+                onNoContextFailure();
+            } else {
+                installCanvas(state.graph.installation.canvas);
+            }
+        },
+        play: ({ play }) => {
             if (play === 'toggle') {
                 state.playing = !state.playing;
             } else {
