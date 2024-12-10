@@ -88,17 +88,17 @@ export function draw(graphic: Graphic, branch: Branch): void {
     graphic.ctx.strokeStyle = `rgba(255, 255, 255, 0.05)`;
 
     graphic.ctx.beginPath();
-    const p4 = worldToViewTransform(graphic, ps[4]);
-    graphic.ctx.moveTo(p4.x, p4.y);
+    const p45 = worldToViewTransform(graphic, Points.midpoint(ps[4], ps[5]));
+    graphic.ctx.moveTo(p45.x, p45.y);
     const p5 = worldToViewTransform(graphic, ps[5]);
     graphic.ctx.lineTo(p5.x, p5.y);
     graphic.ctx.stroke();
 
     graphic.ctx.beginPath();
+    const p21 = worldToViewTransform(graphic, Points.midpoint(ps[2], ps[1]));
+    graphic.ctx.moveTo(p21.x, p21.y);
     const p1 = worldToViewTransform(graphic, ps[1]);
-    graphic.ctx.moveTo(p1.x, p1.y);
-    const p2 = worldToViewTransform(graphic, ps[2]);
-    graphic.ctx.lineTo(p2.x, p2.y);
+    graphic.ctx.lineTo(p1.x, p1.y);
     graphic.ctx.stroke();
 
     graphic.ctx.strokeStyle = `rgba(255, 255, 255, 0.1)`;
@@ -106,7 +106,7 @@ export function draw(graphic: Graphic, branch: Branch): void {
     graphic.ctx.beginPath();
     const p0 = worldToViewTransform(graphic, ps[0]);
     graphic.ctx.moveTo(p0.x, p0.y);
-    const p3 = worldToViewTransform(graphic, Points.scale(ps[0], 0.95));
+    const p3 = worldToViewTransform(graphic, Points.midpoint(ps[3], ps[0]));
     graphic.ctx.lineTo(p3.x, p3.y);
     graphic.ctx.stroke();
 }

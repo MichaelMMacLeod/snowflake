@@ -34,6 +34,13 @@ export function midpoint(p1: Point, p2: Point): Point {
   }
 }
 
+/** Returns the point that is `percent` between `p1` and `p2`. `percent`
+ * should be `>= 0` and `<= 1`.
+ */
+export function midpointT(p1: Point, p2: Point, percent: number): Point {
+  return add(scale(p1, 1 - percent), scale(p2, percent));
+}
+
 export function scale(p: Point, scalar: number): Point {
   return { x: scalar * p.x, y: scalar * p.y };
 }

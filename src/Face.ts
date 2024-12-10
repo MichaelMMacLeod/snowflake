@@ -66,6 +66,10 @@ export function draw(graphic: Graphic, face: Face): void {
     const p4 = worldToViewTransform(graphic, ps[4]);
     const p5 = worldToViewTransform(graphic, ps[5]);
 
+    const p31 = worldToViewTransform(graphic, Points.midpointT(ps[3], ps[1], 0.2));
+    const p30 = worldToViewTransform(graphic, Points.midpointT(ps[3], ps[0], 0.2));
+    const p35 = worldToViewTransform(graphic, Points.midpointT(ps[3], ps[5], 0.2));
+
     if (face.direction === "none") {
         graphic.ctx.strokeStyle = `rgba(255, 255, 255, 0.05)`;
         ps.forEach((p, i) => {
@@ -115,17 +119,17 @@ export function draw(graphic: Graphic, face: Face): void {
         graphic.ctx.stroke();
 
         graphic.ctx.beginPath();
-        graphic.ctx.moveTo(p3.x, p3.y);
+        graphic.ctx.moveTo(p31.x, p31.y);
         graphic.ctx.lineTo(p1.x, p1.y);
         graphic.ctx.stroke();
 
         graphic.ctx.beginPath();
-        graphic.ctx.moveTo(p3.x, p3.y);
+        graphic.ctx.moveTo(p30.x, p30.y);
         graphic.ctx.lineTo(p0.x, p0.y);
         graphic.ctx.stroke();
 
         graphic.ctx.beginPath();
-        graphic.ctx.moveTo(p3.x, p3.y);
+        graphic.ctx.moveTo(p35.x, p35.y);
         graphic.ctx.lineTo(p5.x, p5.y);
         graphic.ctx.stroke();
     }
