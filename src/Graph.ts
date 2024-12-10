@@ -89,9 +89,10 @@ export function randomizeGrowthInput(graph: Graph): void {
 
 function createRandomGrowthInput(): NonEmptyArray<number> {
     let result: NonEmptyArray<number> = [0];
-    for (let i = 0; i < 16; i++) {
+    for (let i = 1; i < 16; i++) {
         result[i] = Math.floor(Math.random() * 9);
     }
+    result[0] = Math.floor(Math.random() * 4);
     return result;
 }
 

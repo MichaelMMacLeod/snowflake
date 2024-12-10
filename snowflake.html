@@ -33,7 +33,8 @@
 <script>
   Main.main(options => {
     console.log(options);
-    // options.graphInstallationOptions.canvasParent = document.getElementById('graphContainer');
+    // options.graphInstallationOptions = undefined;
+    options.graphInstallationOptions.canvasParent = document.getElementById('graphContainer');
     return options;
   });
 </script>
