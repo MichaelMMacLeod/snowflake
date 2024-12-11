@@ -185,7 +185,7 @@ export function make(): State {
         currentGrowthType,
         currentMS: 0,
         currentElapsedMS: 0,
-        allotedGrowthTimeMS: 5000,
+        allotedGrowthTimeMS: 8000,
         targetMSPerUpdate: 1000 / 60,
         playing: false,
         eventQueue: [],

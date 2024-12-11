@@ -82,11 +82,12 @@ function makeEventHandlers(state) {
         },
         reset: function (_) {
             _Snowflake__WEBPACK_IMPORTED_MODULE_2__.reset(state.snowflake);
-            state.step = 0;
+            state.currentElapsedMS = 0;
             state.currentGrowthType = undefined;
             if (state.graphic !== undefined) {
                 _Graphic__WEBPACK_IMPORTED_MODULE_1__.clear(state.graphic);
             }
+            state.resetCallbacks.forEach(function (callback) { return callback(); });
         },
         randomize: function (_) {
             (0,_Graph__WEBPACK_IMPORTED_MODULE_0__.randomizeGrowthInput)(state.graph);
@@ -95,7 +96,15 @@ function makeEventHandlers(state) {
             var _a;
             clearInterval(state.eventHandlerTimeout);
             (_a = state.graph.installation) === null || _a === void 0 ? void 0 : _a.removeEventListeners();
-        }
+        },
+        registerFinishedGrowingCallback: function (_a) {
+            var callback = _a.callback;
+            state.finishedGrowingCallbacks.push(callback);
+        },
+        registerResetCallback: function (_a) {
+            var callback = _a.callback;
+            state.resetCallbacks.push(callback);
+        },
     };
 }
 function handleEvent(state, e) {
@@ -113,9 +122,6 @@ function handleEvents(state) {
 }
 function make() {
     var graph = _Graph__WEBPACK_IMPORTED_MODULE_0__.make((0,_Graph__WEBPACK_IMPORTED_MODULE_0__.defaultGraphOptions)());
-    // if (options.graphInstallationOptions !== undefined) {
-    //     Graphs.install(graph, options.graphInstallationOptions);
-    // }
     var snowflake = _Snowflake__WEBPACK_IMPORTED_MODULE_2__.zero();
     var currentGrowthType = undefined;
     var step = 0;
@@ -125,66 +131,86 @@ function make() {
         graphic: undefined,
         snowflake: snowflake,
         currentGrowthType: currentGrowthType,
+        currentMS: 0,
+        currentElapsedMS: 0,
+        allotedGrowthTimeMS: 5000,
+        targetMSPerUpdate: 1000 / 60,
         playing: false,
-        step: step,
-        maxSteps: maxSteps,
         eventQueue: [],
         eventHandlers: undefined,
         eventHandlerTimeout: undefined,
+        finishedGrowingCallbacks: [],
+        resetCallbacks: [],
     };
     result.eventHandlers = makeEventHandlers(result);
-    result.eventHandlerTimeout = setInterval(function () { return handleEvents(result); }, 1000 / 120);
+    result.eventHandlerTimeout = setInterval(function () { return handleEvents(result); }, result.targetMSPerUpdate);
     return result;
 }
 function receiveEvent(state, e) {
     state.eventQueue.push(e);
 }
 function currentTime(state) {
-    var step = state.step, maxSteps = state.maxSteps;
-    return step / maxSteps;
+    return state.currentElapsedMS / state.allotedGrowthTimeMS;
 }
 function update(state) {
-    var snowflake = state.snowflake, graph = state.graph, graphic = state.graphic, maxSteps = state.maxSteps, playing = state.playing;
-    if (state.step < maxSteps && playing) {
-        state.step += 1;
-        var growth_1 = (0,_Graph__WEBPACK_IMPORTED_MODULE_0__.interpretGrowth)(graph, currentTime(state));
-        if (state.currentGrowthType === undefined) {
-            state.currentGrowthType = growth_1.growthType;
-        }
-        if (state.currentGrowthType !== growth_1.growthType) {
-            state.currentGrowthType = growth_1.growthType;
-            if (state.currentGrowthType === 'branching') {
-                (0,_Snowflake__WEBPACK_IMPORTED_MODULE_2__.addBranchesToGrowingFaces)(snowflake);
-            }
-            else {
-                (0,_Snowflake__WEBPACK_IMPORTED_MODULE_2__.addFacesToGrowingBranches)(snowflake);
-            }
-        }
-        var sides = _Snowflake__WEBPACK_IMPORTED_MODULE_2__.normalizedSides(snowflake);
-        if (state.currentGrowthType === 'branching') {
-            _Snowflake__WEBPACK_IMPORTED_MODULE_2__.killCoveredBranches(snowflake, sides);
-            snowflake.branches.forEach(function (b) {
-                if (b.growing) {
-                    _Branch__WEBPACK_IMPORTED_MODULE_3__.enlarge(b, growth_1.scale);
-                }
-            });
+    var snowflake = state.snowflake, graph = state.graph, graphic = state.graphic, playing = state.playing;
+    var lastMS = state.currentMS;
+    var lastElapsedMS = state.currentElapsedMS;
+    state.currentMS = performance.now();
+    var deltaMS = state.currentMS - lastMS;
+    var expectedNumberOfUpdates = state.allotedGrowthTimeMS / state.targetMSPerUpdate;
+    var sixtyFPSExpectedNumberOfUpdates = state.allotedGrowthTimeMS / (1000 / 60);
+    var fpsScale = sixtyFPSExpectedNumberOfUpdates / expectedNumberOfUpdates;
+    var eightSecondsInMS = 8000;
+    var timeScale = eightSecondsInMS / state.allotedGrowthTimeMS;
+    if (playing) {
+        state.currentElapsedMS += deltaMS;
+        if (lastElapsedMS < state.allotedGrowthTimeMS
+            && state.currentElapsedMS >= state.allotedGrowthTimeMS) {
+            state.finishedGrowingCallbacks.forEach(function (callback) { return callback(); });
         }
         else {
-            _Snowflake__WEBPACK_IMPORTED_MODULE_2__.killCoveredFaces(snowflake, sides);
-            snowflake.faces.forEach(function (f) {
-                if (f.growing) {
-                    _Face__WEBPACK_IMPORTED_MODULE_4__.enlarge(f, growth_1.scale);
+            var thisUpdateGrowthScalar_1 = timeScale * fpsScale * deltaMS / state.targetMSPerUpdate;
+            var growth_1 = (0,_Graph__WEBPACK_IMPORTED_MODULE_0__.interpretGrowth)(graph, currentTime(state));
+            if (state.currentGrowthType === undefined) {
+                state.currentGrowthType = growth_1.growthType;
+            }
+            if (state.currentGrowthType !== growth_1.growthType) {
+                state.currentGrowthType = growth_1.growthType;
+                if (state.currentGrowthType === 'branching') {
+                    (0,_Snowflake__WEBPACK_IMPORTED_MODULE_2__.addBranchesToGrowingFaces)(snowflake);
                 }
-            });
-        }
-        if (graphic !== undefined) {
-            _Snowflake__WEBPACK_IMPORTED_MODULE_2__.draw(graphic, snowflake);
+                else {
+                    (0,_Snowflake__WEBPACK_IMPORTED_MODULE_2__.addFacesToGrowingBranches)(snowflake);
+                }
+            }
+            _Snowflake__WEBPACK_IMPORTED_MODULE_2__.cacheNormalizedSides(snowflake);
+            if (state.currentGrowthType === 'branching') {
+                _Snowflake__WEBPACK_IMPORTED_MODULE_2__.killCoveredBranches(snowflake);
+                snowflake.branches.forEach(function (b) {
+                    if (b.growing) {
+                        _Branch__WEBPACK_IMPORTED_MODULE_3__.enlarge(b, growth_1.scale, thisUpdateGrowthScalar_1);
+                    }
+                });
+            }
+            else {
+                _Snowflake__WEBPACK_IMPORTED_MODULE_2__.killCoveredFaces(snowflake);
+                snowflake.faces.forEach(function (f) {
+                    if (f.growing) {
+                        _Face__WEBPACK_IMPORTED_MODULE_4__.enlarge(f, growth_1.scale, thisUpdateGrowthScalar_1);
+                    }
+                });
+            }
+            if (graphic !== undefined) {
+                _Snowflake__WEBPACK_IMPORTED_MODULE_2__.draw(graphic, snowflake, thisUpdateGrowthScalar_1);
+            }
         }
     }
+    var percentDone = state.currentElapsedMS / state.allotedGrowthTimeMS;
     (0,_Graph__WEBPACK_IMPORTED_MODULE_0__.callIfInstalled)(graph, function (i) {
         (0,_Graph__WEBPACK_IMPORTED_MODULE_0__.updateGraph)(graph, i);
         i.ctx.clearRect(0, 0, i.canvas.width, i.canvas.height);
-        (0,_Graph__WEBPACK_IMPORTED_MODULE_0__.drawGrowthInput)(graph, i, state.step, maxSteps);
+        (0,_Graph__WEBPACK_IMPORTED_MODULE_0__.drawGrowthInput)(graph, i, percentDone);
     });
 }
 
@@ -424,9 +450,8 @@ function updateGraph(graph, i) {
         setStyle(controlContainer);
     }
 }
-function drawGrowthInput(graph, i, step, maxSteps) {
+function drawGrowthInput(graph, i, percentDone) {
     var writableGraphWidth = i.writableGraphWidth, writableGraphHeight = i.writableGraphHeight, graphMargin = i.graphMargin;
-    var percentDone = step / maxSteps;
     var old = i.ctx.fillStyle;
     i.ctx.fillStyle = (0,_Utils__WEBPACK_IMPORTED_MODULE_1__.convertRGBAToString)(graph.options.progressColor);
     i.ctx.fillRect(graphMargin, 0, writableGraphWidth * percentDone, writableGraphHeight);
@@ -481,7 +506,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   yChoices: () => (/* binding */ yChoices)
 /* harmony export */ });
 var oneSixthCircle = Math.PI * 2 / 6;
-var growthScalar = 0.001;
+var growthScalar = 0.0025;
 var branchGrowthScalar = growthScalar * 0.3;
 var yChoices = [-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1];
 
@@ -557,10 +582,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   addBranchesToGrowingFaces: () => (/* binding */ addBranchesToGrowingFaces),
 /* harmony export */   addFacesToGrowingBranches: () => (/* binding */ addFacesToGrowingBranches),
+/* harmony export */   cacheNormalizedSides: () => (/* binding */ cacheNormalizedSides),
 /* harmony export */   draw: () => (/* binding */ draw),
 /* harmony export */   killCoveredBranches: () => (/* binding */ killCoveredBranches),
 /* harmony export */   killCoveredFaces: () => (/* binding */ killCoveredFaces),
-/* harmony export */   normalizedSides: () => (/* binding */ normalizedSides),
 /* harmony export */   reset: () => (/* binding */ reset),
 /* harmony export */   zero: () => (/* binding */ zero)
 /* harmony export */ });
@@ -578,19 +603,20 @@ function reset(s) {
     s.faces.length = 1;
     s.faces[0] = _Face__WEBPACK_IMPORTED_MODULE_0__.zero();
     s.branches.length = 0;
-    for (var i = 0; i < s.sideCache.length; ++i) {
-        s.sideCache[i].length = 0;
+    for (var i = 0; i < _Direction__WEBPACK_IMPORTED_MODULE_2__.values.length; ++i) {
+        s.faceSideCache[i].length = 0;
+        s.branchSideCache[i].length = 0;
     }
 }
-function draw(graphic, snowflake) {
+function draw(graphic, snowflake, deltaScale) {
     snowflake.faces.forEach(function (f) {
         if (f.growing) {
-            _Face__WEBPACK_IMPORTED_MODULE_0__.draw(graphic, f);
+            _Face__WEBPACK_IMPORTED_MODULE_0__.draw(graphic, f, deltaScale);
         }
     });
     snowflake.branches.forEach(function (b) {
         if (b.growing) {
-            _Branch__WEBPACK_IMPORTED_MODULE_1__.draw(graphic, b);
+            _Branch__WEBPACK_IMPORTED_MODULE_1__.draw(graphic, b, deltaScale);
         }
     });
 }
@@ -598,7 +624,8 @@ function zero() {
     return {
         faces: [_Face__WEBPACK_IMPORTED_MODULE_0__.zero()],
         branches: [],
-        sideCache: (0,_Utils__WEBPACK_IMPORTED_MODULE_3__.makeArray6)(function () { return []; }),
+        faceSideCache: (0,_Utils__WEBPACK_IMPORTED_MODULE_3__.makeArray6)(function () { return []; }),
+        branchSideCache: (0,_Utils__WEBPACK_IMPORTED_MODULE_3__.makeArray6)(function () { return []; }),
     };
 }
 function addBranchesToFace(snowflake, face) {
@@ -628,8 +655,8 @@ function addBranchesToFace(snowflake, face) {
             if (face.direction === 'none' || i === 1) {
                 return face.growthScale * 0.9;
             }
-            const randomAdjust = Math.random() * 2 + 0.5;
-            // var randomAdjust = 1;
+            // const randomAdjust = Math.random();
+            var randomAdjust = 1;
             return face.growthScale * 0.5 * randomAdjust;
         })();
         snowflake.branches.push({
@@ -671,17 +698,12 @@ function addFacesToGrowingBranches(snowflake) {
         }
     });
 }
-// Returns the normalized sides of every part (face, branch) in the snowflake. The
-// order of the returned sides is the order of 'snowflake.faces' followed by
-// 'snowflake.branches', so normalizedSides(sf)[0][0] is the first side of sf.faces[0],
-// and normalizedSides(sf)[0][sf.faces.length] is the first side of sf.branches[0]. Sides
-// are returned in one of six slots based on their absolute direction.
-function normalizedSides(snowflake) {
+function cacheNormalizedSides(snowflake) {
     snowflake.faces.forEach(function (f, fi) {
         if (f.growing) {
             _Side__WEBPACK_IMPORTED_MODULE_4__.normalizedFaceSides(f).forEach(function (s, i) {
                 var absoluteDirection = (i + _Face__WEBPACK_IMPORTED_MODULE_0__.direction(f)) % _Direction__WEBPACK_IMPORTED_MODULE_2__.values.length;
-                snowflake.sideCache[absoluteDirection][fi] = s;
+                snowflake.faceSideCache[absoluteDirection][fi] = s;
             });
         }
     });
@@ -689,13 +711,12 @@ function normalizedSides(snowflake) {
         if (b.growing) {
             _Side__WEBPACK_IMPORTED_MODULE_4__.normalizedBranchSides(b).forEach(function (s, i) {
                 var absoluteDirection = (i + b.direction) % _Direction__WEBPACK_IMPORTED_MODULE_2__.values.length;
-                snowflake.sideCache[absoluteDirection][bi] = s;
+                snowflake.branchSideCache[absoluteDirection][bi] = s;
             });
         }
     });
-    return snowflake.sideCache;
 }
-function killCoveredFaces(snowflake, sides) {
+function killCoveredFaces(snowflake) {
     snowflake.faces.forEach(function (f, fi) {
         if (!f.growing) {
             return;
@@ -703,75 +724,82 @@ function killCoveredFaces(snowflake, sides) {
         var d = _Face__WEBPACK_IMPORTED_MODULE_0__.direction(f);
         var leftDirection = d;
         var rightDirection = (0,_Utils__WEBPACK_IMPORTED_MODULE_3__.rem)(d - 1, _Direction__WEBPACK_IMPORTED_MODULE_2__.values.length);
-        var leftSide = sides[leftDirection][fi];
-        var rightSide = sides[rightDirection][fi];
-        var otherLeftSides = sides[leftDirection];
-        var otherRightSides = sides[rightDirection];
-        for (var oi = 0; oi < otherLeftSides.length; ++oi) {
-            if (oi === fi) {
-                continue;
+        var leftSide = snowflake.faceSideCache[leftDirection][fi];
+        var rightSide = snowflake.faceSideCache[rightDirection][fi];
+        var caches = [snowflake.faceSideCache, snowflake.branchSideCache];
+        caches.forEach(function (cache, ci) {
+            var otherLeftSides = cache[leftDirection];
+            var otherRightSides = cache[rightDirection];
+            var inFaceCache = ci === 0;
+            for (var oi = 0; oi < otherLeftSides.length; ++oi) {
+                if (inFaceCache && oi === fi) {
+                    continue;
+                }
+                var otherLeftSide = otherLeftSides[oi];
+                var distance = _Side__WEBPACK_IMPORTED_MODULE_4__.overlaps(otherLeftSide, leftSide);
+                if (distance !== undefined) {
+                    f.growing = false;
+                    break;
+                }
             }
-            var otherLeftSide = otherLeftSides[oi];
-            var distance = _Side__WEBPACK_IMPORTED_MODULE_4__.overlaps(otherLeftSide, leftSide);
-            if (distance !== undefined) {
-                f.growing = false;
-                break;
+            if (!f.growing) {
+                return;
             }
-        }
-        if (!f.growing) {
-            return;
-        }
-        for (var oi = 0; oi < otherRightSides.length; ++oi) {
-            if (oi === fi) {
-                continue;
+            for (var oi = 0; oi < otherRightSides.length; ++oi) {
+                if (inFaceCache && oi === fi) {
+                    continue;
+                }
+                var otherRightSide = otherRightSides[oi];
+                var distance = _Side__WEBPACK_IMPORTED_MODULE_4__.overlaps(otherRightSide, rightSide);
+                if (distance !== undefined) {
+                    f.growing = false;
+                    break;
+                }
             }
-            var otherRightSide = otherRightSides[oi];
-            var distance = _Side__WEBPACK_IMPORTED_MODULE_4__.overlaps(otherRightSide, rightSide);
-            if (distance !== undefined) {
-                f.growing = false;
-                break;
-            }
-        }
+        });
     });
 }
-function killCoveredBranches(snowflake, sides) {
+function killCoveredBranches(snowflake) {
     snowflake.branches.forEach(function (b, bi) {
-        bi += snowflake.faces.length;
         if (!b.growing) {
             return;
         }
         var d = b.direction;
         var leftDirection = d;
         var rightDirection = (0,_Utils__WEBPACK_IMPORTED_MODULE_3__.rem)(d - 1, _Direction__WEBPACK_IMPORTED_MODULE_2__.values.length);
-        var leftSide = sides[leftDirection][bi];
-        var rightSide = sides[rightDirection][bi];
-        var otherLeftSides = sides[leftDirection];
-        var otherRightSides = sides[rightDirection];
-        for (var oi = 0; oi < otherLeftSides.length; ++oi) {
-            if (oi === bi) {
-                continue;
+        var leftSide = snowflake.branchSideCache[leftDirection][bi];
+        var rightSide = snowflake.branchSideCache[rightDirection][bi];
+        var caches = [snowflake.faceSideCache, snowflake.branchSideCache];
+        caches.forEach(function (cache, ci) {
+            var otherLeftSides = cache[leftDirection];
+            var otherRightSides = cache[rightDirection];
+            var inBranchCache = ci === 1;
+            for (var oi = 0; oi < otherLeftSides.length; ++oi) {
+                if (inBranchCache && oi === bi) {
+                    continue;
+                }
+                var otherLeftSide = otherLeftSides[oi];
+                var distance = _Side__WEBPACK_IMPORTED_MODULE_4__.overlaps(otherLeftSide, leftSide);
+                if (distance !== undefined) {
+                    b.growing = false;
+                    break;
+                }
             }
-            var otherLeftSide = otherLeftSides[oi];
-            var distance = _Side__WEBPACK_IMPORTED_MODULE_4__.overlaps(otherLeftSide, leftSide);
-            if (distance !== undefined) {
-                b.growing = false;
-                break;
+            if (!b.growing) {
+                return;
             }
-        }
-        if (!b.growing) {
-            return;
-        }
-        for (var oi = 0; oi < otherRightSides.length; ++oi) {
-            if (oi === bi) {
-                continue;
+            for (var oi = 0; oi < otherRightSides.length; ++oi) {
+                if (inBranchCache && oi === bi) {
+                    continue;
+                }
+                var otherRightSide = otherRightSides[oi];
+                var distance = _Side__WEBPACK_IMPORTED_MODULE_4__.overlaps(otherRightSide, rightSide);
+                if (distance !== undefined) {
+                    b.growing = false;
+                    break;
+                }
             }
-            var otherRightSide = otherRightSides[oi];
-            var distance = _Side__WEBPACK_IMPORTED_MODULE_4__.overlaps(otherRightSide, rightSide);
-            if (distance !== undefined) {
-                b.growing = false;
-                break;
-            }
-        }
+        });
     });
 }
 
@@ -830,7 +858,7 @@ function points(face) {
     }
     return result;
 }
-function draw(graphic, face) {
+function draw(graphic, face, deltaScale) {
     var dir = face.direction === "none" ? 0 : face.direction;
     graphic.ctx.beginPath();
     var ps = points(face);
@@ -845,7 +873,7 @@ function draw(graphic, face) {
     var p30 = (0,_CoordinateSystem__WEBPACK_IMPORTED_MODULE_2__.worldToViewTransform)(graphic, _Point__WEBPACK_IMPORTED_MODULE_0__.midpointT(ps[3], ps[0], 0.2));
     var p35 = (0,_CoordinateSystem__WEBPACK_IMPORTED_MODULE_2__.worldToViewTransform)(graphic, _Point__WEBPACK_IMPORTED_MODULE_0__.midpointT(ps[3], ps[5], 0.2));
     if (face.direction === "none") {
-        graphic.ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+        graphic.ctx.strokeStyle = "rgba(255, 255, 255, ".concat(deltaScale * 0.08, ")");
         ps.forEach(function (p, i) {
             var _a = (0,_CoordinateSystem__WEBPACK_IMPORTED_MODULE_2__.worldToViewTransform)(graphic, p), x = _a.x, y = _a.y;
             if (i === 0) {
@@ -866,17 +894,15 @@ function draw(graphic, face) {
         });
     }
     else {
-        graphic.ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+        graphic.ctx.strokeStyle = "rgba(255, 255, 255, ".concat(deltaScale * 0.08, ")");
         graphic.ctx.beginPath();
         var p45 = (0,_CoordinateSystem__WEBPACK_IMPORTED_MODULE_2__.worldToViewTransform)(graphic, _Point__WEBPACK_IMPORTED_MODULE_0__.midpoint(ps[4], ps[5]));
         graphic.ctx.moveTo(p45.x, p45.y);
-        // const p5 = worldToViewTransform(graphic, ps[5]);
         graphic.ctx.lineTo(p5.x, p5.y);
         graphic.ctx.stroke();
         graphic.ctx.beginPath();
         var p21 = (0,_CoordinateSystem__WEBPACK_IMPORTED_MODULE_2__.worldToViewTransform)(graphic, _Point__WEBPACK_IMPORTED_MODULE_0__.midpoint(ps[2], ps[1]));
         graphic.ctx.moveTo(p21.x, p21.y);
-        // const p1 = worldToViewTransform(graphic, ps[1]);
         graphic.ctx.lineTo(p1.x, p1.y);
         graphic.ctx.stroke();
         for (var i = 0; i < 3; ++i) {
@@ -904,13 +930,13 @@ function draw(graphic, face) {
         graphic.ctx.stroke();
     }
 }
-function enlarge(face, scale) {
-    face.size += 0.75 * scale * _Constants__WEBPACK_IMPORTED_MODULE_3__.growthScalar * face.growthScale;
+function enlarge(face, scale, deltaScale) {
+    face.size += deltaScale * 0.75 * scale * _Constants__WEBPACK_IMPORTED_MODULE_3__.growthScalar * face.growthScale;
     if (face.direction !== 'none') {
         var dx = 0.75 * 1 * scale * _Constants__WEBPACK_IMPORTED_MODULE_3__.growthScalar * Math.cos(_Direction__WEBPACK_IMPORTED_MODULE_1__.values[face.direction]) * face.growthScale;
         var dy = 0.75 * 1 * scale * _Constants__WEBPACK_IMPORTED_MODULE_3__.growthScalar * Math.sin(_Direction__WEBPACK_IMPORTED_MODULE_1__.values[face.direction]) * face.growthScale;
-        face.center.x += dx;
-        face.center.y += dy;
+        face.center.x += deltaScale * dx;
+        face.center.y += deltaScale * dy;
     }
 }
 
@@ -1135,7 +1161,7 @@ function points(branch) {
         endPoints[5],
     ];
 }
-function draw(graphic, branch) {
+function draw(graphic, branch, deltaScale) {
     graphic.ctx.beginPath();
     var ps = points(branch);
     for (var i = 0; i < 3; ++i) {
@@ -1147,9 +1173,9 @@ function draw(graphic, branch) {
             graphic.ctx.lineTo(x, y);
         }
     }
-    graphic.ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+    graphic.ctx.strokeStyle = "rgba(255, 255, 255, ".concat(deltaScale * 0.2, ")");
     graphic.ctx.stroke();
-    graphic.ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+    graphic.ctx.strokeStyle = "rgba(255, 255, 255, ".concat(deltaScale * 0.08, ")");
     graphic.ctx.beginPath();
     var p45 = (0,_CoordinateSystem__WEBPACK_IMPORTED_MODULE_2__.worldToViewTransform)(graphic, _Point__WEBPACK_IMPORTED_MODULE_0__.midpoint(ps[4], ps[5]));
     graphic.ctx.moveTo(p45.x, p45.y);
@@ -1162,7 +1188,7 @@ function draw(graphic, branch) {
     var p1 = (0,_CoordinateSystem__WEBPACK_IMPORTED_MODULE_2__.worldToViewTransform)(graphic, ps[1]);
     graphic.ctx.lineTo(p1.x, p1.y);
     graphic.ctx.stroke();
-    graphic.ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+    graphic.ctx.strokeStyle = "rgba(255, 255, 255, ".concat(deltaScale * 0.2, ")");
     graphic.ctx.beginPath();
     var p0 = (0,_CoordinateSystem__WEBPACK_IMPORTED_MODULE_2__.worldToViewTransform)(graphic, ps[0]);
     graphic.ctx.moveTo(p0.x, p0.y);
@@ -1170,11 +1196,11 @@ function draw(graphic, branch) {
     graphic.ctx.lineTo(p3.x, p3.y);
     graphic.ctx.stroke();
 }
-function enlarge(branch, scale) {
+function enlarge(branch, scale, deltaScale) {
     var lengthScalar = -1.5 * scale + 1.5;
     var sizeScalar = 1.5 * scale;
-    branch.size += sizeScalar * _Constants__WEBPACK_IMPORTED_MODULE_4__.branchGrowthScalar * branch.growthScale;
-    branch.length += lengthScalar * _Constants__WEBPACK_IMPORTED_MODULE_4__.growthScalar * branch.growthScale;
+    branch.size += deltaScale * sizeScalar * _Constants__WEBPACK_IMPORTED_MODULE_4__.branchGrowthScalar * branch.growthScale;
+    branch.length += deltaScale * lengthScalar * _Constants__WEBPACK_IMPORTED_MODULE_4__.growthScalar * branch.growthScale;
 }
 
 
