@@ -199,17 +199,17 @@ export function update(state: State): void {
             }
         }
 
-        const sides = Snowflakes.normalizedSides(snowflake);
+        Snowflakes.cacheNormalizedSides(snowflake);
 
         if (state.currentGrowthType === 'branching') {
-            Snowflakes.killCoveredBranches(snowflake, sides);
+            Snowflakes.killCoveredBranches(snowflake);
             snowflake.branches.forEach(b => {
                 if (b.growing) {
                     Branches.enlarge(b, growth.scale)
                 }
             });
         } else {
-            Snowflakes.killCoveredFaces(snowflake, sides);
+            Snowflakes.killCoveredFaces(snowflake);
             snowflake.faces.forEach(f => {
                 if (f.growing) {
                     Faces.enlarge(f, growth.scale)
