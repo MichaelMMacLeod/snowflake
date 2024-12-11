@@ -1,6 +1,6 @@
 export const oneSixthCircle = Math.PI * 2 / 6;
 
-export const growthScalar = 0.001;
+export const growthScalar = 0.0025;
 export const branchGrowthScalar = growthScalar * 0.3;
 
 export const yChoices: Array<number> =

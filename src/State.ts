@@ -80,10 +80,24 @@ export type State = {
     graphic: Graphic | undefined,
     snowflake: Snowflake,
     currentGrowthType: GrowthType | undefined,
+
+    // Current time as of the start of the last update.
+    currentMS: number,
+
+    // Amount of time the snowflake has been growing for.
+    currentElapsedMS: number,
+
+    // Specifies total time it will take to grow the snowflake.
+    // For example, `allotedGrowthTime = 8000` means it will take eight
+    // seconds for the snowflake to grow.
+    allotedGrowthTimeMS: number,
+
+    // Specifies ideal number of milliseconds between each update.
+    // To convert from FPS, use `targetMSPerUpdate = 1000 / FPS`.
+    targetMSPerUpdate: number,
+
     playing: boolean,
-    step: number,
     eventHandlerTimeout: NodeJS.Timeout | undefined,
-    maxSteps: number,
     eventQueue: Array<StateEvent>,
     eventHandlers: StateEventHandlers | undefined,
     finishedGrowingCallbacks: Array<() => void>,
@@ -120,7 +134,7 @@ function makeEventHandlers(state: State): StateEventHandlers {
         },
         reset: _ => {
             Snowflakes.reset(state.snowflake);
-            state.step = 0;
+            state.currentElapsedMS = 0;
             state.currentGrowthType = undefined;
             if (state.graphic !== undefined) {
                 Graphics.clear(state.graphic);
@@ -137,7 +151,7 @@ function makeEventHandlers(state: State): StateEventHandlers {
         registerFinishedGrowingCallback: ({ callback }) => {
             state.finishedGrowingCallbacks.push(callback);
         },
-        registerResetCallback: ({callback}) => {
+        registerResetCallback: ({ callback }) => {
             state.resetCallbacks.push(callback);
         },
     };
@@ -169,9 +183,11 @@ export function make(): State {
         graphic: undefined,
         snowflake,
         currentGrowthType,
+        currentMS: 0,
+        currentElapsedMS: 0,
+        allotedGrowthTimeMS: 5000,
+        targetMSPerUpdate: 1000 / 60,
         playing: false,
-        step,
-        maxSteps,
         eventQueue: [],
         eventHandlers: undefined,
         eventHandlerTimeout: undefined,
@@ -179,7 +195,7 @@ export function make(): State {
         resetCallbacks: [],
     };
     result.eventHandlers = makeEventHandlers(result);
-    result.eventHandlerTimeout = setInterval(() => handleEvents(result), 1000 / 120)
+    result.eventHandlerTimeout = setInterval(() => handleEvents(result), result.targetMSPerUpdate)
 
     return result;
 }
@@ -189,8 +205,7 @@ export function receiveEvent(state: State, e: StateEvent): void {
 }
 
 function currentTime(state: State): number {
-    const { step, maxSteps } = state;
-    return step / maxSteps;
+    return state.currentElapsedMS / state.allotedGrowthTimeMS;
 }
 
 export function update(state: State): void {
@@ -198,57 +213,74 @@ export function update(state: State): void {
         snowflake,
         graph,
         graphic,
-        maxSteps,
         playing,
     } = state;
-    if (state.step < maxSteps && playing) {
-        state.step += 1;
+    const lastMS = state.currentMS;
+    const lastElapsedMS = state.currentElapsedMS;
+    state.currentMS = performance.now();
+    const deltaMS = state.currentMS - lastMS;
 
-        const growth = interpretGrowth(graph, currentTime(state));
+    const expectedNumberOfUpdates = state.allotedGrowthTimeMS / state.targetMSPerUpdate;
+    const sixtyFPSExpectedNumberOfUpdates = state.allotedGrowthTimeMS / (1000 / 60);
+    const fpsScale = sixtyFPSExpectedNumberOfUpdates / expectedNumberOfUpdates;
 
-        if (state.currentGrowthType === undefined) {
-            state.currentGrowthType = growth.growthType;
-        }
+    const eightSecondsInMS = 8000;
+    const timeScale = eightSecondsInMS / state.allotedGrowthTimeMS;
 
-        if (state.currentGrowthType !== growth.growthType) {
-            state.currentGrowthType = growth.growthType;
+    if (playing) {
+        state.currentElapsedMS += deltaMS;
+
+        if (lastElapsedMS < state.allotedGrowthTimeMS
+            && state.currentElapsedMS >= state.allotedGrowthTimeMS
+        ) {
+            state.finishedGrowingCallbacks.forEach(callback => callback());
+        } else {
+            const thisUpdateGrowthScalar = timeScale * fpsScale * deltaMS / state.targetMSPerUpdate;
+
+            const growth = interpretGrowth(graph, currentTime(state));
+
+            if (state.currentGrowthType === undefined) {
+                state.currentGrowthType = growth.growthType;
+            }
+
+            if (state.currentGrowthType !== growth.growthType) {
+                state.currentGrowthType = growth.growthType;
+                if (state.currentGrowthType === 'branching') {
+                    addBranchesToGrowingFaces(snowflake);
+                } else {
+                    addFacesToGrowingBranches(snowflake);
+                }
+            }
+
+            Snowflakes.cacheNormalizedSides(snowflake);
+
             if (state.currentGrowthType === 'branching') {
-                addBranchesToGrowingFaces(snowflake);
+                Snowflakes.killCoveredBranches(snowflake);
+                snowflake.branches.forEach(b => {
+                    if (b.growing) {
+                        Branches.enlarge(b, growth.scale, thisUpdateGrowthScalar)
+                    }
+                });
             } else {
-                addFacesToGrowingBranches(snowflake);
+                Snowflakes.killCoveredFaces(snowflake);
+                snowflake.faces.forEach(f => {
+                    if (f.growing) {
+                        Faces.enlarge(f, growth.scale, thisUpdateGrowthScalar)
+                    }
+                });
+            }
+
+            if (graphic !== undefined) {
+                Snowflakes.draw(graphic, snowflake, thisUpdateGrowthScalar);
             }
         }
-
-        Snowflakes.cacheNormalizedSides(snowflake);
-
-        if (state.currentGrowthType === 'branching') {
-            Snowflakes.killCoveredBranches(snowflake);
-            snowflake.branches.forEach(b => {
-                if (b.growing) {
-                    Branches.enlarge(b, growth.scale)
-                }
-            });
-        } else {
-            Snowflakes.killCoveredFaces(snowflake);
-            snowflake.faces.forEach(f => {
-                if (f.growing) {
-                    Faces.enlarge(f, growth.scale)
-                }
-            });
-        }
-
-        if (graphic !== undefined) {
-            Snowflakes.draw(graphic, snowflake);
-        }
-
-        if (state.step === maxSteps) {
-            state.finishedGrowingCallbacks.forEach(callback => callback());
-        }
     }
+
+    const percentDone = state.currentElapsedMS / state.allotedGrowthTimeMS;
 
     callIfInstalled(graph, i => {
         updateGraph(graph, i);
         i.ctx.clearRect(0, 0, i.canvas.width, i.canvas.height);
-        drawGrowthInput(graph, i, state.step, maxSteps);
-    })
+        drawGrowthInput(graph, i, percentDone);
+    });
 }

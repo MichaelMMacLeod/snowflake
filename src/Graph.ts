@@ -289,13 +289,12 @@ export function updateGraph(graph: Graph, i: GraphInstallation): void {
     }
 }
 
-export function drawGrowthInput(graph: Graph, i: GraphInstallation, step: number, maxSteps: number): void {
+export function drawGrowthInput(graph: Graph, i: GraphInstallation, percentDone: number): void {
     const {
         writableGraphWidth,
         writableGraphHeight,
         graphMargin,
     } = i;
-    const percentDone = step / maxSteps;
 
     const old = i.ctx.fillStyle;
     i.ctx.fillStyle = convertRGBAToString(graph.options.progressColor);
