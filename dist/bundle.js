@@ -628,8 +628,8 @@ function addBranchesToFace(snowflake, face) {
             if (face.direction === 'none' || i === 1) {
                 return face.growthScale * 0.9;
             }
-            //const randomAdjust = Math.random() * 0.5 + 0.5;
-            var randomAdjust = 1;
+            const randomAdjust = Math.random() * 2 + 0.5;
+            // var randomAdjust = 1;
             return face.growthScale * 0.5 * randomAdjust;
         })();
         snowflake.branches.push({

@@ -83,7 +83,7 @@ function addBranchesToFace(snowflake: Snowflake, face: Face): void {
         return face.growthScale * 0.9;
       }
 
-      //const randomAdjust = Math.random() * 0.5 + 0.5;
+      // const randomAdjust = Math.random();
       const randomAdjust = 1;
       return face.growthScale * 0.5 * randomAdjust;
     })();
