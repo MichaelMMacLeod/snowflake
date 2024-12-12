@@ -189,11 +189,6 @@ function requiredUpdatesToGrowSnowflake(canvasSizePX: number): number {
     return (canvasSizePX / 800) * REQUIRED_ON_800_PX_CANVAS;
 }
 
-// function msBetweenUpdates(canvasSizePX: number, targetGrowthTimeMS: number, upsCap: number): number {
-//     const ru = requiredUpdatesToGrowSnowflake(canvasSizePX);
-
-// }
-
 function lowerBoundMSBetweenUpdates(canvasSizePX: number, targetGrowthTimeMS: number, upsCap: number): number {
     return Math.max(1000 / upsCap, targetGrowthTimeMS / requiredUpdatesToGrowSnowflake(canvasSizePX));
 }
@@ -210,7 +205,7 @@ export function make(): State {
         updateBank: 0,
         updateCount: 0,
         currentMS: 0,
-        targetGrowthTimeMS: 500,
+        targetGrowthTimeMS: 1000,
         upsCap: Infinity,
         resetStartTime: performance.now(),
         playing: false,
@@ -248,7 +243,7 @@ export function update(state: State): void {
         graphic,
         playing,
     } = state;
-    // state.graph.growthInput = [8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0];
+    state.graph.growthInput = [8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0];
 
     const lastMS = state.currentMS;
     state.currentMS = performance.now();
@@ -313,7 +308,6 @@ export function update(state: State): void {
 
     if (playing) {
         const willUpdateAtLeastOnce = requiredUpdates > 0;
-        const updatesThatWillBePerformed = requiredUpdates;
 
         requiredUpdates += state.updateBank;
         state.updateBank = fracPart(requiredUpdates);
@@ -324,7 +318,6 @@ export function update(state: State): void {
             const growthScalar = 1;
             doUpdate(growthScalar);
         }
-
 
         if (willUpdateAtLeastOnce && state.updateCount >= maxUpdates) {
             state.finishedGrowingCallbacks.forEach(callback => callback());
