@@ -94,6 +94,18 @@ export type State = {
     // Current time as of the start of the last update.
     currentMS: number,
 
+    // The interval that the update function is called at is not
+    // completely under our control. It may be called sooner or later
+    // than we require. Because of this, we may calculate that we need to
+    // do a fractional number of updates in a single call to update. For
+    // example, we could calculate that we need to do 2.5 updates. To avoid
+    // doing 'fractional updates', we instead simply perform 2 whole updates,
+    // store the 0.5 in this 'updateBank', and then include the 'updateBank'
+    // value in our future calculations.
+    updateBank: number,
+
+    resetStartTime: number,
+
     playing: boolean,
     eventHandlerTimeout: NodeJS.Timeout | undefined,
     eventQueue: Array<StateEvent>,
@@ -133,8 +145,10 @@ function makeEventHandlers(state: State): StateEventHandlers {
         reset: _ => {
             Snowflakes.reset(state.snowflake);
             state.currentGrowthType = undefined;
+            state.updateBank = 0;
             state.updateCount = 0;
             state.currentMS = performance.now();
+            state.resetStartTime = performance.now();
             if (state.graphic !== undefined) {
                 Graphics.clear(state.graphic);
             }
@@ -193,10 +207,12 @@ export function make(): State {
         graphic: undefined,
         snowflake,
         currentGrowthType: undefined,
+        updateBank: 0,
         updateCount: 0,
         currentMS: 0,
-        targetGrowthTimeMS: 8000,
-        upsCap: 60,
+        targetGrowthTimeMS: 500,
+        upsCap: Infinity,
+        resetStartTime: performance.now(),
         playing: false,
         eventQueue: [],
         eventHandlers: undefined,
@@ -299,14 +315,20 @@ export function update(state: State): void {
         const willUpdateAtLeastOnce = requiredUpdates > 0;
         const updatesThatWillBePerformed = requiredUpdates;
 
-        for (; requiredUpdates > 0; requiredUpdates -= Math.min(1, requiredUpdates)) {
+        requiredUpdates += state.updateBank;
+        state.updateBank = fracPart(requiredUpdates);
+        requiredUpdates = Math.floor(requiredUpdates);
+
+        for (; requiredUpdates > 0; requiredUpdates -= 1) {
             state.updateCount += 1;
             const growthScalar = 1;
             doUpdate(growthScalar);
         }
 
+
         if (willUpdateAtLeastOnce && state.updateCount >= maxUpdates) {
             state.finishedGrowingCallbacks.forEach(callback => callback());
+            // console.log(`Grew snowflake in ${(performance.now() - state.resetStartTime) / 1000} seconds`);
         }
     }
 
