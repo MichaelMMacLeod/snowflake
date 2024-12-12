@@ -9,13 +9,11 @@ export type Graphic = {
 };
 
 export type GraphicOptions = {
-    className: string,
     sizePX: number,
 }
 
 export function make(options: GraphicOptions): Graphic | undefined {
     const canvas = document.createElement('canvas');
-    canvas.className = options.className;
     const ctx = canvas.getContext('2d');
     if (ctx === null) {
         return undefined;
