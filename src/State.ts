@@ -51,16 +51,6 @@ type HaltEvent = {
     kind: 'halt',
 };
 
-type RegisterFinishedGrowingCallback = {
-    kind: 'registerFinishedGrowingCallback',
-    callback: () => void,
-}
-
-type RegisterResetCallback = {
-    kind: 'registerResetCallback',
-    callback: () => void,
-}
-
 export type StateEvent =
     InstallSnowflakeEvent
     | InstallGraphEvent
@@ -68,8 +58,6 @@ export type StateEvent =
     | ResetEvent
     | RandomizeEvent
     | HaltEvent
-    | RegisterFinishedGrowingCallback
-    | RegisterResetCallback;
 
 export type EventHandlers<Events extends { kind: string }> = {
     [E in Events as E["kind"]]: (data: E) => void
@@ -112,8 +100,8 @@ export type State = {
     eventHandlerTimeout: NodeJS.Timeout | undefined,
     eventQueue: Array<StateEvent>,
     eventHandlers: StateEventHandlers | undefined,
-    finishedGrowingCallbacks: Array<() => void>,
-    resetCallbacks: Array<() => void>,
+    finishedGrowingCallback: () => void,
+    resetCallback: () => void,
 };
 
 function makeEventHandlers(state: State): StateEventHandlers {
@@ -154,7 +142,7 @@ function makeEventHandlers(state: State): StateEventHandlers {
             if (state.graphic !== undefined) {
                 Graphics.clear(state.graphic);
             }
-            state.resetCallbacks.forEach(callback => callback());
+            state.resetCallback();
         },
         randomize: _ => {
             randomizeGrowthInput(state.graph)
@@ -162,12 +150,6 @@ function makeEventHandlers(state: State): StateEventHandlers {
         halt: _ => {
             clearInterval(state.eventHandlerTimeout);
             state.graph.installation?.removeEventListeners();
-        },
-        registerFinishedGrowingCallback: ({ callback }) => {
-            state.finishedGrowingCallbacks.push(callback);
-        },
-        registerResetCallback: ({ callback }) => {
-            state.resetCallbacks.push(callback);
         },
     };
 }
@@ -211,8 +193,8 @@ export function make(): State {
         eventQueue: [],
         eventHandlers: undefined,
         eventHandlerTimeout: undefined,
-        finishedGrowingCallbacks: [],
-        resetCallbacks: [],
+        finishedGrowingCallback: () => { return; },
+        resetCallback: () => { return; },
     };
     result.eventHandlers = makeEventHandlers(result);
 
@@ -318,7 +300,7 @@ export function update(state: State): void {
         }
 
         if (willUpdateAtLeastOnce && state.updateCount >= state.maxUpdates) {
-            state.finishedGrowingCallbacks.forEach(callback => callback());
+            state.finishedGrowingCallback();
             // console.log(`Grew snowflake in ${(performance.now() - state.resetStartTime) / 1000} seconds`);
         }
     }
