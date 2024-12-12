@@ -226,10 +226,6 @@ export function receiveEvent(state: State, e: StateEvent): void {
 }
 
 function currentTime(state: State): number {
-    const sizePX = state.graphic?.sizePX;
-    if (sizePX === undefined) {
-        throw new Error('undefined sizePX');
-    }
     return state.updateCount / state.maxUpdates;
 }
 
@@ -248,11 +244,6 @@ export function update(state: State): void {
     const lastMS = state.currentMS;
     state.currentMS = performance.now();
     const deltaMS = state.currentMS - lastMS;
-
-    const sizePX = state.graphic?.sizePX;
-    if (sizePX === undefined) {
-        return;
-    }
 
     const desiredMSBetweenUpdates = lowerBoundMSBetweenUpdates(state);
 
