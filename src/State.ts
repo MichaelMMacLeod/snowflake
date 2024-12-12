@@ -179,6 +179,7 @@ export function handleEvent(state: State, e: StateEvent): void {
 }
 
 export function handleEvents(state: State): void {
+    setTimeout(() => requestAnimationFrame(() => handleEvents(state)), 1000 / state.upsCap);
     state.eventQueue.forEach(e => handleEvent(state, e));
     state.eventQueue.length = 0;
     update(state);
@@ -217,9 +218,7 @@ export function make(): State {
     };
     result.eventHandlers = makeEventHandlers(result);
 
-    const BROWSER_SET_INTERVAL_MIN_INTERVAL = 4;
-    const actualUps = Math.max(1000 / result.upsCap, BROWSER_SET_INTERVAL_MIN_INTERVAL);
-    result.eventHandlerTimeout = setInterval(() => handleEvents(result), actualUps)
+    handleEvents(result);
 
     return result;
 }
@@ -229,7 +228,6 @@ export function receiveEvent(state: State, e: StateEvent): void {
 }
 
 function currentTime(state: State): number {
-    // return Infinity;
     const sizePX = state.graphic?.sizePX;
     if (sizePX === undefined) {
         throw new Error('undefined sizePX');
@@ -255,7 +253,7 @@ export function update(state: State): void {
 
     const sizePX = state.graphic?.sizePX;
     if (sizePX === undefined) {
-        throw new Error('undefined sizePX');
+        return;
     }
 
     const desiredMSBetweenUpdates = lowerBoundMSBetweenUpdates(sizePX, state.targetGrowthTimeMS, state.upsCap);
