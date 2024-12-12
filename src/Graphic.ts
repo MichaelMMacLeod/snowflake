@@ -8,11 +8,7 @@ export type Graphic = {
     ctx: CanvasRenderingContext2D,
 };
 
-export type GraphicOptions = {
-    sizePX: number,
-}
-
-export function make(options: GraphicOptions): Graphic | undefined {
+export function make(sizePX: number): Graphic | undefined {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (ctx === null) {
@@ -22,11 +18,11 @@ export function make(options: GraphicOptions): Graphic | undefined {
     // can render to. Changing canvas.style.(width|height) changes the
     // size of the displayed canvas. So if the 'style' version is larger,
     // we will get a blurry canvas.
-    ctx.canvas.width = options.sizePX;
-    ctx.canvas.height = options.sizePX;
-    canvas.style.width = `${options.sizePX}px`;
-    canvas.style.height = `${options.sizePX}px`;
-    return { sizePX: options.sizePX, canvas, ctx };
+    ctx.canvas.width = sizePX;
+    ctx.canvas.height = sizePX;
+    canvas.style.width = `${sizePX}px`;
+    canvas.style.height = `${sizePX}px`;
+    return { sizePX, canvas, ctx };
 }
 
 export function clear(graphic: Graphic): void {

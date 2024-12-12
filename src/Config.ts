@@ -1,4 +1,5 @@
 import { State } from "./State";
+import * as States from "./State";
 
 export type Config = {
     // Size in pixels of the side length of the square snowflake canvas.
@@ -18,7 +19,7 @@ export type Config = {
     // the canvas before this maximum is reached.
     maxUpdates: number,
 
-    // True if the snowflake is currently growing, false otherwise.
+    // True if the snowflake is currently allowed to grow, false otherwise.
     playing: boolean,
 
     // Function to call once the snowflake has finished growing.
@@ -26,6 +27,12 @@ export type Config = {
 
     // Function to call when the snowflake is reset via a 'reset' event.
     resetCallback: () => void,
+
+    // Function to call when the 'installSnowflakeCanvas' event succeeds.
+    installSnowflakeCanvasCallback: (canvas: HTMLCanvasElement) => void,
+
+    // Funciton to call when the 'installSnowflakeCanvas' event fails.
+    installSnowflakeCanvasFailureCallback: () => void,
 };
 
 export type ConfigValidator = {
@@ -40,10 +47,16 @@ function isBoolean(value: any): boolean {
     return typeof value === 'boolean';
 }
 
-function isCallback(value: any): boolean {
-    return typeof value === 'function'
-        && value.length !== undefined // this might be redundant, not sure.
-        && value.length === 0;
+function isFunction(value: any): boolean {
+    return typeof value === 'function';
+}
+
+function isFunction0(value: any): boolean {
+    return isFunction(value) && value.length === 0;
+}
+
+function isFunction1(value: any): boolean {
+    return isFunction(value) && value.length === 1;
 }
 
 function expect(name: string, kind: string, actual: any): string {
@@ -71,10 +84,18 @@ function expectBool(name: string): (actual: any) => string | undefined {
     };
 }
 
-function expectCallback(name: string): (actual: any) => string | undefined {
+function expectFunction0(name: string): (actual: any) => string | undefined {
     return actual => {
-        if (!isCallback(actual)) {
+        if (!isFunction0(actual)) {
             return expect(name, 'function requiring zero arguments', actual);
+        }
+    };
+}
+
+function expectFunction1(name: string): (actual: any) => string | undefined {
+    return actual => {
+        if (!isFunction1(actual)) {
+            return expect(name, 'function requiring one argument', actual);
         }
     };
 }
@@ -85,8 +106,10 @@ const configValidator: ConfigValidator = {
     upsCap: expectNat('upsCap'),
     maxUpdates: expectNat('maxUpdates'),
     playing: expectBool('playing'),
-    finishedGrowingCallback: expectCallback('finishedGrowingCallback'),
-    resetCallback: expectCallback('resetCallback'),
+    finishedGrowingCallback: expectFunction0('finishedGrowingCallback'),
+    resetCallback: expectFunction0('resetCallback'),
+    installSnowflakeCanvasCallback: expectFunction1('installSnowflakeCanvasCallback'),
+    installSnowflakeCanvasFailureCallback: expectFunction0('installSnowflakeCanvasFailureCallback'),
 };
 
 function configValidationErrors(config: any): Array<string> {
@@ -139,9 +162,11 @@ export function zero(): Config {
             targetGrowthTimeMS: 8000,
             upsCap: 60,
             maxUpdates: 500,
-            playing: false,
+            playing: true,
             finishedGrowingCallback: () => { return; },
             resetCallback: () => { return; },
+            installSnowflakeCanvasCallback: canvas => document.body.appendChild(canvas),
+            installSnowflakeCanvasFailureCallback: () => { throw new Error('error installing snowflake canvas') },
         };
         return validateConfig(config);
     })();
@@ -157,6 +182,7 @@ export type ConfigSynchronizer = {
 
 const configSynchronizer: ConfigSynchronizer = {
     snowflakeCanvasSizePX: (s, v) => {
+        s.snowflakeCanvasSizePX = v;
         if (s.graphic === undefined) {
             return;
         }
@@ -183,6 +209,12 @@ const configSynchronizer: ConfigSynchronizer = {
     resetCallback: (s, v) => {
         s.resetCallback = v;
     },
+    installSnowflakeCanvasCallback: (s, v) => {
+        s.installSnowflakeCanvasCallback = v;
+    },
+    installSnowflakeCanvasFailureCallback: (s, v) => {
+        s.installSnowflakeCanvasFailureCallback = v;
+    },
 };
 
 export function sync(unvalidatedConfig: Config, state: State): void {
@@ -196,4 +228,6 @@ export function sync(unvalidatedConfig: Config, state: State): void {
     for (let [k, v] of Object.entries(config)) {
         cs[k](state, v);
     }
+
+    States.reset(state);
 }
