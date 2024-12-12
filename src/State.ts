@@ -104,6 +104,8 @@ export type State = {
     // value in our future calculations.
     updateBank: number,
 
+    maxUpdates: number,
+
     resetStartTime: number,
 
     playing: boolean,
@@ -185,13 +187,8 @@ export function handleEvents(state: State): void {
     update(state);
 }
 
-function requiredUpdatesToGrowSnowflake(canvasSizePX: number): number {
-    const REQUIRED_ON_800_PX_CANVAS = 500;
-    return (canvasSizePX / 800) * REQUIRED_ON_800_PX_CANVAS;
-}
-
-function lowerBoundMSBetweenUpdates(canvasSizePX: number, targetGrowthTimeMS: number, upsCap: number): number {
-    return Math.max(1000 / upsCap, targetGrowthTimeMS / requiredUpdatesToGrowSnowflake(canvasSizePX));
+function lowerBoundMSBetweenUpdates(state: State): number {
+    return Math.max(1000 / state.upsCap, state.targetGrowthTimeMS / state.maxUpdates);
 }
 
 export function make(): State {
@@ -208,6 +205,7 @@ export function make(): State {
         currentMS: 0,
         targetGrowthTimeMS: 8000,
         upsCap: Infinity,
+        maxUpdates: 500,
         resetStartTime: performance.now(),
         playing: false,
         eventQueue: [],
@@ -232,7 +230,7 @@ function currentTime(state: State): number {
     if (sizePX === undefined) {
         throw new Error('undefined sizePX');
     }
-    return state.updateCount / requiredUpdatesToGrowSnowflake(sizePX);
+    return state.updateCount / state.maxUpdates;
 }
 
 export function update(state: State): void {
@@ -256,12 +254,11 @@ export function update(state: State): void {
         return;
     }
 
-    const desiredMSBetweenUpdates = lowerBoundMSBetweenUpdates(sizePX, state.targetGrowthTimeMS, state.upsCap);
+    const desiredMSBetweenUpdates = lowerBoundMSBetweenUpdates(state);
 
     const actualMSBetweenUpdates = deltaMS;
 
-    const maxUpdates = requiredUpdatesToGrowSnowflake(sizePX);
-    const remainingUpdates = Math.max(0, maxUpdates - state.updateCount);
+    const remainingUpdates = Math.max(0, state.maxUpdates - state.updateCount);
     let requiredUpdates = Math.min(remainingUpdates, actualMSBetweenUpdates / desiredMSBetweenUpdates);
 
     if (requiredUpdates < 1) {
@@ -305,7 +302,7 @@ export function update(state: State): void {
 
         if (graphic !== undefined) {
             if (Snowflakes.draw(graphic, snowflake)) {
-                state.updateCount = maxUpdates;
+                state.updateCount = state.maxUpdates;
                 state.updateBank = 0;
                 let v = window as any;
                 if (v.count === undefined) {
@@ -329,13 +326,13 @@ export function update(state: State): void {
             doUpdate();
         }
 
-        if (willUpdateAtLeastOnce && state.updateCount >= maxUpdates) {
+        if (willUpdateAtLeastOnce && state.updateCount >= state.maxUpdates) {
             state.finishedGrowingCallbacks.forEach(callback => callback());
             // console.log(`Grew snowflake in ${(performance.now() - state.resetStartTime) / 1000} seconds`);
         }
     }
 
-    const percentDone = state.updateCount / maxUpdates;
+    const percentDone = state.updateCount / state.maxUpdates;
 
     callIfInstalled(graph, i => {
         updateGraph(graph, i);
