@@ -94,9 +94,6 @@ export type State = {
     // Current time as of the start of the last update.
     currentMS: number,
 
-    // Amount of time the snowflake has been growing for.
-    currentElapsedMS: number,
-
     playing: boolean,
     eventHandlerTimeout: NodeJS.Timeout | undefined,
     eventQueue: Array<StateEvent>,
@@ -135,9 +132,9 @@ function makeEventHandlers(state: State): StateEventHandlers {
         },
         reset: _ => {
             Snowflakes.reset(state.snowflake);
-            state.currentElapsedMS = 0;
             state.currentGrowthType = undefined;
             state.updateCount = 0;
+            state.currentMS = performance.now();
             if (state.graphic !== undefined) {
                 Graphics.clear(state.graphic);
             }
@@ -198,7 +195,6 @@ export function make(): State {
         currentGrowthType: undefined,
         updateCount: 0,
         currentMS: 0,
-        currentElapsedMS: 0,
         targetGrowthTimeMS: 8000,
         upsCap: 60,
         playing: false,
@@ -239,7 +235,6 @@ export function update(state: State): void {
     // state.graph.growthInput = [8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0];
 
     const lastMS = state.currentMS;
-    // const lastElapsedMS = state.currentElapsedMS;
     state.currentMS = performance.now();
     const deltaMS = state.currentMS - lastMS;
 
@@ -247,7 +242,7 @@ export function update(state: State): void {
     if (sizePX === undefined) {
         throw new Error('undefined sizePX');
     }
-    
+
     const desiredMSBetweenUpdates = lowerBoundMSBetweenUpdates(sizePX, state.targetGrowthTimeMS, state.upsCap);
 
     const actualMSBetweenUpdates = deltaMS;
@@ -301,7 +296,6 @@ export function update(state: State): void {
     }
 
     if (playing) {
-        state.currentElapsedMS += deltaMS;
         const willUpdateAtLeastOnce = requiredUpdates > 0;
         const updatesThatWillBePerformed = requiredUpdates;
 
