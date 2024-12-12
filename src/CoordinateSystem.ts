@@ -26,8 +26,8 @@ import { Point } from "./Point";
 // the View and these coordinates are never saved anywhere.
 
 export function worldToViewTransform(graphic: Graphic, p: Point): Point {
-    const w = graphic.canvas.width;
-    const h = graphic.canvas.height;
+    const w = graphic.sizePX;
+    const h = graphic.sizePX;
     // affine transform:
     // |r.x|   |w/2   0   w/2|   |p.x|
     // |r.y| = |0   -h/2  h/2| * |p.y|
