@@ -71,7 +71,7 @@ export function points(branch: Branch): Array6<Point> {
     ];
 }
 
-export function draw(graphic: Graphic, branch: Branch, deltaScale: number): void {
+export function draw(graphic: Graphic, branch: Branch): void {
     graphic.ctx.beginPath();
     const ps = points(branch);
     for (let i = 0; i < 3; ++i) {
@@ -82,10 +82,10 @@ export function draw(graphic: Graphic, branch: Branch, deltaScale: number): void
             graphic.ctx.lineTo(x, y);
         }
     }
-    graphic.ctx.strokeStyle = `rgba(255, 255, 255, ${deltaScale * 0.2})`;
+    graphic.ctx.strokeStyle = `rgba(255, 255, 255, 0.2)`;
     graphic.ctx.stroke();
 
-    graphic.ctx.strokeStyle = `rgba(255, 255, 255, ${deltaScale * 0.08})`;
+    graphic.ctx.strokeStyle = `rgba(255, 255, 255, 0.08)`;
 
     graphic.ctx.beginPath();
     const p45 = worldToViewTransform(graphic, Points.midpoint(ps[4], ps[5]));
@@ -101,7 +101,7 @@ export function draw(graphic: Graphic, branch: Branch, deltaScale: number): void
     graphic.ctx.lineTo(p1.x, p1.y);
     graphic.ctx.stroke();
 
-    graphic.ctx.strokeStyle = `rgba(255, 255, 255, ${deltaScale * 0.2})`;
+    graphic.ctx.strokeStyle = `rgba(255, 255, 255, * 0.2)`;
 
     graphic.ctx.beginPath();
     const p0 = worldToViewTransform(graphic, ps[0]);
@@ -111,9 +111,9 @@ export function draw(graphic: Graphic, branch: Branch, deltaScale: number): void
     graphic.ctx.stroke();
 }
 
-export function enlarge(branch: Branch, scale: number, deltaScale: number): void {
+export function enlarge(branch: Branch, scale: number): void {
     const lengthScalar = -1.5 * scale + 1.5;
     const sizeScalar = 1.5 * scale;
-    branch.size += deltaScale * sizeScalar * branchGrowthScalar * branch.growthScale;
-    branch.length += deltaScale * lengthScalar * growthScalar * branch.growthScale;
+    branch.size += sizeScalar * branchGrowthScalar * branch.growthScale;
+    branch.length += lengthScalar * growthScalar * branch.growthScale;
 }

@@ -54,7 +54,7 @@ export function points(face: Face): Array6<Point> {
     return result;
 }
 
-export function draw(graphic: Graphic, face: Face, deltaScale: number): void {
+export function draw(graphic: Graphic, face: Face): void {
     const dir = face.direction === "none" ? 0 : face.direction;
     graphic.ctx.beginPath();
     const ps = points(face);
@@ -71,7 +71,7 @@ export function draw(graphic: Graphic, face: Face, deltaScale: number): void {
     const p35 = worldToViewTransform(graphic, Points.midpointT(ps[3], ps[5], 0.2));
 
     if (face.direction === "none") {
-        graphic.ctx.strokeStyle = `rgba(255, 255, 255, ${deltaScale * 0.08})`;
+        graphic.ctx.strokeStyle = `rgba(255, 255, 255, 0.08)`;
         ps.forEach((p, i) => {
             const { x, y } = worldToViewTransform(graphic, p);
             if (i === 0) {
@@ -92,7 +92,7 @@ export function draw(graphic: Graphic, face: Face, deltaScale: number): void {
         });
     } else {
 
-        graphic.ctx.strokeStyle = `rgba(255, 255, 255, ${deltaScale * 0.08})`;
+        graphic.ctx.strokeStyle = `rgba(255, 255, 255, 0.08)`;
 
         graphic.ctx.beginPath();
         const p45 = worldToViewTransform(graphic, Points.midpoint(ps[4], ps[5]));
@@ -133,12 +133,12 @@ export function draw(graphic: Graphic, face: Face, deltaScale: number): void {
     }
 }
 
-export function enlarge(face: Face, scale: number, deltaScale: number): void {
-    face.size += deltaScale * 0.75 * scale * growthScalar * face.growthScale;
+export function enlarge(face: Face, scale: number): void {
+    face.size += 0.75 * scale * growthScalar * face.growthScale;
     if (face.direction !== 'none') {
         const dx = 0.75 * 1 * scale * growthScalar * Math.cos(Directions.values[face.direction]) * face.growthScale;
         const dy = 0.75 * 1 * scale * growthScalar * Math.sin(Directions.values[face.direction]) * face.growthScale;
-        face.center.x += deltaScale * dx;
-        face.center.y += deltaScale * dy;
+        face.center.x += dx;
+        face.center.y += dy;
     }
 }

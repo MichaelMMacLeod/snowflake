@@ -28,15 +28,15 @@ export function reset(s: Snowflake): void {
   }
 }
 
-export function draw(graphic: Graphic, snowflake: Snowflake, deltaScale: number): void {
+export function draw(graphic: Graphic, snowflake: Snowflake): void {
   snowflake.faces.forEach(f => {
     if (f.growing) {
-      Faces.draw(graphic, f, deltaScale)
+      Faces.draw(graphic, f)
     }
   });
   snowflake.branches.forEach(b => {
     if (b.growing) {
-      Branches.draw(graphic, b, deltaScale)
+      Branches.draw(graphic, b)
     }
   });
 }

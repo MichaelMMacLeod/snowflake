@@ -267,7 +267,7 @@ export function update(state: State): void {
         return;
     }
 
-    function doUpdate(thisUpdateGrowthScalar: number) {
+    function doUpdate() {
         const growth = interpretGrowth(graph, currentTime(state));
 
         if (state.currentGrowthType === undefined) {
@@ -289,20 +289,20 @@ export function update(state: State): void {
             Snowflakes.killCoveredBranches(snowflake);
             snowflake.branches.forEach(b => {
                 if (b.growing) {
-                    Branches.enlarge(b, growth.scale, thisUpdateGrowthScalar)
+                    Branches.enlarge(b, growth.scale)
                 }
             });
         } else {
             Snowflakes.killCoveredFaces(snowflake);
             snowflake.faces.forEach(f => {
                 if (f.growing) {
-                    Faces.enlarge(f, growth.scale, thisUpdateGrowthScalar)
+                    Faces.enlarge(f, growth.scale)
                 }
             });
         }
 
         if (graphic !== undefined) {
-            Snowflakes.draw(graphic, snowflake, thisUpdateGrowthScalar);
+            Snowflakes.draw(graphic, snowflake);
         }
     }
 
@@ -315,8 +315,7 @@ export function update(state: State): void {
 
         for (; requiredUpdates > 0; requiredUpdates -= 1) {
             state.updateCount += 1;
-            const growthScalar = 1;
-            doUpdate(growthScalar);
+            doUpdate();
         }
 
         if (willUpdateAtLeastOnce && state.updateCount >= maxUpdates) {
