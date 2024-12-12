@@ -28,17 +28,19 @@ export function reset(s: Snowflake): void {
   }
 }
 
-export function draw(graphic: Graphic, snowflake: Snowflake): void {
+export function draw(graphic: Graphic, snowflake: Snowflake): boolean {
+  let anyPartOutside = false;
   snowflake.faces.forEach(f => {
     if (f.growing) {
-      Faces.draw(graphic, f)
+      anyPartOutside ||= Faces.draw(graphic, f)
     }
   });
   snowflake.branches.forEach(b => {
     if (b.growing) {
-      Branches.draw(graphic, b)
+      anyPartOutside ||= Branches.draw(graphic, b)
     }
   });
+  return anyPartOutside;
 }
 
 export function zero(): Snowflake {

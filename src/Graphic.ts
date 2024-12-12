@@ -1,3 +1,7 @@
+import { worldToViewTransformGuarded } from "./CoordinateSystem";
+import { Point } from "./Point";
+import { Array6 } from "./Utils";
+
 export type Graphic = {
     sizePX: number,
     canvas: HTMLCanvasElement,
@@ -29,4 +33,21 @@ export function make(options: GraphicOptions): Graphic | undefined {
 
 export function clear(graphic: Graphic): void {
     graphic.ctx.clearRect(0, 0, graphic.ctx.canvas.width, graphic.ctx.canvas.height);
+}
+
+export function callWithViewspacePoints<T, U>(
+    graphic: Graphic,
+    getPoints: () => Array6<Point>,
+    onSomeOutsideViewspace: () => U,
+    onAllVisible: (points: Array6<Point>) => T,
+): T | U {
+    const ps = getPoints();
+    for (let i = 0; i < ps.length; ++i) {
+        const vp = worldToViewTransformGuarded(graphic, ps[i]);
+        if (vp === undefined) {
+            return onSomeOutsideViewspace();
+        }
+        ps[i] = vp;
+    }
+    return onAllVisible(ps);
 }

@@ -222,9 +222,9 @@ export function interpretGrowth(graph: Graph, time: number): Growth {
     let a = yChoices[graph.growthInput[Math.floor(s)]];
     let b = yChoices[graph.growthInput[Math.ceil(s)]];
     let signedScale = lerp(a, b, n);
-    let timeScalar = -0.01 * s + 1;
+    // let timeScalar = -0.01 * s + 1;
     return {
-        scale: timeScalar * Math.abs(signedScale),
+        scale: /*timeScalar **/ Math.abs(signedScale),
         growthType: signedScale > 0.0 ? 'branching' : 'faceting',
     };
 }

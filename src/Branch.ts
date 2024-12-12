@@ -1,12 +1,12 @@
 import * as Points from "./Point";
-import { Point } from "./Point";
+import { drawLine, midpoint, midpointT, Point } from "./Point";
 import { Direction } from "./Direction";
 import * as Directions from "./Direction";
-import { Graphic } from "./Graphic";
+import { callWithViewspacePoints, Graphic } from "./Graphic";
 import { worldToViewTransform } from "./CoordinateSystem";
 import * as Faces from "./Face";
 import { Face } from "./Face";
-import { growthScalar, branchGrowthScalar } from "./Constants";
+import { branchLengthGrowthScalar, branchSizeGrowthScalar } from "./Constants";
 import { Array6, rem } from "./Utils";
 
 export type Branch = {
@@ -71,49 +71,43 @@ export function points(branch: Branch): Array6<Point> {
     ];
 }
 
-export function draw(graphic: Graphic, branch: Branch): void {
-    graphic.ctx.beginPath();
-    const ps = points(branch);
-    for (let i = 0; i < 3; ++i) {
-        const { x, y } = worldToViewTransform(graphic, ps[rem(i - 1, ps.length)]);
-        if (i === 0) {
-            graphic.ctx.moveTo(x, y);
-        } else {
-            graphic.ctx.lineTo(x, y);
-        }
-    }
-    graphic.ctx.strokeStyle = `rgba(255, 255, 255, 0.2)`;
-    graphic.ctx.stroke();
+export function draw(graphic: Graphic, branch: Branch): boolean {
+    return callWithViewspacePoints(
+        graphic,
+        () => points(branch),
+        () => true,
+        (ps => {
+            const [p0, p1, p2, p3, p4, p5] = ps;
+            const p45 = midpointT(p4, p5, 0.6);
+            const p21 = midpointT(p2, p1, 0.6);
 
-    graphic.ctx.strokeStyle = `rgba(255, 255, 255, 0.08)`;
+            graphic.ctx.strokeStyle = `rgba(255, 255, 255, 0.1)`;
+            graphic.ctx.beginPath();
+            for (let i = 0; i < 3; ++i) {
+                const { x, y } = ps[rem(i - 1, ps.length)];
+                if (i === 0) {
+                    graphic.ctx.moveTo(x, y);
+                } else {
+                    graphic.ctx.lineTo(x, y);
+                }
+            }
+            graphic.ctx.stroke();
 
-    graphic.ctx.beginPath();
-    const p45 = worldToViewTransform(graphic, Points.midpoint(ps[4], ps[5]));
-    graphic.ctx.moveTo(p45.x, p45.y);
-    const p5 = worldToViewTransform(graphic, ps[5]);
-    graphic.ctx.lineTo(p5.x, p5.y);
-    graphic.ctx.stroke();
+            graphic.ctx.strokeStyle = `rgba(255, 255, 255, 0.08)`;
+            drawLine(graphic.ctx, p45, p5);
+            drawLine(graphic.ctx, p21, p1);
 
-    graphic.ctx.beginPath();
-    const p21 = worldToViewTransform(graphic, Points.midpoint(ps[2], ps[1]));
-    graphic.ctx.moveTo(p21.x, p21.y);
-    const p1 = worldToViewTransform(graphic, ps[1]);
-    graphic.ctx.lineTo(p1.x, p1.y);
-    graphic.ctx.stroke();
+            graphic.ctx.strokeStyle = `rgba(255, 255, 255, 0.02)`;
+            drawLine(graphic.ctx, p0, p3);
 
-    graphic.ctx.strokeStyle = `rgba(255, 255, 255, * 0.2)`;
-
-    graphic.ctx.beginPath();
-    const p0 = worldToViewTransform(graphic, ps[0]);
-    graphic.ctx.moveTo(p0.x, p0.y);
-    const p3 = worldToViewTransform(graphic, Points.midpoint(ps[3], ps[0]));
-    graphic.ctx.lineTo(p3.x, p3.y);
-    graphic.ctx.stroke();
+            return false;
+        })
+    );
 }
 
 export function enlarge(branch: Branch, scale: number): void {
-    const lengthScalar = -1.5 * scale + 1.5;
-    const sizeScalar = 1.5 * scale;
-    branch.size += sizeScalar * branchGrowthScalar * branch.growthScale;
-    branch.length += lengthScalar * growthScalar * branch.growthScale;
+    // const lengthScalar = -1.5 * scale + 1.5;
+    // const sizeScalar = 1.5 * scale;
+    branch.size += branchSizeGrowthScalar * branch.growthScale;
+    branch.length += branchLengthGrowthScalar * branch.growthScale;
 }

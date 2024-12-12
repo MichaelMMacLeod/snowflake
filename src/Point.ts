@@ -59,3 +59,10 @@ export function rotate(point: Point, theta: number): Point {
     y: point.x * Math.sin(theta) + point.y * Math.cos(theta),
   };
 }
+
+export function drawLine(ctx: CanvasRenderingContext2D, p1: Point, p2: Point): void {
+  ctx.beginPath();
+  ctx.moveTo(p1.x, p1.y);
+  ctx.lineTo(p2.x, p2.y);
+  ctx.stroke();
+}

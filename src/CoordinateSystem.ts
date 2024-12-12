@@ -38,3 +38,18 @@ export function worldToViewTransform(graphic: Graphic, p: Point): Point {
     };
     return r;
 }
+
+export function viewspacePointOutsideVisibleArea(graphic: Graphic, p: Point): boolean {
+    return p.x < 0 || p.x > graphic.sizePX
+        || p.y < 0 || p.y > graphic.sizePX;
+}
+
+// The same as `worldToViewTransform`, except that this returns `undefined`
+// if the point in view space is outside of the visible area.
+export function worldToViewTransformGuarded(graphic: Graphic, p: Point): Point | undefined {
+    const viewPoint = worldToViewTransform(graphic, p);
+    if (viewspacePointOutsideVisibleArea(graphic, viewPoint)) {
+        return undefined;
+    }
+    return viewPoint;
+}

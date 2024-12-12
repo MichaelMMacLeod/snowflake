@@ -205,7 +205,7 @@ export function make(): State {
         updateBank: 0,
         updateCount: 0,
         currentMS: 0,
-        targetGrowthTimeMS: 1000,
+        targetGrowthTimeMS: 8000,
         upsCap: Infinity,
         resetStartTime: performance.now(),
         playing: false,
@@ -229,6 +229,7 @@ export function receiveEvent(state: State, e: StateEvent): void {
 }
 
 function currentTime(state: State): number {
+    // return Infinity;
     const sizePX = state.graphic?.sizePX;
     if (sizePX === undefined) {
         throw new Error('undefined sizePX');
@@ -243,7 +244,10 @@ export function update(state: State): void {
         graphic,
         playing,
     } = state;
-    state.graph.growthInput = [8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0];
+    // state.graph.growthInput = [2,8,8,8,7,4,7,4,1,2,8,4,1,6,1,0];
+    // state.graph.growthInput = [8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0];
+    // state.graph.growthInput = [8, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    // state.graph.growthInput = [0];
 
     const lastMS = state.currentMS;
     state.currentMS = performance.now();
@@ -302,7 +306,16 @@ export function update(state: State): void {
         }
 
         if (graphic !== undefined) {
-            Snowflakes.draw(graphic, snowflake);
+            if (Snowflakes.draw(graphic, snowflake)) {
+                state.updateCount = maxUpdates;
+                state.updateBank = 0;
+                let v = window as any;
+                if (v.count === undefined) {
+                    v.count = 0;
+                }
+                v.count += 1;
+                console.log(`too large count = ${v.count}, ${state.graph.growthInput}`);
+            }
         }
     }
 
