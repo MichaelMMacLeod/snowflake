@@ -1,0 +1,1 @@
+c0bd16a grew 1000 with average of 47.620400000035765 milliseconds per snowflake
