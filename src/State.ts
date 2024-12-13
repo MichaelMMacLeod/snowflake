@@ -20,6 +20,8 @@ import * as Branches from "./Branch";
 import * as Faces from "./Face";
 import { fracPart, NonEmptyArray, parseSnowflakeId } from "./Utils";
 import * as Eithers from "./Either";
+import { Maybe, none, some } from "./Maybe";
+import * as Maybes from "./Maybe";
 
 export type State = {
     graph: Graph,
@@ -28,6 +30,7 @@ export type State = {
     currentGrowthType: GrowthType | undefined,
     idealMSBetweenUpdates: number,
     growing: boolean,
+    hasScheduledUpdate: boolean,
 
     // Running total number of updates since last reset.
     updateCount: number,
@@ -43,6 +46,10 @@ export type State = {
     // doing 'fractional updates', we instead simply perform 2 whole updates,
     // store the 0.5 in this 'updateBank', and then include the 'updateBank'
     // value in our future calculations.
+    //
+    // If we were to throw away these fractional updates, we would skip over
+    // required updates which would slow down the growth of the snowflake,
+    // throwing us off our desired time-to-grown.
     updateBank: number,
 
     maxUpdates: number,
@@ -116,7 +123,7 @@ export function installGraphCanvas(
     const options: GraphInstallationOptions = {
         mouseUpEventListenerNode,
         canvasWidth: width,
-        canvasHeight: height, 
+        canvasHeight: height,
     };
     Graphs.install(state.graph, options);
     if (state.graph.installation === undefined) {
@@ -143,9 +150,22 @@ export function setGraphCanvasHeight(state: State, height: number): void {
 }
 
 export function scheduleUpdate(state: State): void {
-    if (state.growing && state.playing) {
-        setTimeout(() => requestAnimationFrame(() => scheduleUpdate(state)), state.idealMSBetweenUpdates);
-        update(state);
+    if (state.hasScheduledUpdate) {
+        return;
+    } else if (state.growing && state.playing) {
+        state.hasScheduledUpdate = true;
+        setTimeout(
+            () => {
+                some(requestAnimationFrame(() => {
+                    state.hasScheduledUpdate = false;
+                    scheduleUpdate(state);
+                }))
+                update(state);
+            },
+            state.idealMSBetweenUpdates
+        )
+    } else {
+        state.hasScheduledUpdate = false;
     }
 }
 
@@ -180,6 +200,7 @@ export function make(): State {
         installGraphCanvasCallback: _ => { return; },
         installGraphCanvasFailureCallback: () => { return; },
         graphMouseUpEventListenerNode: document,
+        hasScheduledUpdate: false,
     };
 
     scheduleUpdate(result);
@@ -196,7 +217,6 @@ export function update(state: State): void {
         snowflake,
         graph,
         graphic,
-        playing,
     } = state;
     const lastMS = state.currentMS;
     state.currentMS = performance.now();
@@ -205,10 +225,6 @@ export function update(state: State): void {
     let requiredUpdates = Math.min(state.maxUpdates - state.updateCount, deltaMS / state.idealMSBetweenUpdates + state.updateBank);
     state.updateBank = fracPart(requiredUpdates);
     requiredUpdates = Math.floor(requiredUpdates);
-
-    if (requiredUpdates === 0) {
-        return;
-    }
 
     function doUpdate() {
         const growth = interpretGrowth(graph, currentTime(state));
@@ -262,8 +278,6 @@ export function update(state: State): void {
         doUpdate();
         state.updateCount += 1;
     }
-
-    console.log(requiredUpdates, state.updateCount, state.maxUpdates, deltaMS);
 
     if (state.updateCount >= state.maxUpdates) {
         state.finishedGrowingCallback();

@@ -301,12 +301,14 @@ const configSynchronizer: ConfigSynchronizer = {
             }
         );
     },
-    targetGrowthTimeMS: (c, s, newValue, _oldValue) => {
+    targetGrowthTimeMS: (c, s, newValue, oldValue) => {
         setIdealMSBetweenUpdates(s, newValue, c.upsCap);
         return false;
+        // return Maybes.map(oldValue, () => true, o => o !== newValue);
     },
-    upsCap: (c, s, newValue, _oldValue) => {
+    upsCap: (c, s, newValue, oldValue) => {
         setIdealMSBetweenUpdates(s, c.targetGrowthTimeMS, newValue);
+        // return Maybes.map(oldValue, () => true, o => o !== newValue);
         return false;
     },
     maxUpdates: (_c, s, newValue, oldValue) => {

@@ -39,3 +39,7 @@ export function then<T>(b: boolean, onTrue: () => T): Maybe<T> {
     }
     return none();
 }
+
+export function unwrapOr<T>(m: Maybe<T>, onNone: () => T): T {
+    return map(m, onNone, v => v);
+}
