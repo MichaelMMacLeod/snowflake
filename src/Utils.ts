@@ -1,3 +1,5 @@
+import { Either, left, right } from "./Either";
+
 export function rem(x: number, m: number): number {
   return ((x % m) + m) % m;
 }
@@ -38,18 +40,30 @@ export function convertRGBAToString(rgba: RGBA): string {
   const { r, g, b, a } = rgba;
   return `rgba(${r}, ${g}, ${b}, ${a})`;
 }
-export type Maybe<T> =
-  { variant: 0 }
-  | { variant: 1, value: T }
-
-export function none<T>(): Maybe<T> {
-  return { variant: 0 };
-}
-
-export function some<T>(value: T): Maybe<T> {
-  return { variant: 1, value }
-}
 
 export function randomIntInclusive(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+export function parseSnowflakeId(value: any): Either<string, Array<number>> {
+    if (value.toString === undefined) {
+        return left(`non-integer, '${value}'`);
+    }
+    const digits = value.toString();
+    const result = [];
+    for (let i = 0; i < digits.length; ++i) {
+        const digit = parseInt(digits[i], 10);
+        if (Number.isNaN(digit)) {
+            return left(`string containing a digit other than 1 through 9, '${value}'`)
+        }
+        if (digit === 0) {
+            return left(`string containing the digit zero, '${value}'`);
+        }
+        const parsedDigit = digit - 1;
+        result.push(parsedDigit);
+    }
+    if (result.length === 0) {
+        return left(`empty snowflake ID, '${value}'`);
+    }
+    return right(result);
 }

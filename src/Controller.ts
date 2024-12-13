@@ -1,15 +1,17 @@
-import { Config, sync } from "./Config";
+import { Config, copy, sync } from "./Config";
 import * as Configs from "./Config";
+import { none, some } from "./Maybe";
 import { receiveEvent, State, StateEvent } from "./State";
 import * as States from "./State";
 
 export class Controller {
     #state: State;
+    #config: Config;
 
     constructor() {
         this.#state = States.make();
-        const config = Configs.zero();
-        sync(config, this.#state);
+        this.#config = Configs.zero();
+        sync(none(), this.#config, this.#state);
     }
 
     defaultConfig(): Config {
@@ -17,7 +19,8 @@ export class Controller {
     }
 
     configure(config: Config): void {
-        sync(config, this.#state);
+        sync(some(this.#config), config, this.#state);
+        this.#config = copy(config);
     }
 
     installSnowflakeCanvas(): void {

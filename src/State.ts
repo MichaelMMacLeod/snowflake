@@ -18,7 +18,8 @@ import { addBranchesToGrowingFaces, addFacesToGrowingBranches, Snowflake } from 
 import * as Snowflakes from "./Snowflake";
 import * as Branches from "./Branch";
 import * as Faces from "./Face";
-import { fracPart } from "./Utils";
+import { fracPart, NonEmptyArray, parseSnowflakeId } from "./Utils";
+import * as Eithers from "./Either";
 
 type InstallGraphEvent = {
     kind: 'installGraph',
@@ -27,13 +28,8 @@ type InstallGraphEvent = {
     onNoContextFailure: () => void,
 };
 
-type HaltEvent = {
-    kind: 'halt',
-};
-
 export type StateEvent =
-    | InstallGraphEvent
-    | HaltEvent
+    | InstallGraphEvent;
 
 export type EventHandlers<Events extends { kind: string }> = {
     [E in Events as E["kind"]]: (data: E) => void
@@ -96,6 +92,28 @@ export function reset(state: State): void {
     state.resetCallback();
 }
 
+export function setSnowflakeCanvasSizePX(state: State, snowflakeCanvasSizePX: number): boolean {
+    state.snowflakeCanvasSizePX = snowflakeCanvasSizePX;
+    if (state.graphic === undefined) {
+        return false;
+    }
+    state.graphic.ctx.canvas.width = snowflakeCanvasSizePX;
+    state.graphic.ctx.canvas.height = snowflakeCanvasSizePX;
+    state.graphic.canvas.style.width = `${snowflakeCanvasSizePX}px`;
+    state.graphic.canvas.style.height = `${snowflakeCanvasSizePX}px`;
+    return true;
+}
+
+export function setSnowflakeId(state: State, snowflakeId: string): void {
+    const xs: Array<number> = Eithers.map(parseSnowflakeId(snowflakeId), v => { throw new Error('invalid snowflake ID') }, v => v);
+    if (xs.length === 0) {
+        throw new Error('parsing snowflake id gave zero length array');
+    } else {
+        const xsNonempty: NonEmptyArray<number> = xs as any;
+        state.graph.growthInput = xsNonempty;
+    }
+}
+
 export function installSnowflakeCanvas(state: State): void {
     if (state.graphic !== undefined) {
         throw new Error('snowflake already installed');
@@ -118,10 +136,6 @@ function makeEventHandlers(state: State): StateEventHandlers {
                 installCanvas(state.graph.installation.canvas);
             }
         },
-        halt: _ => {
-            clearInterval(state.eventHandlerTimeout);
-            state.graph.installation?.removeEventListeners();
-        },
     };
 }
 
@@ -134,10 +148,12 @@ export function handleEvent(state: State, e: StateEvent): void {
 }
 
 export function handleEvents(state: State): void {
-    setTimeout(() => requestAnimationFrame(() => handleEvents(state)), 1000 / state.upsCap);
-    state.eventQueue.forEach(e => handleEvent(state, e));
-    state.eventQueue.length = 0;
-    update(state);
+    if (state.playing) {
+        setTimeout(() => requestAnimationFrame(() => handleEvents(state)), 1000 / state.upsCap);
+        state.eventQueue.forEach(e => handleEvent(state, e));
+        state.eventQueue.length = 0;
+        update(state);
+    }
 }
 
 function lowerBoundMSBetweenUpdates(state: State): number {
@@ -256,23 +272,23 @@ export function update(state: State): void {
         }
     }
 
-    if (playing) {
-        const willUpdateAtLeastOnce = requiredUpdates > 0;
+    // if (playing) {
+    const willUpdateAtLeastOnce = requiredUpdates > 0;
 
-        requiredUpdates += state.updateBank;
-        state.updateBank = fracPart(requiredUpdates);
-        requiredUpdates = Math.floor(requiredUpdates);
+    requiredUpdates += state.updateBank;
+    state.updateBank = fracPart(requiredUpdates);
+    requiredUpdates = Math.floor(requiredUpdates);
 
-        for (; requiredUpdates > 0; requiredUpdates -= 1) {
-            state.updateCount += 1;
-            doUpdate();
-        }
-
-        if (willUpdateAtLeastOnce && state.updateCount >= state.maxUpdates) {
-            state.finishedGrowingCallback();
-            // console.log(`Grew snowflake in ${(performance.now() - state.resetStartTime) / 1000} seconds`);
-        }
+    for (; requiredUpdates > 0; requiredUpdates -= 1) {
+        state.updateCount += 1;
+        doUpdate();
     }
+
+    if (willUpdateAtLeastOnce && state.updateCount >= state.maxUpdates) {
+        state.finishedGrowingCallback();
+        // console.log(`Grew snowflake in ${(performance.now() - state.resetStartTime) / 1000} seconds`);
+    }
+    // }
 
     const percentDone = state.updateCount / state.maxUpdates;
 
