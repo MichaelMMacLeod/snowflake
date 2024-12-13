@@ -44,14 +44,18 @@ export function direction(face: Face): Direction {
 //      \         /
 //      [4]-----[5]
 export function points(face: Face): Array6<Point> {
-    const dir: Direction = face.direction === 'none' ? 0 : face.direction;
     const result: Array6<Point> = makeArray6(Points.zero);
     for (let i = 0; i < Directions.values.length; i += 1) {
-        const d = Directions.values[(dir + i) % Directions.values.length];
-        result[i].x = face.center.x + face.size * Math.cos(d);
-        result[i].y = face.center.y + face.size * Math.sin(d);
+        setPointN(result[i], face, i);
     }
     return result;
+}
+
+function setPointN(result: Point, face: Face, i: number) {
+    const dir: Direction = face.direction === 'none' ? 0 : face.direction;
+    const d = (dir + i) % Directions.values.length;
+    result.x = face.center.x + face.size * Directions.cosines[d];
+    result.y = face.center.y + face.size * Directions.sines[d];
 }
 
 export function draw(graphic: Graphic, face: Face): boolean {
