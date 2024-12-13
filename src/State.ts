@@ -202,7 +202,7 @@ export function update(state: State): void {
     state.currentMS = performance.now();
     const deltaMS = state.currentMS - lastMS;
 
-    let requiredUpdates = deltaMS / state.idealMSBetweenUpdates + state.updateBank;
+    let requiredUpdates = Math.min(state.maxUpdates - state.updateCount, deltaMS / state.idealMSBetweenUpdates + state.updateBank);
     state.updateBank = fracPart(requiredUpdates);
     requiredUpdates = Math.floor(requiredUpdates);
 
@@ -262,6 +262,8 @@ export function update(state: State): void {
         doUpdate();
         state.updateCount += 1;
     }
+
+    console.log(requiredUpdates, state.updateCount, state.maxUpdates, deltaMS);
 
     if (state.updateCount >= state.maxUpdates) {
         state.finishedGrowingCallback();
