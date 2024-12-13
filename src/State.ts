@@ -28,8 +28,6 @@ export type State = {
     currentGrowthType: GrowthType | undefined,
     idealMSBetweenUpdates: number,
 
-    upsCap: number,
-
     // Running total number of updates since last reset.
     updateCount: number,
 
@@ -143,13 +141,13 @@ export function setGraphCanvasHeight(state: State, height: number): void {
 
 export function handleEvents(state: State): void {
     if (state.playing) {
-        setTimeout(() => requestAnimationFrame(() => handleEvents(state)), 1000 / state.upsCap);
+        setTimeout(() => requestAnimationFrame(() => handleEvents(state)), state.idealMSBetweenUpdates);
         update(state);
     }
 }
 
-export function setIdealMSBetweenUpdates(state: State, targetGrowthTimeMS: number): void {
-    state.idealMSBetweenUpdates = Math.max(1000 / state.upsCap, targetGrowthTimeMS / state.maxUpdates);
+export function setIdealMSBetweenUpdates(state: State, targetGrowthTimeMS: number, upsCap: number): void {
+    state.idealMSBetweenUpdates = Math.max(1000 / upsCap, targetGrowthTimeMS / state.maxUpdates);
 }
 
 export function make(): State {
@@ -168,7 +166,6 @@ export function make(): State {
         updateCount: 0,
         currentMS: 0,
         idealMSBetweenUpdates: 0,
-        upsCap: Infinity,
         maxUpdates: 500,
         resetStartTime: performance.now(),
         playing: false,

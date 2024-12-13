@@ -285,11 +285,11 @@ export function zero(): Config {
 }
 
 export type ConfigSynchronizer = {
-    [K in keyof Config]: (s: State, newValue: Config[K], oldValue: Maybe<Config[K]>) => boolean
+    [K in keyof Config]: (c: Config, s: State, newValue: Config[K], oldValue: Maybe<Config[K]>) => boolean
 }
 
 const configSynchronizer: ConfigSynchronizer = {
-    snowflakeCanvasSizePX: (s, newValue, oldValue) => {
+    snowflakeCanvasSizePX: (_c, s, newValue, oldValue) => {
         return Maybes.map(
             oldValue,
             () => setSnowflakeCanvasSizePX(s, newValue),
@@ -301,15 +301,15 @@ const configSynchronizer: ConfigSynchronizer = {
             }
         );
     },
-    targetGrowthTimeMS: (s, newValue, _oldValue) => {
-        setIdealMSBetweenUpdates(s, newValue);
+    targetGrowthTimeMS: (c, s, newValue, _oldValue) => {
+        setIdealMSBetweenUpdates(s, newValue, c.upsCap);
         return false;
     },
-    upsCap: (s, newValue, _oldValue) => {
-        s.upsCap = newValue;
+    upsCap: (c, s, newValue, _oldValue) => {
+        setIdealMSBetweenUpdates(s, c.targetGrowthTimeMS, newValue);
         return false;
     },
-    maxUpdates: (s, newValue, oldValue) => {
+    maxUpdates: (_c, s, newValue, oldValue) => {
         return Maybes.map(
             oldValue,
             () => {
@@ -325,7 +325,7 @@ const configSynchronizer: ConfigSynchronizer = {
             }
         );
     },
-    playing: (s, newValue, oldValue) => {
+    playing: (_c, s, newValue, oldValue) => {
         const newEqOld = Maybes.map(oldValue, () => false, oldValue => newValue === oldValue);
         if (!newEqOld) {
             s.playing = newValue;
@@ -334,31 +334,31 @@ const configSynchronizer: ConfigSynchronizer = {
         }
         return false;
     },
-    finishedGrowingCallback: (s, newValue, _oldValue) => {
+    finishedGrowingCallback: (_c, s, newValue, _oldValue) => {
         s.finishedGrowingCallback = newValue;
         return false;
     },
-    resetCallback: (s, newValue, _oldValue) => {
+    resetCallback: (_c, s, newValue, _oldValue) => {
         s.resetCallback = newValue;
         return false;
     },
-    installSnowflakeCanvasCallback: (s, newValue, _oldValue) => {
+    installSnowflakeCanvasCallback: (_c, s, newValue, _oldValue) => {
         s.installSnowflakeCanvasCallback = newValue;
         return false;
     },
-    installSnowflakeCanvasFailureCallback: (s, newValue, _oldValue) => {
+    installSnowflakeCanvasFailureCallback: (_c, s, newValue, _oldValue) => {
         s.installSnowflakeCanvasFailureCallback = newValue;
         return false;
     },
-    installGraphCanvasCallback: (s, newValue, _oldValue) => {
+    installGraphCanvasCallback: (_c, s, newValue, _oldValue) => {
         s.installGraphCanvasCallback = newValue;
         return false;
     },
-    installGraphCanvasFailureCallback: (s, newValue, _oldValue) => {
+    installGraphCanvasFailureCallback: (_c, s, newValue, _oldValue) => {
         s.installGraphCanvasFailureCallback = newValue;
         return false;
     },
-    snowflakeId: (s, newValue, oldValue) => {
+    snowflakeId: (_c, s, newValue, oldValue) => {
         const newEqOld = Maybes.map(oldValue, () => false, oldValue => newValue === oldValue);
         if (!newEqOld) {
             setSnowflakeId(s, newValue);
@@ -366,31 +366,31 @@ const configSynchronizer: ConfigSynchronizer = {
         }
         return false;
     },
-    graphCanvasWidthPX: (s, newValue, _oldValue) => {
+    graphCanvasWidthPX: (_c, s, newValue, _oldValue) => {
         setGraphCanvasWidth(s, newValue);
         return false;
     },
-    graphCanvasHeightPX: (s, newValue, _oldValue) => {
+    graphCanvasHeightPX: (_c, s, newValue, _oldValue) => {
         setGraphCanvasHeight(s, newValue);
         return false;
     },
-    graphProgressColor: (s, newValue, _oldValue) => {
+    graphProgressColor: (_c, s, newValue, _oldValue) => {
         s.graph.options.progressColor = newValue;
         return false;
     },
-    graphProgressLineColor: (s, newValue, _oldValue) => {
+    graphProgressLineColor: (_c, s, newValue, _oldValue) => {
         s.graph.options.progressLineColor = newValue;
         return false;
     },
-    graphBackgroundColor: (s, newValue, _oldValue) => {
+    graphBackgroundColor: (_c, s, newValue, _oldValue) => {
         s.graph.options.backgroundColor = newValue;
         return false;
     },
-    graphForegroundColor: (s, newValue, _oldValue) => {
+    graphForegroundColor: (_c, s, newValue, _oldValue) => {
         s.graph.options.foregroundColor = newValue;
         return false;
     },
-    graphMouseUpEventListenerNode: (s, newValue, oldValue) => {
+    graphMouseUpEventListenerNode: (_c, s, newValue, oldValue) => {
         console.log('graphMouseUpEventListenerNode config setting not yet implemented');
         // Maybes.map(
         //     oldValue,
@@ -491,7 +491,7 @@ export function sync(oldValidatedConfig: Maybe<Config>, newUnvalidatedConfig: Co
     let needsReset = false;
     for (let [k, v] of Object.entries(config)) {
         const oldValue = Maybes.mapSome(oldValidatedConfig, old => (old as any)[k]);
-        needsReset = cs[k](state, v, oldValue) || needsReset;
+        needsReset = cs[k](config, state, v, oldValue) || needsReset;
     }
     if (needsReset) {
         States.reset(state);
