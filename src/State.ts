@@ -12,7 +12,7 @@ import {
     updateGraph
 } from "./Graph";
 import * as Graphs from "./Graph";
-import { Graphic, GraphicOptions } from "./Graphic";
+import { Graphic } from "./Graphic";
 import * as Graphics from "./Graphic";
 import { addBranchesToGrowingFaces, addFacesToGrowingBranches, Snowflake } from "./Snowflake";
 import * as Snowflakes from "./Snowflake";
@@ -20,11 +20,8 @@ import * as Branches from "./Branch";
 import * as Faces from "./Face";
 import { fracPart } from "./Utils";
 
-type InstallSnowflakeEvent = {
-    kind: 'installSnowflake',
-    options: GraphicOptions,
-    installCanvas: (snowflake: HTMLCanvasElement) => void,
-    onNoContextFailure: () => void,
+type InstallSnowflakeCanvasEvent = {
+    kind: 'installSnowflakeCanvas',
 };
 
 type InstallGraphEvent = {
@@ -32,11 +29,6 @@ type InstallGraphEvent = {
     options: GraphInstallationOptions,
     installCanvas: (graph: HTMLCanvasElement) => void,
     onNoContextFailure: () => void,
-};
-
-type PlayEvent = {
-    kind: 'play',
-    play: boolean | 'toggle',
 };
 
 type ResetEvent = {
@@ -52,9 +44,8 @@ type HaltEvent = {
 };
 
 export type StateEvent =
-    InstallSnowflakeEvent
+    InstallSnowflakeCanvasEvent
     | InstallGraphEvent
-    | PlayEvent
     | ResetEvent
     | RandomizeEvent
     | HaltEvent
@@ -66,6 +57,7 @@ export type StateEventHandlers = EventHandlers<StateEvent>;
 
 export type State = {
     graph: Graph,
+    snowflakeCanvasSizePX: number,
     graphic: Graphic | undefined,
     snowflake: Snowflake,
     currentGrowthType: GrowthType | undefined,
@@ -102,19 +94,34 @@ export type State = {
     eventHandlers: StateEventHandlers | undefined,
     finishedGrowingCallback: () => void,
     resetCallback: () => void,
+    installSnowflakeCanvasCallback: (canvas: HTMLCanvasElement) => void,
+    installSnowflakeCanvasFailureCallback: () => void,
 };
+
+export function reset(state: State): void {
+    Snowflakes.reset(state.snowflake);
+    state.currentGrowthType = undefined;
+    state.updateBank = 0;
+    state.updateCount = 0;
+    state.currentMS = performance.now();
+    state.resetStartTime = performance.now();
+    if (state.graphic !== undefined) {
+        Graphics.clear(state.graphic);
+    }
+    state.resetCallback();
+}
 
 function makeEventHandlers(state: State): StateEventHandlers {
     return {
-        installSnowflake: ({ options, installCanvas, onNoContextFailure }) => {
+        installSnowflakeCanvas: () => {
             if (state.graphic !== undefined) {
                 throw new Error('snowflake already installed');
             }
-            state.graphic = Graphics.make(options);
+            state.graphic = Graphics.make(state.snowflakeCanvasSizePX);
             if (state.graphic === undefined) {
-                onNoContextFailure();
+                state.installSnowflakeCanvasFailureCallback();
             } else {
-                installCanvas(state.graphic.canvas);
+                state.installSnowflakeCanvasCallback(state.graphic.canvas);
             }
         },
         installGraph: ({ options, installCanvas, onNoContextFailure }) => {
@@ -125,24 +132,8 @@ function makeEventHandlers(state: State): StateEventHandlers {
                 installCanvas(state.graph.installation.canvas);
             }
         },
-        play: ({ play }) => {
-            if (play === 'toggle') {
-                state.playing = !state.playing;
-            } else {
-                state.playing = play;
-            }
-        },
         reset: _ => {
-            Snowflakes.reset(state.snowflake);
-            state.currentGrowthType = undefined;
-            state.updateBank = 0;
-            state.updateCount = 0;
-            state.currentMS = performance.now();
-            state.resetStartTime = performance.now();
-            if (state.graphic !== undefined) {
-                Graphics.clear(state.graphic);
-            }
-            state.resetCallback();
+            reset(state);
         },
         randomize: _ => {
             randomizeGrowthInput(state.graph)
@@ -179,6 +170,7 @@ export function make(): State {
 
     const result: State = {
         graph,
+        snowflakeCanvasSizePX: 800,
         graphic: undefined,
         snowflake,
         currentGrowthType: undefined,
@@ -195,6 +187,8 @@ export function make(): State {
         eventHandlerTimeout: undefined,
         finishedGrowingCallback: () => { return; },
         resetCallback: () => { return; },
+        installSnowflakeCanvasCallback: _ => { return; },
+        installSnowflakeCanvasFailureCallback: () => { return; },
     };
     result.eventHandlers = makeEventHandlers(result);
 
@@ -218,11 +212,6 @@ export function update(state: State): void {
         graphic,
         playing,
     } = state;
-    // state.graph.growthInput = [2,8,8,8,7,4,7,4,1,2,8,4,1,6,1,0];
-    // state.graph.growthInput = [8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0];
-    // state.graph.growthInput = [8, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    // state.graph.growthInput = [0];
-
     const lastMS = state.currentMS;
     state.currentMS = performance.now();
     const deltaMS = state.currentMS - lastMS;

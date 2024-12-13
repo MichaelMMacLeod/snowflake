@@ -12,10 +12,12 @@ export type Controller = {
 
 export function make(): Controller {
     const state = States.make();
-    return {
+    const result: Controller = {
         configure: c => sync(c, state),
         getDefaultConfig: () => Configs.zero(),
         handle: e => receiveEvent(state, e),
         handleAll: es => es.forEach(e => receiveEvent(state, e)),
-    }
+    };
+    result.configure(result.getDefaultConfig());
+    return result;
 }

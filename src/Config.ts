@@ -1,5 +1,8 @@
+import { Either, left, right } from "./Either";
+import * as Eithers from "./Either";
 import { State } from "./State";
 import * as States from "./State";
+import { NonEmptyArray } from "./Utils";
 
 export type Config = {
     // Size in pixels of the side length of the square snowflake canvas.
@@ -33,6 +36,10 @@ export type Config = {
 
     // Funciton to call when the 'installSnowflakeCanvas' event fails.
     installSnowflakeCanvasFailureCallback: () => void,
+
+    // Specifies which snowflake to grow. Must be a number without any
+    // digits which are zero.
+    snowflakeId: string,
 };
 
 export type ConfigValidator = {
@@ -57,6 +64,36 @@ function isFunction0(value: any): boolean {
 
 function isFunction1(value: any): boolean {
     return isFunction(value) && value.length === 1;
+}
+
+function parseSnowflakeId(value: any): Either<string, Array<number>> {
+    if (value.toString === undefined) {
+        return left(`non-integer, '${value}'`);
+    }
+    const digits = value.toString();
+    const result = [];
+    for (let i = 0; i < digits.length; ++i) {
+        const digit = parseInt(digits[i], 10);
+        if (Number.isNaN(digit)) {
+            return left(`integer containing a digit other than 1 through 9, '${value}'`)
+        }
+        if (digit === 0) {
+            return left(`integer containing the digit zero, '${value}'`);
+        }
+        const parsedDigit = digit - 1;
+        result.push(parsedDigit);
+    }
+    return right(result);
+}
+
+function expectSnowflakeId(name: string): (actual: any) => string | undefined {
+    return actual => {
+        return Eithers.map(
+            parseSnowflakeId(actual),
+            err => expect(name, 'snowflake ID', err),
+            _ => undefined
+        );
+    };
 }
 
 function expect(name: string, kind: string, actual: any): string {
@@ -110,6 +147,7 @@ const configValidator: ConfigValidator = {
     resetCallback: expectFunction0('resetCallback'),
     installSnowflakeCanvasCallback: expectFunction1('installSnowflakeCanvasCallback'),
     installSnowflakeCanvasFailureCallback: expectFunction0('installSnowflakeCanvasFailureCallback'),
+    snowflakeId: expectSnowflakeId('snowflakeId'),
 };
 
 function configValidationErrors(config: any): Array<string> {
@@ -167,6 +205,7 @@ export function zero(): Config {
             resetCallback: () => { return; },
             installSnowflakeCanvasCallback: canvas => document.body.appendChild(canvas),
             installSnowflakeCanvasFailureCallback: () => { throw new Error('error installing snowflake canvas') },
+            snowflakeId: '191726819472759233475',
         };
         return validateConfig(config);
     })();
@@ -215,6 +254,15 @@ const configSynchronizer: ConfigSynchronizer = {
     installSnowflakeCanvasFailureCallback: (s, v) => {
         s.installSnowflakeCanvasFailureCallback = v;
     },
+    snowflakeId: (s, v) => {
+        const xs: Array<number> = Eithers.map(parseSnowflakeId(v), v => { throw new Error('invalid snowflake ID') }, v => v);
+        if (xs.length === 0) {
+            throw new Error('parsing snowflake id gave zero length array');
+        } else {
+            const xsNonempty: NonEmptyArray<number> = xs as any;
+            s.graph.growthInput = xsNonempty;
+        }
+    }
 };
 
 export function sync(unvalidatedConfig: Config, state: State): void {

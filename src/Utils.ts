@@ -38,3 +38,14 @@ export function convertRGBAToString(rgba: RGBA): string {
   const { r, g, b, a } = rgba;
   return `rgba(${r}, ${g}, ${b}, ${a})`;
 }
+export type Maybe<T> =
+  { variant: 0 }
+  | { variant: 1, value: T }
+
+export function none<T>(): Maybe<T> {
+  return { variant: 0 };
+}
+
+export function some<T>(value: T): Maybe<T> {
+  return { variant: 1, value }
+}
