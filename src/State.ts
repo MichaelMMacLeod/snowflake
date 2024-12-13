@@ -27,6 +27,7 @@ export type State = {
     snowflake: Snowflake,
     currentGrowthType: GrowthType | undefined,
     idealMSBetweenUpdates: number,
+    growing: boolean,
 
     // Running total number of updates since last reset.
     updateCount: number,
@@ -61,6 +62,7 @@ export type State = {
 export function reset(state: State): void {
     Snowflakes.reset(state.snowflake);
     state.currentGrowthType = undefined;
+    state.growing = true;
     state.updateBank = 0;
     state.updateCount = 0;
     state.currentMS = performance.now();
@@ -69,6 +71,7 @@ export function reset(state: State): void {
         Graphics.clear(state.graphic);
     }
     state.resetCallback();
+    handleEvents(state);
 }
 
 export function setSnowflakeCanvasSizePX(state: State, snowflakeCanvasSizePX: number): boolean {
@@ -140,7 +143,7 @@ export function setGraphCanvasHeight(state: State, height: number): void {
 }
 
 export function handleEvents(state: State): void {
-    if (state.playing) {
+    if (state.growing && state.playing) {
         setTimeout(() => requestAnimationFrame(() => handleEvents(state)), state.idealMSBetweenUpdates);
         update(state);
     }
@@ -162,6 +165,7 @@ export function make(): State {
         graphic: undefined,
         snowflake,
         currentGrowthType: undefined,
+        growing: true,
         updateBank: 0,
         updateCount: 0,
         currentMS: 0,
@@ -198,15 +202,11 @@ export function update(state: State): void {
     state.currentMS = performance.now();
     const deltaMS = state.currentMS - lastMS;
 
-    const desiredMSBetweenUpdates = state.idealMSBetweenUpdates;
+    let requiredUpdates = deltaMS / state.idealMSBetweenUpdates + state.updateBank;
+    state.updateBank = fracPart(requiredUpdates);
+    requiredUpdates = Math.floor(requiredUpdates);
 
-    const actualMSBetweenUpdates = deltaMS;
-
-    const remainingUpdates = Math.max(0, state.maxUpdates - state.updateCount);
-    let requiredUpdates = Math.min(remainingUpdates, actualMSBetweenUpdates / desiredMSBetweenUpdates);
-
-    if (requiredUpdates < 1) {
-        state.currentMS = lastMS;
+    if (requiredUpdates === 0) {
         return;
     }
 
@@ -258,29 +258,20 @@ export function update(state: State): void {
         }
     }
 
-    // if (playing) {
-    const willUpdateAtLeastOnce = requiredUpdates > 0;
-
-    requiredUpdates += state.updateBank;
-    state.updateBank = fracPart(requiredUpdates);
-    requiredUpdates = Math.floor(requiredUpdates);
-
-    for (; requiredUpdates > 0; requiredUpdates -= 1) {
-        state.updateCount += 1;
+    for (let i = 0; i < requiredUpdates; ++i) {
         doUpdate();
+        state.updateCount += 1;
     }
 
-    if (willUpdateAtLeastOnce && state.updateCount >= state.maxUpdates) {
+    if (state.updateCount >= state.maxUpdates) {
         state.finishedGrowingCallback();
-        // console.log(`Grew snowflake in ${(performance.now() - state.resetStartTime) / 1000} seconds`);
+        console.log(`Grew snowflake in ${(performance.now() - state.resetStartTime) / 1000} seconds`);
+        state.growing = false;
     }
-    // }
-
-    const percentDone = state.updateCount / state.maxUpdates;
 
     callIfInstalled(graph, i => {
         updateGraph(graph, i);
         i.ctx.clearRect(0, 0, i.canvas.width, i.canvas.height);
-        drawGrowthInput(graph, i, percentDone);
+        drawGrowthInput(graph, i, currentTime(state));
     });
 }
