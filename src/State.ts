@@ -281,7 +281,7 @@ export function update(state: State): void {
 
     if (state.updateCount >= state.maxUpdates) {
         state.finishedGrowingCallback();
-        console.log(`Grew snowflake in ${(performance.now() - state.resetStartTime) / 1000} seconds`);
+        // console.log(`Grew snowflake in ${(performance.now() - state.resetStartTime) / 1000} seconds`);
         state.growing = false;
     }
 
