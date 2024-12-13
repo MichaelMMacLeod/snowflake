@@ -1,7 +1,7 @@
 import { Config, copy, sync } from "./Config";
 import * as Configs from "./Config";
 import { none, some } from "./Maybe";
-import { receiveEvent, State, StateEvent } from "./State";
+import { State } from "./State";
 import * as States from "./State";
 
 export class Controller {
@@ -27,19 +27,20 @@ export class Controller {
         States.installSnowflakeCanvas(this.#state);
     }
 
+    installGraphCanvas(): void {
+        States.installGraphCanvas(
+            this.#state,
+            this.#config.graphCanvasWidthPX,
+            this.#config.graphCanvasHeightPX,
+            this.#config.graphMouseUpEventListenerNode
+        );
+    }
+
     reset(): void {
         States.reset(this.#state);
     }
 
     randomSnowflakeId(): string {
         return Configs.randomSnowflakeId();
-    }
-
-    handle(event: StateEvent): void {
-        receiveEvent(this.#state, event);
-    }
-
-    handleAll(events: Array<StateEvent>): void {
-        events.forEach(e => this.handle(e));
     }
 }

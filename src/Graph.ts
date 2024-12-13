@@ -4,10 +4,10 @@ import { clamp, convertRGBAToString, fracPart, lerp, NonEmptyArray, RGBA } from 
 
 
 export type GraphOptions = {
-    progressColor: RGBA,
-    progressLineColor: RGBA,
-    backgroundColor: RGBA,
-    foregroundColor: RGBA,
+    progressColor: string,
+    progressLineColor: string,
+    backgroundColor: string,
+    foregroundColor: string,
 };
 
 export type GraphInstallationOptions = {
@@ -18,9 +18,6 @@ export type GraphInstallationOptions = {
      */
     mouseUpEventListenerNode: Node,
 
-    /** CSS class of graph canvas */
-    canvasClassName: string,
-
     canvasWidth: number,
     canvasHeight: number,
 };
@@ -28,7 +25,6 @@ export type GraphInstallationOptions = {
 export function defaultGraphInstallationOptions(): GraphInstallationOptions {
     return {
         mouseUpEventListenerNode: document,
-        canvasClassName: 'graph',
         canvasWidth: 600,
         canvasHeight: 200,
     }
@@ -73,10 +69,10 @@ export function errorWithoutInstallation(graph: Graph, f: (installation: GraphIn
 
 export function defaultGraphOptions(): GraphOptions {
     return {
-        progressColor: { r: 255, g: 255, b: 255, a: 1 },
-        progressLineColor: { r: 255, g: 255, b: 255, a: 1 },
-        backgroundColor: { r: 0, g: 0, b: 0, a: 1 },
-        foregroundColor: { r: 0, g: 0, b: 0, a: 1 },
+        progressColor: 'rgba(255,255,255,0.5)',
+        progressLineColor: 'rgba(255,255,255,1)',
+        backgroundColor: 'rgba(0,0,0,1)',
+        foregroundColor: 'rgba(255,255,255,1)',
     }
 }
 
@@ -101,6 +97,15 @@ export function make(options: GraphOptions): Graph {
     }
 };
 
+export function makeMouseupHandler(graph: Graph): () => void {
+    return () => {
+        if (graph.installation !== undefined) {
+            graph.installation.handleBeingDragged = undefined;
+            graph.installation.graphMouse = undefined;
+        }
+    }
+}
+
 export function install(graph: Graph, options: GraphInstallationOptions): void {
     if (graph.installation !== undefined) {
         console.error('attempt to install graph twice');
@@ -110,7 +115,6 @@ export function install(graph: Graph, options: GraphInstallationOptions): void {
     const canvas = document.createElement('canvas');
     canvas.width = options.canvasWidth;
     canvas.height = options.canvasHeight
-    canvas.className = options.canvasClassName;
     const ctx = canvas.getContext('2d');
     if (ctx === null) {
         return;
@@ -128,28 +132,24 @@ export function install(graph: Graph, options: GraphInstallationOptions): void {
             graph.installation.handleBeingDragged = 'needs lookup';
         }
     }
-    function mouseup(): void {
-        if (graph.installation !== undefined) {
-            graph.installation.handleBeingDragged = undefined;
-            graph.installation.graphMouse = undefined;
-        }
-    }
     function mouseleave(): void {
         if (graph.installation !== undefined) {
             graph.installation.mouseRecentlyExitedGraph = true;
         }
     }
 
+    const mouseupHandler = makeMouseupHandler(graph);
+
     canvas.addEventListener('mousemove', mousemove);
     canvas.addEventListener('mousedown', mousedown);
     canvas.addEventListener('mouseleave', mouseleave);
-    options.mouseUpEventListenerNode.addEventListener('mouseup', mouseup);
+    options.mouseUpEventListenerNode.addEventListener('mouseup', mouseupHandler);
 
     function removeEventListeners() {
         canvas.removeEventListener('mousemove', mousemove);
         canvas.removeEventListener('mousedown', mousedown);
         canvas.removeEventListener('mouseleave', mouseleave);
-        options.mouseUpEventListenerNode.removeEventListener('mouseup', mouseup);
+        options.mouseUpEventListenerNode.removeEventListener('mouseup', mouseupHandler);
     }
 
     graph.installation = {
@@ -199,12 +199,12 @@ export function drawGraphHandle(
     i.ctx.beginPath();
     i.ctx.arc(x, y, 3, 0, 2 * Math.PI);
     i.ctx.closePath();
-    i.ctx.fillStyle = convertRGBAToString(newStyle);
+    i.ctx.fillStyle = newStyle;
     i.ctx.fill();
     i.ctx.closePath();
     i.ctx.beginPath();
     i.ctx.arc(x, y, outerRingRadius, 0, 2 * Math.PI);
-    i.ctx.strokeStyle = convertRGBAToString(newStyle);
+    i.ctx.strokeStyle = newStyle;
     i.ctx.setLineDash(newLineDash);
     i.ctx.stroke();
 
@@ -296,8 +296,11 @@ export function drawGrowthInput(graph: Graph, i: GraphInstallation, percentDone:
         graphMargin,
     } = i;
 
+    i.ctx.fillStyle = graph.options.backgroundColor;
+    i.ctx.fillRect(0, 0, i.canvas.width, i.canvas.height);
+
     const old = i.ctx.fillStyle;
-    i.ctx.fillStyle = convertRGBAToString(graph.options.progressColor);
+    i.ctx.fillStyle = graph.options.progressColor;
     i.ctx.fillRect(
         graphMargin,
         0,
@@ -315,7 +318,7 @@ export function drawGrowthInput(graph: Graph, i: GraphInstallation, percentDone:
         const p = growthHandlePosition(graph, i, j);
         i.ctx.lineTo(p.x, p.y);
     }
-    i.ctx.strokeStyle = convertRGBAToString(graph.options.foregroundColor);
+    i.ctx.strokeStyle = graph.options.foregroundColor;
     i.ctx.stroke();
 
     for (let j = 0; j < graph.growthInput.length; j += 1) {
@@ -332,14 +335,14 @@ export function drawGrowthInput(graph: Graph, i: GraphInstallation, percentDone:
     const progressX = writableGraphWidth * percentDone + graphMargin;
     i.ctx.moveTo(progressX, 0);
     i.ctx.lineTo(progressX, writableGraphHeight);
-    i.ctx.strokeStyle = convertRGBAToString(graph.options.progressLineColor);
+    i.ctx.strokeStyle = graph.options.progressLineColor;
     i.ctx.stroke();
 
     i.ctx.beginPath();
     const xAxisY = writableGraphHeight * 0.5;
     i.ctx.moveTo(graphMargin, xAxisY);
     i.ctx.lineTo(writableGraphWidth + graphMargin, xAxisY);
-    i.ctx.strokeStyle = convertRGBAToString(graph.options.foregroundColor);
+    i.ctx.strokeStyle = graph.options.foregroundColor;
     i.ctx.setLineDash([2, 2]);
     i.ctx.stroke()
     i.ctx.setLineDash([]);

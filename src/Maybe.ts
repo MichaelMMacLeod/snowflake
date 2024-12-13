@@ -32,3 +32,10 @@ export function mapSome<T, U>(
             return some(onSome(m.d));
     }
 }
+
+export function then<T>(b: boolean, onTrue: () => T): Maybe<T> {
+    if (b) {
+        return some(onTrue());
+    }
+    return none();
+}

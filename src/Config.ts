@@ -1,10 +1,10 @@
 import { Either, left, right } from "./Either";
 import * as Eithers from "./Either";
-import { Maybe } from "./Maybe";
+import { Maybe, none, some } from "./Maybe";
 import * as Maybes from "./Maybe";
-import { handleEvents, setSnowflakeCanvasSizePX, setSnowflakeId, State } from "./State";
+import { handleEvents, installGraphCanvas, setGraphCanvasHeight, setGraphCanvasWidth, setSnowflakeCanvasSizePX, setSnowflakeId, State } from "./State";
 import * as States from "./State";
-import { NonEmptyArray, parseSnowflakeId, randomIntInclusive } from "./Utils";
+import { NonEmptyArray, parseSnowflakeId, randomIntInclusive, RGBA } from "./Utils";
 
 export type Config = {
     // Size in pixels of the side length of the square snowflake canvas.
@@ -39,13 +39,32 @@ export type Config = {
     // Funciton to call when the 'installSnowflakeCanvas' event fails.
     installSnowflakeCanvasFailureCallback: () => void,
 
+    graphCanvasWidthPX: number,
+    graphCanvasHeightPX: number,
+    graphProgressColor: string,
+    graphProgressLineColor: string,
+    graphBackgroundColor: string,
+    graphForegroundColor: string,
+
+    // Mouse up events, which stop the graph handles from being dragged, if
+    // received by the canvas itself, annoyingly stops the handle even when the
+    // mouse just goes a little bit outside the graph. To fix this, we set the
+    // mouse up event listener on a parent node, usually the document itself.
+    graphMouseUpEventListenerNode: Node,
+
+    // Function to call when the 'installGraphCanvas' event succeeds.
+    installGraphCanvasCallback: (canvas: HTMLCanvasElement) => void,
+
+    // Function to call when the 'installGraphCanvas' event fails.
+    installGraphCanvasFailureCallback: () => void,
+
     // Specifies which snowflake to grow. Must be a number without any
     // digits which are zero.
     snowflakeId: string,
 };
 
 export type ConfigValidator = {
-    [K in keyof Config]: (value: any) => string | undefined
+    [K in keyof Config]: (value: any) => Maybe<string>
 }
 
 function isObject(value: any): boolean {
@@ -60,62 +79,97 @@ function isFunction(value: any): boolean {
     return typeof value === 'function';
 }
 
+function isFunctionN(value: any, argCount: number): boolean {
+    return isFunction(value) && value.length === argCount;
+}
+
 function isFunction0(value: any): boolean {
-    return isFunction(value) && value.length === 0;
+    return isFunctionN(value, 0);
 }
 
 function isFunction1(value: any): boolean {
-    return isFunction(value) && value.length === 1;
+    return isFunctionN(value, 1);
 }
 
-function expectSnowflakeId(name: string): (actual: any) => string | undefined {
-    return actual => {
-        return Eithers.map(
-            parseSnowflakeId(actual),
-            err => expect(name, 'snowflake ID', err),
-            _ => undefined
-        );
-    };
+function isFunction2(value: any): boolean {
+    return isFunctionN(value, 2);
+}
+
+function isCssColor(value: any): boolean {
+    return CSS.supports('color', value);
+}
+
+function isEventListenerRegistrant(value: any): boolean {
+    return value.addEventListener !== undefined
+        && value.removeEventListener !== undefined
+        && isFunction2(value.addEventListener) && isFunction2(value.removeEventListener);
 }
 
 function expect(name: string, kind: string, actual: any): string {
     return `${name}: expected ${kind}, got '${actual}'`;
 }
 
-function expectNat(name: string): (actual: any) => string | undefined {
+function expectSnowflakeId(name: string): (actual: any) => Maybe<string> {
+    return actual => {
+        return Eithers.map(
+            parseSnowflakeId(actual),
+            err => some(expect(name, 'snowflake ID', err)),
+            _ => none(),
+        );
+    };
+}
+
+function expectNat(name: string): (actual: any) => Maybe<string> {
     return actual => {
         if (!Number.isSafeInteger(actual)) {
-            return expect(name, 'integer', actual);
+            return some(expect(name, 'integer', actual));
         }
         if (actual < 0) {
-            return expect(name, 'nonnegative integer', actual);
+            return some(expect(name, 'nonnegative integer', actual));
         }
-        return undefined;
+        return none();
     };
 }
 
-function expectBool(name: string): (actual: any) => string | undefined {
+function expectBool(name: string): (actual: any) => Maybe<string> {
     return actual => {
-        if (!isBoolean(actual)) {
-            return expect(name, 'boolean', actual);
-        }
-        return undefined;
+        return Maybes.then(!isBoolean(actual), () => expect(name, 'boolean', actual));
     };
 }
 
-function expectFunction0(name: string): (actual: any) => string | undefined {
+function expectFunction0(name: string): (actual: any) => Maybe<string> {
     return actual => {
-        if (!isFunction0(actual)) {
-            return expect(name, 'function requiring zero arguments', actual);
-        }
+        return Maybes.then(
+            !isFunction0(actual),
+            () => expect(name, 'function requiring zero arguments', actual)
+        );
     };
 }
 
-function expectFunction1(name: string): (actual: any) => string | undefined {
+function expectFunction1(name: string): (actual: any) => Maybe<string> {
     return actual => {
-        if (!isFunction1(actual)) {
-            return expect(name, 'function requiring one argument', actual);
-        }
+        return Maybes.then(
+            !isFunction1(actual),
+            () => expect(name, 'function requiring one argument', actual),
+        );
+    };
+}
+
+function expectCssColor(name: string): (actual: any) => Maybe<string> {
+    return actual => {
+        return Maybes.then(
+            !isCssColor(actual),
+            () => expect(name, 'valid css color', actual)
+        );
+    };
+}
+
+function expectEventListenerRegistrant(name: string): (actual: any) => Maybe<string> {
+    return actual => {
+        return Maybes.then(
+            !isEventListenerRegistrant(actual),
+            () => expect(name, 'html node with .addEventListener and .removeEventListener', actual),
+        );
     };
 }
 
@@ -129,7 +183,16 @@ const configValidator: ConfigValidator = {
     resetCallback: expectFunction0('resetCallback'),
     installSnowflakeCanvasCallback: expectFunction1('installSnowflakeCanvasCallback'),
     installSnowflakeCanvasFailureCallback: expectFunction0('installSnowflakeCanvasFailureCallback'),
+    installGraphCanvasCallback: expectFunction1('installGraphCanvasCallback'),
+    installGraphCanvasFailureCallback: expectFunction0('installGraphCanvasFailureCallback'),
     snowflakeId: expectSnowflakeId('snowflakeId'),
+    graphCanvasWidthPX: expectNat('graphCanvasWidthPX'),
+    graphCanvasHeightPX: expectNat('graphCanvasHeightPX'),
+    graphProgressColor: expectCssColor('graphProgressColor'),
+    graphProgressLineColor: expectCssColor('graphProgressLineColor'),
+    graphBackgroundColor: expectCssColor('graphBackgroundColor'),
+    graphForegroundColor: expectCssColor('graphForegroundColor'),
+    graphMouseUpEventListenerNode: expectEventListenerRegistrant('graphMouseUpEventListenerNode'),
 };
 
 function configValidationErrors(config: any): Array<string> {
@@ -155,10 +218,12 @@ function configValidationErrors(config: any): Array<string> {
         if (validator === undefined) {
             errors.push(`unexpected key in config: '${k}'`);
         } else {
-            const validation = validator(v);
-            if (validation !== undefined) {
-                errors.push(validation);
-            }
+            const validation: Maybe<string> = validator(v);
+            Maybes.map(
+                validation,
+                () => { return; },
+                validation => errors.push(validation),
+            );
         }
     }
 
@@ -199,8 +264,17 @@ export function zero(): Config {
             finishedGrowingCallback: () => { return; },
             resetCallback: () => { return; },
             installSnowflakeCanvasCallback: canvas => document.body.appendChild(canvas),
-            installSnowflakeCanvasFailureCallback: () => { throw new Error('error installing snowflake canvas') },
+            installSnowflakeCanvasFailureCallback: () => { throw new Error('error installing snowflake canvas'); },
+            installGraphCanvasCallback: canvas => document.body.appendChild(canvas),
+            installGraphCanvasFailureCallback: () => { throw new Error('error installing graph canvas'); },
             snowflakeId: randomSnowflakeId(),
+            graphCanvasWidthPX: 800,
+            graphCanvasHeightPX: 300,
+            graphProgressColor: 'rgba(255,255,255,0.5)',
+            graphProgressLineColor: 'rgba(255,255,255,1)',
+            graphBackgroundColor: 'rgba(0,0,0,1)',
+            graphForegroundColor: 'rgba(255,255,255,1)',
+            graphMouseUpEventListenerNode: document,
         };
         return validateConfig(config);
     })();
@@ -276,12 +350,60 @@ const configSynchronizer: ConfigSynchronizer = {
         s.installSnowflakeCanvasFailureCallback = newValue;
         return false;
     },
+    installGraphCanvasCallback: (s, newValue, _oldValue) => {
+        s.installGraphCanvasCallback = newValue;
+        return false;
+    },
+    installGraphCanvasFailureCallback: (s, newValue, _oldValue) => {
+        s.installGraphCanvasFailureCallback = newValue;
+        return false;
+    },
     snowflakeId: (s, newValue, oldValue) => {
         const newEqOld = Maybes.map(oldValue, () => false, oldValue => newValue === oldValue);
         if (!newEqOld) {
             setSnowflakeId(s, newValue);
             return true;
         }
+        return false;
+    },
+    graphCanvasWidthPX: (s, newValue, _oldValue) => {
+        setGraphCanvasWidth(s, newValue);
+        return false;
+    },
+    graphCanvasHeightPX: (s, newValue, _oldValue) => {
+        setGraphCanvasHeight(s, newValue);
+        return false;
+    },
+    graphProgressColor: (s, newValue, _oldValue) => {
+        s.graph.options.progressColor = newValue;
+        return false;
+    },
+    graphProgressLineColor: (s, newValue, _oldValue) => {
+        s.graph.options.progressLineColor = newValue;
+        return false;
+    },
+    graphBackgroundColor: (s, newValue, _oldValue) => {
+        s.graph.options.backgroundColor = newValue;
+        return false;
+    },
+    graphForegroundColor: (s, newValue, _oldValue) => {
+        s.graph.options.foregroundColor = newValue;
+        return false;
+    },
+    graphMouseUpEventListenerNode: (s, newValue, oldValue) => {
+        console.log('graphMouseUpEventListenerNode config setting not yet implemented');
+        // Maybes.map(
+        //     oldValue,
+        //     () => {
+        //         if (s.graph.installation === undefined) {
+        //             return;
+        //         }
+        //         s.graph.installation.
+        //     },
+        //     _ => {
+        //         throw new Error('installing graph more than once not currently supported');
+        //     }
+        // );
         return false;
     }
 };
@@ -318,9 +440,36 @@ const configCopier: ConfigCopier = {
     installSnowflakeCanvasFailureCallback: v => {
         return v;
     },
+    installGraphCanvasCallback: v => {
+        return v;
+    },
+    installGraphCanvasFailureCallback: v => {
+        return v;
+    },
     snowflakeId: v => {
         return v;
     },
+    graphCanvasWidthPX: v => {
+        return v;
+    },
+    graphCanvasHeightPX: v => {
+        return v;
+    },
+    graphProgressColor: v => {
+        return v;
+    },
+    graphProgressLineColor: v => {
+        return v;
+    },
+    graphBackgroundColor: v => {
+        return v;
+    },
+    graphForegroundColor: v => {
+        return v;
+    },
+    graphMouseUpEventListenerNode: v => {
+        return v;
+    }
 };
 
 export function copy(config: Config): Config {

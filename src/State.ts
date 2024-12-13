@@ -21,21 +21,6 @@ import * as Faces from "./Face";
 import { fracPart, NonEmptyArray, parseSnowflakeId } from "./Utils";
 import * as Eithers from "./Either";
 
-type InstallGraphEvent = {
-    kind: 'installGraph',
-    options: GraphInstallationOptions,
-    installCanvas: (graph: HTMLCanvasElement) => void,
-    onNoContextFailure: () => void,
-};
-
-export type StateEvent =
-    | InstallGraphEvent;
-
-export type EventHandlers<Events extends { kind: string }> = {
-    [E in Events as E["kind"]]: (data: E) => void
-};
-export type StateEventHandlers = EventHandlers<StateEvent>;
-
 export type State = {
     graph: Graph,
     snowflakeCanvasSizePX: number,
@@ -70,13 +55,13 @@ export type State = {
     resetStartTime: number,
 
     playing: boolean,
-    eventHandlerTimeout: NodeJS.Timeout | undefined,
-    eventQueue: Array<StateEvent>,
-    eventHandlers: StateEventHandlers | undefined,
     finishedGrowingCallback: () => void,
     resetCallback: () => void,
     installSnowflakeCanvasCallback: (canvas: HTMLCanvasElement) => void,
     installSnowflakeCanvasFailureCallback: () => void,
+    installGraphCanvasCallback: (canvas: HTMLCanvasElement) => void,
+    installGraphCanvasFailureCallback: () => void,
+    graphMouseUpEventListenerNode: Node,
 };
 
 export function reset(state: State): void {
@@ -126,32 +111,44 @@ export function installSnowflakeCanvas(state: State): void {
     }
 }
 
-function makeEventHandlers(state: State): StateEventHandlers {
-    return {
-        installGraph: ({ options, installCanvas, onNoContextFailure }) => {
-            Graphs.install(state.graph, options);
-            if (state.graph.installation === undefined) {
-                onNoContextFailure();
-            } else {
-                installCanvas(state.graph.installation.canvas);
-            }
-        },
+export function installGraphCanvas(
+    state: State,
+    width: number,
+    height: number,
+    mouseUpEventListenerNode: Node
+): void {
+    const options: GraphInstallationOptions = {
+        mouseUpEventListenerNode,
+        canvasWidth: width,
+        canvasHeight: height, 
     };
+    Graphs.install(state.graph, options);
+    if (state.graph.installation === undefined) {
+        state.installGraphCanvasFailureCallback();
+    } else {
+        state.installGraphCanvasCallback(state.graph.installation.canvas);
+    }
 }
 
-export function handleEvent(state: State, e: StateEvent): void {
-    if (state.eventHandlers !== undefined) {
-        state.eventHandlers[e.kind](e as any /* FIXME */);
-    } else {
-        throw new Error("state.eventHandlers is undefined");
+export function setGraphCanvasWidth(state: State, width: number): void {
+    if (state.graph.installation === undefined) {
+        return;
     }
+    state.graph.installation.ctx.canvas.width = width;
+    state.graph.installation.canvas.style.width = `${width}px`;
+}
+
+export function setGraphCanvasHeight(state: State, height: number): void {
+    if (state.graph.installation === undefined) {
+        return;
+    }
+    state.graph.installation.ctx.canvas.height = height;
+    state.graph.installation.canvas.style.height = `${height}px`;
 }
 
 export function handleEvents(state: State): void {
     if (state.playing) {
         setTimeout(() => requestAnimationFrame(() => handleEvents(state)), 1000 / state.upsCap);
-        state.eventQueue.forEach(e => handleEvent(state, e));
-        state.eventQueue.length = 0;
         update(state);
     }
 }
@@ -164,6 +161,9 @@ export function make(): State {
     const graph = Graphs.make(defaultGraphOptions());
     const snowflake = Snowflakes.zero();
 
+    // These defaults are overwritten in Controller which synchronizes
+    // this state with the default Config. It's the values in the 
+    // default Config that matter.
     const result: State = {
         graph,
         snowflakeCanvasSizePX: 800,
@@ -178,23 +178,18 @@ export function make(): State {
         maxUpdates: 500,
         resetStartTime: performance.now(),
         playing: false,
-        eventQueue: [],
-        eventHandlers: undefined,
-        eventHandlerTimeout: undefined,
         finishedGrowingCallback: () => { return; },
         resetCallback: () => { return; },
         installSnowflakeCanvasCallback: _ => { return; },
         installSnowflakeCanvasFailureCallback: () => { return; },
+        installGraphCanvasCallback: _ => { return; },
+        installGraphCanvasFailureCallback: () => { return; },
+        graphMouseUpEventListenerNode: document,
     };
-    result.eventHandlers = makeEventHandlers(result);
 
     handleEvents(result);
 
     return result;
-}
-
-export function receiveEvent(state: State, e: StateEvent): void {
-    state.eventQueue.push(e);
 }
 
 function currentTime(state: State): number {
