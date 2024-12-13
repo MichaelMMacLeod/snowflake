@@ -71,7 +71,7 @@ export function reset(state: State): void {
         Graphics.clear(state.graphic);
     }
     state.resetCallback();
-    handleEvents(state);
+    scheduleUpdate(state);
 }
 
 export function setSnowflakeCanvasSizePX(state: State, snowflakeCanvasSizePX: number): boolean {
@@ -142,9 +142,9 @@ export function setGraphCanvasHeight(state: State, height: number): void {
     state.graph.installation.canvas.style.height = `${height}px`;
 }
 
-export function handleEvents(state: State): void {
+export function scheduleUpdate(state: State): void {
     if (state.growing && state.playing) {
-        setTimeout(() => requestAnimationFrame(() => handleEvents(state)), state.idealMSBetweenUpdates);
+        setTimeout(() => requestAnimationFrame(() => scheduleUpdate(state)), state.idealMSBetweenUpdates);
         update(state);
     }
 }
@@ -182,7 +182,7 @@ export function make(): State {
         graphMouseUpEventListenerNode: document,
     };
 
-    handleEvents(result);
+    scheduleUpdate(result);
 
     return result;
 }
