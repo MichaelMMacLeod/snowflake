@@ -24,7 +24,7 @@ export class Controller {
     }
 
     installSnowflakeCanvas(): void {
-        States.installSnowflakeCanvas(this.#state);
+        States.installSnowflakeCanvas(this.#state, this.#config.snowflakeCanvasSizePX);
     }
 
     installGraphCanvas(): void {

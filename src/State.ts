@@ -23,7 +23,6 @@ import * as Eithers from "./Either";
 
 export type State = {
     graph: Graph,
-    snowflakeCanvasSizePX: number,
     graphic: Graphic | undefined,
     snowflake: Snowflake,
     currentGrowthType: GrowthType | undefined,
@@ -78,7 +77,6 @@ export function reset(state: State): void {
 }
 
 export function setSnowflakeCanvasSizePX(state: State, snowflakeCanvasSizePX: number): boolean {
-    state.snowflakeCanvasSizePX = snowflakeCanvasSizePX;
     if (state.graphic === undefined) {
         return false;
     }
@@ -99,11 +97,11 @@ export function setSnowflakeId(state: State, snowflakeId: string): void {
     }
 }
 
-export function installSnowflakeCanvas(state: State): void {
+export function installSnowflakeCanvas(state: State, snowflakeCanvasSizePX: number): void {
     if (state.graphic !== undefined) {
         throw new Error('snowflake already installed');
     }
-    state.graphic = Graphics.make(state.snowflakeCanvasSizePX);
+    state.graphic = Graphics.make(snowflakeCanvasSizePX);
     if (state.graphic === undefined) {
         state.installSnowflakeCanvasFailureCallback();
     } else {
@@ -166,7 +164,6 @@ export function make(): State {
     // default Config that matter.
     const result: State = {
         graph,
-        snowflakeCanvasSizePX: 800,
         graphic: undefined,
         snowflake,
         currentGrowthType: undefined,
