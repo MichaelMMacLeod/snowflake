@@ -10,12 +10,8 @@ import { Array6, makeArray6, rem } from "./Utils";
 export type Face = {
     center: Point,
     size: number,
-
-    // The 'seed' face is the only one which a direction of none.
-    // It is the only face which sprouts 6 branches. All other faces
-    // sprout 3 branches in their direction.
-    direction: Direction | 'none',
-
+    isFirstFace: boolean,
+    direction: Direction,
     growthScale: number,
     growing: boolean,
 };
@@ -24,15 +20,12 @@ export function zero(): Face {
     return {
         center: Points.zero(),
         size: 0.0025,
-        direction: 'none',
+        isFirstFace: true,
+        direction: 0,
         growthScale: 1,
         growing: true,
     }
 };
-
-export function direction(face: Face): Direction {
-    return face.direction === "none" ? 0 : face.direction;
-}
 
 // Points are returned in order of relative direction:
 //
@@ -52,8 +45,7 @@ export function points(face: Face): Array6<Point> {
 }
 
 function setPointN(result: Point, face: Face, i: number) {
-    const dir: Direction = face.direction === 'none' ? 0 : face.direction;
-    const d = (dir + i) % Directions.values.length;
+    const d = (face.direction + i) % Directions.values.length;
     result.x = face.center.x + face.size * Directions.cosines[d];
     result.y = face.center.y + face.size * Directions.sines[d];
 }
@@ -72,7 +64,7 @@ export function draw(graphic: Graphic, face: Face): boolean {
             const p45 = midpointT(p4, p5, 0.6);
             const p21 = midpointT(p2, p1, 0.6);
 
-            if (face.direction === "none") {
+            if (face.isFirstFace) {
                 graphic.ctx.strokeStyle = `rgba(255, 255, 255, 0.08)`;
                 graphic.ctx.beginPath();
                 ps.forEach((p, i) => {
@@ -118,7 +110,7 @@ export function draw(graphic: Graphic, face: Face): boolean {
 
 export function enlarge(face: Face, scale: number): void {
     face.size += scale * faceSizeGrowthScalar * face.growthScale;
-    if (face.direction !== 'none') {
+    if (!face.isFirstFace) {
         const dx = scale * faceSizeGrowthScalar * Math.cos(Directions.values[face.direction]) * face.growthScale;
         const dy = scale * faceSizeGrowthScalar * Math.sin(Directions.values[face.direction]) * face.growthScale;
         face.center.x += dx;

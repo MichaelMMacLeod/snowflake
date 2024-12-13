@@ -66,7 +66,7 @@ function addBranchesToFace(snowflake: Snowflake, face: Face): void {
   const cy = face.center.y;
 
   let [startDir, numDirs]: [Direction, number] = (() => {
-    if (face.direction === 'none') {
+    if (face.isFirstFace) {
       return [0, 6];
     }
 
@@ -81,7 +81,7 @@ function addBranchesToFace(snowflake: Snowflake, face: Face): void {
     const x = cx + distFromCenter * Math.cos(Directions.values[dir]);
     const y = cy + distFromCenter * Math.sin(Directions.values[dir]);
     const growthScale = (() => {
-      if (face.direction === 'none' || i === 1) {
+      if (face.isFirstFace || i === 1) {
         return face.growthScale * 0.9;
       }
 
@@ -113,6 +113,7 @@ export function addBranchesToGrowingFaces(snowflake: Snowflake): void {
 function addFaceToBranch(snowflake: Snowflake, branch: Branch): void {
   snowflake.faces.push({
     center: Branches.end(branch),
+    isFirstFace: false,
     size: branch.size,
     direction: branch.direction,
     growthScale: branch.growthScale,
@@ -133,7 +134,7 @@ export function cacheNormalizedSides(snowflake: Snowflake) {
   snowflake.faces.forEach((f, fi) => {
     if (f.growing) {
       Sides.normalizedFaceSides(f).forEach((s, i) => {
-        const absoluteDirection = (i + Faces.direction(f)) % Directions.values.length;
+        const absoluteDirection = (i + f.direction) % Directions.values.length;
         snowflake.faceSideCache[absoluteDirection][fi] = s;
       });
     }
@@ -153,7 +154,7 @@ export function killCoveredFaces(snowflake: Snowflake): void {
     if (!f.growing) {
       return;
     }
-    const d = Faces.direction(f);
+    const d = f.direction;
     const leftDirection = d;
     const rightDirection = rem(d - 1, Directions.values.length);
     const leftSide = snowflake.faceSideCache[leftDirection][fi];
