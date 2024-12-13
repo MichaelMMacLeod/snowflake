@@ -7,7 +7,7 @@ import { worldToViewTransform } from "./CoordinateSystem";
 import * as Faces from "./Face";
 import { Face } from "./Face";
 import { branchLengthGrowthScalar, branchSizeGrowthScalar } from "./Constants";
-import { Array6, rem } from "./Utils";
+import { Array6, makeArray6, rem } from "./Utils";
 
 export type Branch = {
     start: Point,
@@ -29,6 +29,7 @@ export function end(branch: Branch): Point {
 function startFace(branch: Branch): Face {
     return {
         ...Faces.zero(),
+        isFirstFace: false,
         center: Points.copy(branch.start),
         size: branch.size,
         direction: branch.direction,
@@ -59,16 +60,16 @@ function endFace(branch: Branch): Face {
 //      \                                  /
 //      [4]------------------------------[5]
 export function points(branch: Branch): Array6<Point> {
-    const startPoints = Faces.points(startFace(branch));
-    const endPoints = Faces.points(endFace(branch));
-    return [
-        endPoints[0],
-        endPoints[1],
-        startPoints[2],
-        startPoints[3],
-        startPoints[4],
-        endPoints[5],
-    ];
+    const sf = startFace(branch);
+    const ef = endFace(branch);
+    const result = makeArray6(Points.zero);
+    Faces.setPointN(result[0], ef, 0);
+    Faces.setPointN(result[1], ef, 1);
+    Faces.setPointN(result[2], sf, 2);
+    Faces.setPointN(result[3], sf, 3);
+    Faces.setPointN(result[4], sf, 4);
+    Faces.setPointN(result[5], ef, 5);
+    return result;
 }
 
 export function draw(graphic: Graphic, branch: Branch): boolean {

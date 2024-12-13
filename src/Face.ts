@@ -44,7 +44,7 @@ export function points(face: Face): Array6<Point> {
     return result;
 }
 
-function setPointN(result: Point, face: Face, i: number) {
+export function setPointN(result: Point, face: Face, i: number) {
     const d = (face.direction + i) % Directions.values.length;
     result.x = face.center.x + face.size * Directions.cosines[d];
     result.y = face.center.y + face.size * Directions.sines[d];
