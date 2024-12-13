@@ -408,74 +408,10 @@ const configSynchronizer: ConfigSynchronizer = {
     }
 };
 
-export type ConfigCopier = {
-    [K in keyof Config]: (v: Config[K]) => Config[K]
-}
-
-const configCopier: ConfigCopier = {
-    snowflakeCanvasSizePX: v => {
-        return v;
-    },
-    targetGrowthTimeMS: v => {
-        return v;
-    },
-    upsCap: v => {
-        return v;
-    },
-    maxUpdates: v => {
-        return v;
-    },
-    playing: v => {
-        return v;
-    },
-    finishedGrowingCallback: v => {
-        return v;
-    },
-    resetCallback: v => {
-        return v;
-    },
-    installSnowflakeCanvasCallback: v => {
-        return v;
-    },
-    installSnowflakeCanvasFailureCallback: v => {
-        return v;
-    },
-    installGraphCanvasCallback: v => {
-        return v;
-    },
-    installGraphCanvasFailureCallback: v => {
-        return v;
-    },
-    snowflakeId: v => {
-        return v;
-    },
-    graphCanvasWidthPX: v => {
-        return v;
-    },
-    graphCanvasHeightPX: v => {
-        return v;
-    },
-    graphProgressColor: v => {
-        return v;
-    },
-    graphProgressLineColor: v => {
-        return v;
-    },
-    graphBackgroundColor: v => {
-        return v;
-    },
-    graphForegroundColor: v => {
-        return v;
-    },
-    graphMouseUpEventListenerNode: v => {
-        return v;
-    }
-};
-
 export function copy(config: Config): Config {
     const result = zero();
     for (let [k, v] of Object.entries(config)) {
-        (result as any)[k] = (configCopier as any)[k](v);
+        (result as any)[k] = v;
     }
     return result;
 }
