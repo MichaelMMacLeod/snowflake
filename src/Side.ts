@@ -57,7 +57,7 @@ export function normalizeRelativeSide2Ds(side2Ds: Array6<Side2D>, shapeDir: Dire
 //       -----
 //         4
 export function normalizedFaceSides(face: Face): Array6<Side> {
-    return normalizeRelativeSide2Ds(Side2Ds.ofFace(face), face.direction);
+    return normalizeRelativeSide2Ds(Side2Ds.ofFace(face), Faces.direction(face));
 }
 
 // Normalizes the sides of a face. Sides are returned in relative order to their
