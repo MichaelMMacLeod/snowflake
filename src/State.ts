@@ -20,10 +20,6 @@ import * as Branches from "./Branch";
 import * as Faces from "./Face";
 import { fracPart } from "./Utils";
 
-type InstallSnowflakeCanvasEvent = {
-    kind: 'installSnowflakeCanvas',
-};
-
 type InstallGraphEvent = {
     kind: 'installGraph',
     options: GraphInstallationOptions,
@@ -31,23 +27,12 @@ type InstallGraphEvent = {
     onNoContextFailure: () => void,
 };
 
-type ResetEvent = {
-    kind: 'reset',
-};
-
-type RandomizeEvent = {
-    kind: 'randomize',
-};
-
 type HaltEvent = {
     kind: 'halt',
 };
 
 export type StateEvent =
-    InstallSnowflakeCanvasEvent
     | InstallGraphEvent
-    | ResetEvent
-    | RandomizeEvent
     | HaltEvent
 
 export type EventHandlers<Events extends { kind: string }> = {
@@ -111,19 +96,20 @@ export function reset(state: State): void {
     state.resetCallback();
 }
 
+export function installSnowflakeCanvas(state: State): void {
+    if (state.graphic !== undefined) {
+        throw new Error('snowflake already installed');
+    }
+    state.graphic = Graphics.make(state.snowflakeCanvasSizePX);
+    if (state.graphic === undefined) {
+        state.installSnowflakeCanvasFailureCallback();
+    } else {
+        state.installSnowflakeCanvasCallback(state.graphic.canvas);
+    }
+}
+
 function makeEventHandlers(state: State): StateEventHandlers {
     return {
-        installSnowflakeCanvas: () => {
-            if (state.graphic !== undefined) {
-                throw new Error('snowflake already installed');
-            }
-            state.graphic = Graphics.make(state.snowflakeCanvasSizePX);
-            if (state.graphic === undefined) {
-                state.installSnowflakeCanvasFailureCallback();
-            } else {
-                state.installSnowflakeCanvasCallback(state.graphic.canvas);
-            }
-        },
         installGraph: ({ options, installCanvas, onNoContextFailure }) => {
             Graphs.install(state.graph, options);
             if (state.graph.installation === undefined) {
@@ -131,12 +117,6 @@ function makeEventHandlers(state: State): StateEventHandlers {
             } else {
                 installCanvas(state.graph.installation.canvas);
             }
-        },
-        reset: _ => {
-            reset(state);
-        },
-        randomize: _ => {
-            randomizeGrowthInput(state.graph)
         },
         halt: _ => {
             clearInterval(state.eventHandlerTimeout);

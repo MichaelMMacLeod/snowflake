@@ -12,12 +12,24 @@ export class Controller {
         sync(config, this.#state);
     }
 
-    getDefaultConfig(): Config {
+    defaultConfig(): Config {
         return Configs.zero();
     }
 
     configure(config: Config): void {
         sync(config, this.#state);
+    }
+
+    installSnowflakeCanvas(): void {
+        States.installSnowflakeCanvas(this.#state);
+    }
+
+    reset(): void {
+        States.reset(this.#state);
+    }
+
+    randomSnowflakeId(): string {
+        return Configs.randomSnowflakeId();
     }
 
     handle(event: StateEvent): void {

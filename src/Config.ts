@@ -2,7 +2,7 @@ import { Either, left, right } from "./Either";
 import * as Eithers from "./Either";
 import { State } from "./State";
 import * as States from "./State";
-import { NonEmptyArray } from "./Utils";
+import { NonEmptyArray, randomIntInclusive } from "./Utils";
 
 export type Config = {
     // Size in pixels of the side length of the square snowflake canvas.
@@ -75,13 +75,16 @@ function parseSnowflakeId(value: any): Either<string, Array<number>> {
     for (let i = 0; i < digits.length; ++i) {
         const digit = parseInt(digits[i], 10);
         if (Number.isNaN(digit)) {
-            return left(`integer containing a digit other than 1 through 9, '${value}'`)
+            return left(`string containing a digit other than 1 through 9, '${value}'`)
         }
         if (digit === 0) {
-            return left(`integer containing the digit zero, '${value}'`);
+            return left(`string containing the digit zero, '${value}'`);
         }
         const parsedDigit = digit - 1;
         result.push(parsedDigit);
+    }
+    if (result.length === 0) {
+        return left(`empty snowflake ID, '${value}'`);
     }
     return right(result);
 }
@@ -193,6 +196,19 @@ function validateConfig(config: any): Config | undefined {
     return config as Config;
 }
 
+export function randomSnowflakeId(): string {
+    const digits = [randomIntInclusive(1, 4)];
+    for (let i = 1; i < 16; i++) {
+        digits.push(randomIntInclusive(1, 9));
+    }
+    const id = digits.join('');
+    return Eithers.map(
+        parseSnowflakeId(id),
+        _err => { throw new Error(`randomSnowflakeId returned invalid ID: '${id}'`) },
+        _id => id
+    );
+}
+
 export function zero(): Config {
     const config = (() => {
         const config: Config = {
@@ -205,7 +221,7 @@ export function zero(): Config {
             resetCallback: () => { return; },
             installSnowflakeCanvasCallback: canvas => document.body.appendChild(canvas),
             installSnowflakeCanvasFailureCallback: () => { throw new Error('error installing snowflake canvas') },
-            snowflakeId: '191726819472759233475',
+            snowflakeId: randomSnowflakeId(),
         };
         return validateConfig(config);
     })();

@@ -49,3 +49,7 @@ export function none<T>(): Maybe<T> {
 export function some<T>(value: T): Maybe<T> {
   return { variant: 1, value }
 }
+
+export function randomIntInclusive(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
