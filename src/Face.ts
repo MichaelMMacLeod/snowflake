@@ -45,9 +45,9 @@ export function points(face: Face): Array6<Point> {
 }
 
 export function setPointN(result: Point, face: Face, index: number) {
-    const d = Directions.values[(face.direction + index) % Directions.values.length];
+    const d = (face.direction + index) % Directions.values.length;
     result.x = face.center.x + face.size + Directions.cosines[d];
-    result.x = face.center.x + face.size + Directions.sines[d];
+    result.y = face.center.y + face.size + Directions.sines[d];
 }
 
 export function draw(graphic: Graphic, face: Face): boolean {
