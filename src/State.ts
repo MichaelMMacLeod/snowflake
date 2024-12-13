@@ -26,10 +26,7 @@ export type State = {
     graphic: Graphic | undefined,
     snowflake: Snowflake,
     currentGrowthType: GrowthType | undefined,
-
-    // Specifies a lower bound on how long it will take to grow the
-    // snowflake, in milliseconds.
-    targetGrowthTimeMS: number,
+    idealMSBetweenUpdates: number,
 
     upsCap: number,
 
@@ -151,8 +148,8 @@ export function handleEvents(state: State): void {
     }
 }
 
-function lowerBoundMSBetweenUpdates(state: State): number {
-    return Math.max(1000 / state.upsCap, state.targetGrowthTimeMS / state.maxUpdates);
+export function setIdealMSBetweenUpdates(state: State, targetGrowthTimeMS: number): void {
+    state.idealMSBetweenUpdates = Math.max(1000 / state.upsCap, targetGrowthTimeMS / state.maxUpdates);
 }
 
 export function make(): State {
@@ -170,7 +167,7 @@ export function make(): State {
         updateBank: 0,
         updateCount: 0,
         currentMS: 0,
-        targetGrowthTimeMS: 8000,
+        idealMSBetweenUpdates: 0,
         upsCap: Infinity,
         maxUpdates: 500,
         resetStartTime: performance.now(),
@@ -204,7 +201,7 @@ export function update(state: State): void {
     state.currentMS = performance.now();
     const deltaMS = state.currentMS - lastMS;
 
-    const desiredMSBetweenUpdates = lowerBoundMSBetweenUpdates(state);
+    const desiredMSBetweenUpdates = state.idealMSBetweenUpdates;
 
     const actualMSBetweenUpdates = deltaMS;
 

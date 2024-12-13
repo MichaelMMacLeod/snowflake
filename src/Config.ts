@@ -2,7 +2,7 @@ import { Either, left, right } from "./Either";
 import * as Eithers from "./Either";
 import { Maybe, none, some } from "./Maybe";
 import * as Maybes from "./Maybe";
-import { handleEvents, installGraphCanvas, setGraphCanvasHeight, setGraphCanvasWidth, setSnowflakeCanvasSizePX, setSnowflakeId, State } from "./State";
+import { handleEvents, installGraphCanvas, setGraphCanvasHeight, setGraphCanvasWidth, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX, setSnowflakeId, State } from "./State";
 import * as States from "./State";
 import { NonEmptyArray, parseSnowflakeId, randomIntInclusive, RGBA } from "./Utils";
 
@@ -302,7 +302,7 @@ const configSynchronizer: ConfigSynchronizer = {
         );
     },
     targetGrowthTimeMS: (s, newValue, _oldValue) => {
-        s.targetGrowthTimeMS = newValue;
+        setIdealMSBetweenUpdates(s, newValue);
         return false;
     },
     upsCap: (s, newValue, _oldValue) => {
