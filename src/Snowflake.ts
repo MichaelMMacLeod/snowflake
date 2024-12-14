@@ -16,6 +16,8 @@ export type Snowflake = {
   branches: Array<Branch>,
   faceSideCache: Array6<Array<Side>>,
   branchSideCache: Array6<Array<Side>>,
+  numInitialGrownFaces: number,
+  numInitialGrownBranches: number,
 };
 
 export function reset(s: Snowflake): void {
@@ -26,6 +28,8 @@ export function reset(s: Snowflake): void {
     s.faceSideCache[i].length = 0;
     s.branchSideCache[i].length = 0;
   }
+  s.numInitialGrownFaces = 0;
+  s.numInitialGrownBranches = 0;
 }
 
 export function draw(graphic: Graphic, snowflake: Snowflake): boolean {
@@ -52,6 +56,8 @@ export function zero(): Snowflake {
     branches: [],
     faceSideCache: makeArray6(() => []),
     branchSideCache: makeArray6(() => []),
+    numInitialGrownFaces: 0,
+    numInitialGrownBranches: 0,
   }
 }
 
@@ -153,10 +159,13 @@ export function cacheNormalizedSides(snowflake: Snowflake) {
 }
 
 export function killCoveredFaces(snowflake: Snowflake): void {
-  snowflake.faces.forEach((f, fi) => {
+  for (let fi = snowflake.numInitialGrownFaces; fi < snowflake.faces.length; ++fi) {
+    const f = snowflake.faces[fi];
     if (!f.growing) {
-      return;
+      snowflake.numInitialGrownFaces += [0, 1][Math.max(1, fi - snowflake.numInitialGrownFaces)];
+      continue;
     }
+
     const d = f.direction;
     const leftDirection = d;
     const rightDirection = rem(d - 1, Directions.values.length);
@@ -193,14 +202,17 @@ export function killCoveredFaces(snowflake: Snowflake): void {
         }
       }
     });
-  })
+  }
 }
 
 export function killCoveredBranches(snowflake: Snowflake): void {
-  snowflake.branches.forEach((b, bi) => {
+  for (let bi = snowflake.numInitialGrownBranches; bi < snowflake.branches.length; ++bi) {
+    const b = snowflake.branches[bi];
     if (!b.growing) {
-      return;
+      snowflake.numInitialGrownBranches += [0, 1][Math.max(1, bi - snowflake.numInitialGrownBranches)];
+      continue;
     }
+
     const d = b.direction;
     const leftDirection = d;
     const rightDirection = rem(d - 1, Directions.values.length);
@@ -237,6 +249,6 @@ export function killCoveredBranches(snowflake: Snowflake): void {
         }
       }
     });
-  })
+  }
 }
 
