@@ -66,3 +66,14 @@ export function drawLine(ctx: CanvasRenderingContext2D, p1: Point, p2: Point): v
   ctx.lineTo(p2.x, p2.y);
   ctx.stroke();
 }
+
+export function drawSeparateLines(ctx: CanvasRenderingContext2D, points: Array<Point>): void {
+  ctx.beginPath();
+  for (let i = 1; i < points.length; i += 2) {
+    const p0 = points[i - 1];
+    const p1 = points[i];
+    ctx.moveTo(p0.x, p0.y);
+    ctx.lineTo(p1.x, p1.y);
+  }
+  ctx.stroke();
+}

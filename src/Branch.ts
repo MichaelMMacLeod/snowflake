@@ -82,24 +82,16 @@ export function draw(graphic: Graphic, branch: Branch): boolean {
             const p45 = midpointT(p4, p5, 0.6);
             const p21 = midpointT(p2, p1, 0.6);
 
-            graphic.ctx.strokeStyle = `rgba(255, 255, 255, 0.1)`;
-            graphic.ctx.beginPath();
-            for (let i = 0; i < 3; ++i) {
-                const { x, y } = ps[rem(i - 1, ps.length)];
-                if (i === 0) {
-                    graphic.ctx.moveTo(x, y);
-                } else {
-                    graphic.ctx.lineTo(x, y);
-                }
-            }
-            graphic.ctx.stroke();
-
-            graphic.ctx.strokeStyle = `rgba(255, 255, 255, 0.08)`;
-            drawLine(graphic.ctx, p45, p5);
-            drawLine(graphic.ctx, p21, p1);
-
-            graphic.ctx.strokeStyle = `rgba(255, 255, 255, 0.02)`;
-            drawLine(graphic.ctx, p0, p3);
+            const ctx = graphic.ctx;
+            ctx.moveTo(p5.x, p5.y);
+            ctx.lineTo(p0.x,p0.y);
+            ctx.lineTo(p1.x,p1.y);
+            ctx.moveTo(p45.x,p45.y);
+            ctx.lineTo(p5.x,p5.y);
+            ctx.moveTo(p21.x,p21.y);
+            ctx.lineTo(p1.x,p1.y);
+            ctx.moveTo(p0.x,p0.y);
+            ctx.lineTo(p3.x,p3.y);
 
             return false;
         })

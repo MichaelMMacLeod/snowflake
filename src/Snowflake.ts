@@ -30,6 +30,8 @@ export function reset(s: Snowflake): void {
 
 export function draw(graphic: Graphic, snowflake: Snowflake): boolean {
   let anyPartOutside = false;
+  graphic.ctx.strokeStyle = `rgba(255, 255, 255, 0.08)`;
+  graphic.ctx.beginPath();
   snowflake.faces.forEach(f => {
     if (f.growing) {
       anyPartOutside ||= Faces.draw(graphic, f)
@@ -40,6 +42,7 @@ export function draw(graphic: Graphic, snowflake: Snowflake): boolean {
       anyPartOutside ||= Branches.draw(graphic, b)
     }
   });
+  graphic.ctx.stroke();
   return anyPartOutside;
 }
 

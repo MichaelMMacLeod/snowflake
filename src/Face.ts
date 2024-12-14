@@ -1,5 +1,5 @@
 import * as Points from "./Point";
-import { drawLine, midpoint, midpointT, Point } from "./Point";
+import { drawLine, drawSeparateLines, midpoint, midpointT, Point } from "./Point";
 import { Direction } from "./Direction";
 import * as Directions from "./Direction";
 import { callWithViewspacePoints, Graphic } from "./Graphic";
@@ -57,50 +57,49 @@ export function draw(graphic: Graphic, face: Face): boolean {
         () => true,
         (ps => {
             const [p0, p1, p2, p3, p4, p5] = ps;
-
             const p31 = midpointT(p3, p1, 0.6);
             const p30 = midpointT(p3, p0, 0.6);
             const p35 = midpointT(p3, p5, 0.6);
             const p45 = midpointT(p4, p5, 0.6);
             const p21 = midpointT(p2, p1, 0.6);
 
+            const ctx = graphic.ctx;
             if (face.isFirstFace) {
-                graphic.ctx.strokeStyle = `rgba(255, 255, 255, 0.08)`;
-                graphic.ctx.beginPath();
-                ps.forEach((p, i) => {
-                    const { x, y } = p;
-                    if (i === 0) {
-                        graphic.ctx.moveTo(x, y);
-                    } else {
-                        graphic.ctx.lineTo(x, y);
-                    }
-                });
-                graphic.ctx.closePath();
-                graphic.ctx.stroke();
-
                 const c = worldToViewTransform(graphic, face.center);
-                ps.forEach(p => {
-                    drawLine(graphic.ctx, c, p);
-                });
+                ctx.moveTo(p0.x, p0.y);
+                ctx.lineTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.lineTo(p3.x, p3.y);
+                ctx.lineTo(p4.x, p4.y);
+                ctx.lineTo(p5.x, p5.y);
+                ctx.lineTo(p0.x, p0.y);
+
+                ctx.moveTo(c.x, c.y);
+                ctx.lineTo(p0.x, p0.y);
+                ctx.moveTo(c.x, c.y);
+                ctx.lineTo(p1.x, p1.y);
+                ctx.moveTo(c.x, c.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.moveTo(c.x, c.y);
+                ctx.lineTo(p3.x, p3.y);
+                ctx.moveTo(c.x, c.y);
+                ctx.lineTo(p4.x, p4.y);
+                ctx.moveTo(c.x, c.y);
+                ctx.lineTo(p5.x, p5.y);
             } else {
-                graphic.ctx.strokeStyle = `rgba(255, 255, 255, 0.08)`;
-
-                drawLine(graphic.ctx, p45, p5);
-                drawLine(graphic.ctx, p21, p1);
-
-                for (let i = 0; i < 3; ++i) {
-                    const { x, y } = ps[rem(i - 1, ps.length)];
-                    if (i === 0) {
-                        graphic.ctx.moveTo(x, y);
-                    } else {
-                        graphic.ctx.lineTo(x, y);
-                    }
-                };
-                graphic.ctx.stroke();
-
-                drawLine(graphic.ctx, p31, p1);
-                drawLine(graphic.ctx, p30, p0);
-                drawLine(graphic.ctx, p35, p5);
+                ctx.moveTo(p45.x, p45.y);
+                ctx.lineTo(p5.x, p5.y);
+                ctx.moveTo(p21.x, p21.y);
+                ctx.lineTo(p1.x, p1.y);
+                ctx.moveTo(p5.x, p5.y);
+                ctx.lineTo(p0.x, p0.y);
+                ctx.lineTo(p1.x, p1.y)
+                ctx.moveTo(p31.x, p31.y);
+                ctx.lineTo(p1.x, p1.y);
+                ctx.moveTo(p30.x, p30.y)
+                ctx.lineTo(p0.x, p0.y);
+                ctx.moveTo(p35.x, p35.y);
+                ctx.lineTo(p5.x, p5.y);
             }
 
             return false;
