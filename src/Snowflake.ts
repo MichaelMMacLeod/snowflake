@@ -3,7 +3,7 @@ import * as Faces from "./Face";
 import { Branch } from "./Branch";
 import * as Branches from "./Branch";
 import { Graphic } from "./Graphic";
-import { Direction } from "./Direction";
+import { Direction, DIRS } from "./Direction";
 import * as Directions from "./Direction";
 import { Array6, makeArray6, rem } from "./Utils";
 import { Side } from "./Side";
@@ -12,13 +12,19 @@ import * as Points from "./Point";
 import { Side2D } from "./Side2D";
 import { Point } from "./Point";
 
+const MAX_FACES: number = 10000;
+const MAX_BRANCHES: number = 10000;
+type CacheIndex = 0 | 1;
+const FACE_CACHE: CacheIndex = 0;
+const BRANCH_CACHE: CacheIndex = 1;
+type SideCache =  [Array6<Array<Side>>, Array6<Array<Side>>];
+
 export type Snowflake = {
   faces: Array<Face>,
   branches: Array<Branch>,
   numFaces: number,
   numBranches: number,
-  //           face side cache,     branch side cache
-  sideCaches: [Array6<Array<Side>>, Array6<Array<Side>>],
+  sideCaches: SideCache,
   numInitialGrownFaces: number,
   numInitialGrownBranches: number,
 };
@@ -137,13 +143,27 @@ export function draw(graphic: Graphic, snowflake: Snowflake): boolean {
   return anyPartOutside;
 }
 
+function zeroParts<P>(maxParts: number, zeroPart: () => P, caches: SideCache, cacheIndex: CacheIndex): Array<P> {
+  const result = [];
+  for (let i = 0; i < maxParts; ++i) {
+    result[i] = zeroPart();
+    for (let j = 0; j < DIRS; ++j) {
+      caches[cacheIndex][j][i] = Sides.zero();
+    }
+  }
+  return result;
+}
+
 export function zero(): Snowflake {
+  const sideCaches: [Array6<Array<Side>>, Array6<Array<Side>>] = [makeArray6(() => []), makeArray6(() => [])];
+  const faces = zeroParts(MAX_FACES, Faces.zero, sideCaches, FACE_CACHE);
+  const branches = zeroParts(MAX_BRANCHES, Branches.zero, sideCaches, BRANCH_CACHE);
   return {
-    faces: [Faces.zero()],
-    branches: [],
+    faces,
+    branches,
     numFaces: 1,
     numBranches: 0,
-    sideCaches: [makeArray6(() => []), makeArray6(() => [])],
+    sideCaches,
     numInitialGrownFaces: 0,
     numInitialGrownBranches: 0,
   }

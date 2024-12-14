@@ -18,6 +18,17 @@ export type Branch = {
     growing: boolean,
 }
 
+export function zero(): Branch {
+    return {
+        start: Points.zero(),
+        size: 0,
+        length: 0,
+        direction: 0,
+        growthScale :0,
+        growing: false,
+    };
+}
+
 export function endCenterX(branch: Branch): number {
     return branch.start.x + branch.length * Directions.cosines[branch.direction];
 }

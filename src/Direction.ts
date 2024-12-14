@@ -2,6 +2,7 @@ import { rem, Array6 } from "./Utils";
 import { oneSixthCircle } from "./Constants";
 
 export type Direction = 0 | 1 | 2 | 3 | 4 | 5;
+export const DIRS: 6 = 6;
 
 function is(i: number): i is Direction {
     return i === 0 || i === 1 || i === 2 ||
