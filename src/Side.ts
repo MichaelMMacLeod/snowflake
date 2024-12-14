@@ -25,25 +25,25 @@ export function zero(): Side {
 }
 
 export function normalizeSide2DFaceM(result: Side, face: Face, absoluteDirection: number): void {
-  const theta = oneSixthCircle * (1 - absoluteDirection);
+  const d = rem(1 - absoluteDirection, Directions.values.length) as Direction;
   const side2dLeftX = Side2Ds.faceSideNLeftX(face, absoluteDirection);
   const side2dLeftY = Side2Ds.faceSideNLeftY(face, absoluteDirection);
   const side2dRightX = Side2Ds.faceSideNRightX(face, absoluteDirection);
   const side2dRightY = Side2Ds.faceSideNRightY(face, absoluteDirection);
-  result.left = Points.rotateX(side2dLeftX, side2dLeftY, theta);
-  result.right = Points.rotateX(side2dRightX, side2dRightY, theta);
-  result.height = Points.rotateY(side2dLeftX, side2dLeftY, theta);
+  result.left = Points.rotateX(side2dLeftX, side2dLeftY, d);
+  result.right = Points.rotateX(side2dRightX, side2dRightY, d);
+  result.height = Points.rotateY(side2dLeftX, side2dLeftY, d);
 }
 
 export function normalizeSide2DBranchM(result: Side, branch: Branch, absoluteDirection: number): void {
-  const theta = oneSixthCircle * (1 - absoluteDirection);
+  const d = rem(1 - absoluteDirection, Directions.values.length) as Direction;
   const side2dLeftX = Side2Ds.branchSideNLeftX(branch, absoluteDirection);
   const side2dLeftY = Side2Ds.branchSideNLeftY(branch, absoluteDirection);
   const side2dRightX = Side2Ds.branchSideNRightX(branch, absoluteDirection);
   const side2dRightY = Side2Ds.branchSideNRightY(branch, absoluteDirection);
-  result.left = Points.rotateX(side2dLeftX, side2dLeftY, theta);
-  result.right = Points.rotateX(side2dRightX, side2dRightY, theta);
-  result.height = Points.rotateY(side2dLeftX, side2dLeftY, theta);
+  result.left = Points.rotateX(side2dLeftX, side2dLeftY, d);
+  result.right = Points.rotateX(side2dRightX, side2dRightY, d);
+  result.height = Points.rotateY(side2dLeftX, side2dLeftY, d);
 }
 
 export function normalizeFaceRelativeSide2DsM(result: Array6<Array<Side>>, partIndex: number, face: Face): void {
