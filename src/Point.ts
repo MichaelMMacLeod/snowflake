@@ -60,6 +60,14 @@ export function rotate(point: Point, theta: number): Point {
   };
 }
 
+export function rotateX(x: number, y: number, theta: number) {
+  return x * Math.cos(theta) - y * Math.sin(theta);
+}
+
+export function rotateY(x: number, y: number, theta: number) {
+  return x * Math.sin(theta) + y * Math.cos(theta);
+}
+
 export function drawLine(ctx: CanvasRenderingContext2D, p1: Point, p2: Point): void {
   ctx.beginPath();
   ctx.moveTo(p1.x, p1.y);

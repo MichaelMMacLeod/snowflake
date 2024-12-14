@@ -30,11 +30,9 @@ export function normalizeSide2DFaceM(result: Side, face: Face, absoluteDirection
   const side2dLeftY = Side2Ds.faceSideNLeftY(face, absoluteDirection);
   const side2dRightX = Side2Ds.faceSideNRightX(face, absoluteDirection);
   const side2dRightY = Side2Ds.faceSideNRightY(face, absoluteDirection);
-  const left = Points.rotate({ x: side2dLeftX, y: side2dLeftY }, theta);
-  const right = Points.rotate({ x: side2dRightX, y: side2dRightY }, theta);
-  result.left = left.x;
-  result.right = right.x;
-  result.height = left.y;
+  result.left = Points.rotateX(side2dLeftX, side2dLeftY, theta);
+  result.right = Points.rotateX(side2dRightX, side2dRightY, theta);
+  result.height = Points.rotateY(side2dLeftX, side2dLeftY, theta);
 }
 
 export function normalizeSide2DBranchM(result: Side, branch: Branch, absoluteDirection: number): void {
@@ -43,11 +41,9 @@ export function normalizeSide2DBranchM(result: Side, branch: Branch, absoluteDir
   const side2dLeftY = Side2Ds.branchSideNLeftY(branch, absoluteDirection);
   const side2dRightX = Side2Ds.branchSideNRightX(branch, absoluteDirection);
   const side2dRightY = Side2Ds.branchSideNRightY(branch, absoluteDirection);
-  const left = Points.rotate({ x: side2dLeftX, y: side2dLeftY }, theta);
-  const right = Points.rotate({ x: side2dRightX, y: side2dRightY }, theta);
-  result.left = left.x;
-  result.right = right.x;
-  result.height = left.y;
+  result.left = Points.rotateX(side2dLeftX, side2dLeftY, theta);
+  result.right = Points.rotateX(side2dRightX, side2dRightY, theta);
+  result.height = Points.rotateY(side2dLeftX, side2dLeftY, theta);
 }
 
 export function normalizeFaceRelativeSide2DsM(result: Array6<Array<Side>>, partIndex: number, face: Face): void {
