@@ -162,7 +162,7 @@ export function killCoveredFaces(snowflake: Snowflake): void {
   for (let fi = snowflake.numInitialGrownFaces; fi < snowflake.faces.length; ++fi) {
     const f = snowflake.faces[fi];
     if (!f.growing) {
-      snowflake.numInitialGrownFaces += [0, 1][Math.max(1, fi - snowflake.numInitialGrownFaces)];
+      snowflake.numInitialGrownFaces += [1, 0][Math.min(1, fi - snowflake.numInitialGrownFaces)];
       continue;
     }
 
@@ -209,7 +209,7 @@ export function killCoveredBranches(snowflake: Snowflake): void {
   for (let bi = snowflake.numInitialGrownBranches; bi < snowflake.branches.length; ++bi) {
     const b = snowflake.branches[bi];
     if (!b.growing) {
-      snowflake.numInitialGrownBranches += [0, 1][Math.max(1, bi - snowflake.numInitialGrownBranches)];
+      snowflake.numInitialGrownBranches += [1, 0][Math.min(1, bi - snowflake.numInitialGrownBranches)];
       continue;
     }
 
