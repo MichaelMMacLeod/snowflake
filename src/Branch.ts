@@ -112,10 +112,10 @@ export function draw(graphic: Graphic, branch: Branch): boolean {
     ) {
         return true;
     }
-    const p45x = midpointTN(p4x, p5x, 0.6);
-    const p45y = midpointTN(p4y, p5y, 0.6);
-    const p21x = midpointTN(p2x, p1x, 0.6);
-    const p21y = midpointTN(p2y, p1y, 0.6);
+    const p45x = midpointTN(p4x, p5x, 0);
+    const p45y = midpointTN(p4y, p5y, 0);
+    const p21x = midpointTN(p2x, p1x, 0);
+    const p21y = midpointTN(p2y, p1y, 0);
 
     const ctx = graphic.ctx;
     ctx.moveTo(p5x, p5y);
