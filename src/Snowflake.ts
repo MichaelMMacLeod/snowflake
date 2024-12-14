@@ -157,6 +157,8 @@ export function zeroM(s: Snowflake): void {
   s.numInitialGrownBranches = 0;
 }
 
+const branchSplittingGrowthScales = [0.7, 1, 0.7];
+
 function addBranchesToFace(snowflake: Snowflake, face: Face): void {
   const initialFraction = 0.01;
   const sizeOfNewBranches = face.size * initialFraction;
@@ -170,32 +172,35 @@ function addBranchesToFace(snowflake: Snowflake, face: Face): void {
   const cx = face.center.x;
   const cy = face.center.y;
 
-  let [startDir, numDirs]: [Direction, number] = (() => {
-    if (face.isFirstFace) {
-      return [0, 6];
+  if (face.isFirstFace) {
+    const growthScale = branchSplittingGrowthScales[1];
+    for (let i = 0; i < 6; ++i) {
+      addBranchM(
+        snowflake,
+        cx + distFromCenter * Directions.cosines[i],
+        cy + distFromCenter * Directions.sines[i],
+        sizeOfNewBranches,
+        0,
+        i as Direction,
+        growthScale,
+        true
+      );
     }
-
-    return [
-      Directions.previous(face.direction),
-      3,
-    ];
-  })();
-
-  let dir = startDir;
-  for (let i = 0; i < numDirs; i += 1) {
-    const x = cx + distFromCenter * Math.cos(Directions.values[dir]);
-    const y = cy + distFromCenter * Math.sin(Directions.values[dir]);
-    const growthScale = (() => {
-      if (face.isFirstFace || i === 1) {
-        return face.growthScale * 0.9;
-      }
-
-      // const randomAdjust = Math.random();
-      const randomAdjust = 1;
-      return face.growthScale * 0.5 * randomAdjust;
-    })();
-    addBranchM(snowflake, x, y, sizeOfNewBranches, 0, dir, growthScale, true);
-    dir = Directions.next(dir);
+  } else {
+    for (let k = -1; k < 2; ++k) {
+      const growthScale = face.growthScale * branchSplittingGrowthScales[k + 1];
+      const i = rem(face.direction + k, 6);
+      addBranchM(
+        snowflake,
+        cx + distFromCenter * Directions.cosines[i],
+        cy + distFromCenter * Directions.sines[i],
+        sizeOfNewBranches,
+        0,
+        i as Direction,
+        growthScale,
+        true
+      );
+    }
   }
 }
 

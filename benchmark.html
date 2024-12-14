@@ -1013,7 +1013,7 @@
 
         const startTime = performance.now();
 
-        let numSnowflakesGrown = 0;
+        let numSnowflakesGrown = 900;
         const maxSnowflakes = 1000;
 
         const controller = Main.main();
@@ -1027,6 +1027,11 @@
         config.upsCap = 10000000;
         config.maxUpdates = 500;
         config.playing = true;
+        const iccb = config.installSnowflakeCanvasCallback;
+        config.installSnowflakeCanvasCallback = canvas => {
+            iccb(canvas);
+            canvas.style.filter = 'drop-shadow(0px 0px 8px white)'
+        };
         config.finishedGrowingCallback = () => {
             numSnowflakesGrown += 1;
             if (numSnowflakesGrown < maxSnowflakes) {

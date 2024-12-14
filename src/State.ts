@@ -85,6 +85,7 @@ export function setSnowflakeCanvasSizePX(state: State, snowflakeCanvasSizePX: nu
     if (state.graphic === undefined) {
         return false;
     }
+    state.graphic.sizePX = snowflakeCanvasSizePX;
     state.graphic.ctx.canvas.width = snowflakeCanvasSizePX;
     state.graphic.ctx.canvas.height = snowflakeCanvasSizePX;
     state.graphic.canvas.style.width = `${snowflakeCanvasSizePX}px`;
