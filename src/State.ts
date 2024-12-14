@@ -156,11 +156,11 @@ export function scheduleUpdate(state: State): void {
         state.hasScheduledUpdate = true;
         setTimeout(
             () => {
-                some(requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    update(state);
                     state.hasScheduledUpdate = false;
                     scheduleUpdate(state);
-                }))
-                update(state);
+                });
             },
             state.idealMSBetweenUpdates
         )
