@@ -177,7 +177,7 @@ export function zeroM(s: Snowflake): void {
   s.numInitialGrownBranches = 0;
 }
 
-const branchSplittingGrowthScales = [0.7, 1, 0.7];
+const branchSplittingGrowthScales = [0.5, 0.9, 0.5];
 
 function addBranchesToFace(snowflake: Snowflake, face: Face): void {
   const initialFraction = 0.01;

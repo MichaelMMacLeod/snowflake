@@ -169,7 +169,6 @@ export function draw(graphic: Graphic, face: Face): boolean {
 }
 
 export function enlarge(face: Face, scale: number): void {
-    face.growthScale += 0.1 * scale;
     face.size += scale * faceSizeGrowthScalar * face.growthScale;
     if (!face.isFirstFace) {
         const dx = scale * faceSizeGrowthScalar * Math.cos(Directions.values[face.direction]) * face.growthScale;
