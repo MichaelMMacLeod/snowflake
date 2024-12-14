@@ -67,21 +67,3 @@ export function rotateX(x: number, y: number, direction: Direction) {
 export function rotateY(x: number, y: number, direction: Direction) {
   return x * Directions.sines[direction] + y * Directions.cosines[direction];
 }
-
-export function drawLine(ctx: CanvasRenderingContext2D, p1: Point, p2: Point): void {
-  ctx.beginPath();
-  ctx.moveTo(p1.x, p1.y);
-  ctx.lineTo(p2.x, p2.y);
-  ctx.stroke();
-}
-
-export function drawSeparateLines(ctx: CanvasRenderingContext2D, points: Array<Point>): void {
-  ctx.beginPath();
-  for (let i = 1; i < points.length; i += 2) {
-    const p0 = points[i - 1];
-    const p1 = points[i];
-    ctx.moveTo(p0.x, p0.y);
-    ctx.lineTo(p1.x, p1.y);
-  }
-  ctx.stroke();
-}

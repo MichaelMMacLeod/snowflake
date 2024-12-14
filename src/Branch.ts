@@ -1,5 +1,5 @@
 import * as Points from "./Point";
-import { drawLine, midpoint, midpointT, Point } from "./Point";
+import { midpointT, Point } from "./Point";
 import { Direction } from "./Direction";
 import * as Directions from "./Direction";
 import { callWithViewspacePoints, Graphic } from "./Graphic";
