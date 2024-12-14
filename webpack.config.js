@@ -1,4 +1,5 @@
 const path = require('path');
+const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = {
     mode: 'production',
@@ -14,6 +15,20 @@ module.exports = {
     },
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],
+    },
+    optimization: {
+        minimize: false,
+        minimizer: [
+            new TerserPlugin({
+                terserOptions: {
+                    // https://github.com/webpack-contrib/terser-webpack-plugin#terseroptions
+                    compress: {
+                        inline: false,
+                    },
+                    mangle: false,
+                },
+            }),
+        ],
     },
     output: {
         filename: 'snowflake.js',
