@@ -5,7 +5,7 @@ import * as Directions from "./Direction";
 import { callWithViewspacePoints, Graphic } from "./Graphic";
 import { worldToViewTransform } from "./CoordinateSystem";
 import * as Faces from "./Face";
-import { Face } from "./Face";
+import { Face, setPointNManually } from "./Face";
 import { branchLengthGrowthScalar, branchSizeGrowthScalar } from "./Constants";
 import { Array6, makeArray6, rem } from "./Utils";
 
@@ -19,35 +19,23 @@ export type Branch = {
 }
 
 export function end(branch: Branch): Point {
-    let d = Directions.values[branch.direction];
     let l = branch.length;
-    let x = branch.start.x + l * Math.cos(d);
-    let y = branch.start.y + l * Math.sin(d);
+    let x = branch.start.x + l * Directions.cosines[branch.direction];
+    let y = branch.start.y + l * Directions.sines[branch.direction];
     return { x, y };
 }
 
-function startFace(branch: Branch): Face {
-    return {
-        ...Faces.zero(),
-        isFirstFace: false,
-        center: Points.copy(branch.start),
-        size: branch.size,
-        direction: branch.direction,
-    };
+function setPointNManuallyStartFace(branch: Branch, result: Point, i: number) {
+    const direction = branch.direction;
+    const center = branch.start;
+    const size = branch.size;
+    setPointNManually(result, direction, center, size, i)
 }
 
-function endFace(branch: Branch): Face {
-    return {
-        ...Faces.zero(),
-        center: Points.add(
-            branch.start,
-            {
-                x: branch.length * Math.cos(Directions.values[branch.direction]),
-                y: branch.length * Math.sin(Directions.values[branch.direction]),
-            }),
-        size: branch.size,
-        direction: branch.direction,
-    };
+function setPointNManuallyEndFace(branch: Branch, result: Point, i: number, endFaceCenter: Point) {
+    const direction = branch.direction;
+    const size = branch.size;
+    setPointNManually(result, direction, endFaceCenter, size, i)
 }
 
 // Points are returned in order of relative direction:
@@ -60,15 +48,14 @@ function endFace(branch: Branch): Face {
 //      \                                  /
 //      [4]------------------------------[5]
 export function points(branch: Branch): Array6<Point> {
-    const sf = startFace(branch);
-    const ef = endFace(branch);
     const result = makeArray6(Points.zero);
-    Faces.setPointN(result[0], ef, 0);
-    Faces.setPointN(result[1], ef, 1);
-    Faces.setPointN(result[2], sf, 2);
-    Faces.setPointN(result[3], sf, 3);
-    Faces.setPointN(result[4], sf, 4);
-    Faces.setPointN(result[5], ef, 5);
+    const endFaceCenter = end(branch);
+    setPointNManuallyEndFace(branch, result[0], 0, endFaceCenter);
+    setPointNManuallyEndFace(branch, result[1], 1, endFaceCenter);
+    setPointNManuallyStartFace(branch, result[2], 2);
+    setPointNManuallyStartFace(branch, result[3], 3);
+    setPointNManuallyStartFace(branch, result[4], 4);
+    setPointNManuallyEndFace(branch, result[5], 5, endFaceCenter);
     return result;
 }
 
@@ -84,14 +71,14 @@ export function draw(graphic: Graphic, branch: Branch): boolean {
 
             const ctx = graphic.ctx;
             ctx.moveTo(p5.x, p5.y);
-            ctx.lineTo(p0.x,p0.y);
-            ctx.lineTo(p1.x,p1.y);
-            ctx.moveTo(p45.x,p45.y);
-            ctx.lineTo(p5.x,p5.y);
-            ctx.moveTo(p21.x,p21.y);
-            ctx.lineTo(p1.x,p1.y);
-            ctx.moveTo(p0.x,p0.y);
-            ctx.lineTo(p3.x,p3.y);
+            ctx.lineTo(p0.x, p0.y);
+            ctx.lineTo(p1.x, p1.y);
+            ctx.moveTo(p45.x, p45.y);
+            ctx.lineTo(p5.x, p5.y);
+            ctx.moveTo(p21.x, p21.y);
+            ctx.lineTo(p1.x, p1.y);
+            ctx.moveTo(p0.x, p0.y);
+            ctx.lineTo(p3.x, p3.y);
 
             return false;
         })

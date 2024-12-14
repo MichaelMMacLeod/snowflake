@@ -50,6 +50,12 @@ export function setPointN(result: Point, face: Face, i: number) {
     result.y = face.center.y + face.size * Directions.sines[d];
 }
 
+export function setPointNManually(result: Point, direction: Direction, center: Point, size: number, i: number) {
+    const d = (direction + i) % Directions.values.length;
+    result.x = center.x + size * Directions.cosines[d];
+    result.y = center.y + size * Directions.sines[d];
+}
+
 export function draw(graphic: Graphic, face: Face): boolean {
     return callWithViewspacePoints(
         graphic,
