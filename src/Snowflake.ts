@@ -141,18 +141,24 @@ export function addFacesToGrowingBranches(snowflake: Snowflake): void {
 export function cacheNormalizedSides(snowflake: Snowflake) {
   snowflake.faces.forEach((f, fi) => {
     if (f.growing) {
-      Sides.normalizedFaceSides(f).forEach((s, i) => {
-        const absoluteDirection = (i + f.direction) % Directions.values.length;
-        snowflake.sideCaches[0][absoluteDirection][fi] = s;
-      });
+      for (let i = 0; i < Directions.values.length; ++i) {
+        if (snowflake.sideCaches[0][i][fi] !== undefined) {
+          break;
+        }
+        snowflake.sideCaches[0][i][fi] = Sides.zero();
+      }
+      Sides.normalizeFaceSidesM(snowflake.sideCaches[0], fi, f);
     }
   });
   snowflake.branches.forEach((b, bi) => {
     if (b.growing) {
-      Sides.normalizedBranchSides(b).forEach((s, i) => {
-        const absoluteDirection = (i + b.direction) % Directions.values.length;
-        snowflake.sideCaches[1][absoluteDirection][bi] = s;
-      });
+      for (let i = 0; i < Directions.values.length; ++i) {
+        if (snowflake.sideCaches[1][i][bi] !== undefined) {
+          break;
+        }
+        snowflake.sideCaches[1][i][bi] = Sides.zero();
+      }
+      Sides.normalizeBranchSidesM(snowflake.sideCaches[1], bi, b);
     }
   });
 }

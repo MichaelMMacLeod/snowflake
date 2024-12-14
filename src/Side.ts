@@ -4,17 +4,25 @@ import { Point } from "./Point";
 import * as Points from "./Point";
 import { Side2D } from "./Side2D";
 import * as Side2Ds from "./Side2D";
-import { Array6, mapArray6 } from "./Utils";
+import { Array6, mapArray6, rem } from "./Utils";
 import * as Directions from "./Direction";
 import { Direction } from "./Direction";
 import * as Faces from "./Face";
 import { Branch } from "./Branch";
 
 export type Side = {
-    left: number,
-    right: number,
-    height: number,
+  left: number,
+  right: number,
+  height: number,
 };
+
+export function zero(): Side {
+  return {
+    left: 0,
+    right: 0,
+    height: 0,
+  }
+}
 
 // Returns a Side calculated by rotating a 'Side2d' around the origin
 // counterclockwise until it is horizontal. 'absoluteDirection' should be the
@@ -32,18 +40,34 @@ export type Side = {
 //       -----
 //         4
 export function normalizeSide2D(side2d: Side2D, absoluteDirection: number): Side {
-    const theta = oneSixthCircle * (1 - absoluteDirection);
-    const left = Points.rotate(side2d.left, theta);
-    const right = Points.rotate(side2d.right, theta);
-    return {
-        left: left.x,
-        right: right.x,
-        height: left.y,
-    };
+  const theta = oneSixthCircle * (1 - absoluteDirection);
+  const left = Points.rotate(side2d.left, theta);
+  const right = Points.rotate(side2d.right, theta);
+  return {
+    left: left.x,
+    right: right.x,
+    height: left.y,
+  };
+}
+
+export function normalizeSide2DM(result: Side, side2d: Side2D, absoluteDirection: number): void {
+  const theta = oneSixthCircle * (1 - absoluteDirection);
+  const left = Points.rotate(side2d.left, theta);
+  const right = Points.rotate(side2d.right, theta);
+  result.left = left.x;
+  result.right = right.x;
+  result.height = left.y;
 }
 
 export function normalizeRelativeSide2Ds(side2Ds: Array6<Side2D>, shapeDir: Direction): Array6<Side> {
-    return mapArray6(side2Ds, (s, i) => normalizeSide2D(s, (i + shapeDir) % Directions.values.length));
+  return mapArray6(side2Ds, (s, i) => normalizeSide2D(s, (i + shapeDir) % Directions.values.length));
+}
+
+export function normalizeRelativeSide2DsM(result: Array6<Array<Side>>, partIndex: number, side2Ds: Array6<Side2D>, shapeDir: Direction): void {
+  for (let i = 0; i < Directions.values.length; ++i) {
+    const relativeDirection = rem((i - shapeDir), Directions.values.length);
+    normalizeSide2DM(result[i][partIndex], side2Ds[relativeDirection], i);
+  }
 }
 
 // Normalizes the sides of a face. Sides are returned in relative order to their
@@ -57,7 +81,11 @@ export function normalizeRelativeSide2Ds(side2Ds: Array6<Side2D>, shapeDir: Dire
 //       -----
 //         4
 export function normalizedFaceSides(face: Face): Array6<Side> {
-    return normalizeRelativeSide2Ds(Side2Ds.ofFace(face), face.direction);
+  return normalizeRelativeSide2Ds(Side2Ds.ofFace(face), face.direction);
+}
+
+export function normalizeFaceSidesM(result: Array6<Array<Side>>, faceIndex: number, face: Face): void {
+  normalizeRelativeSide2DsM(result, faceIndex, Side2Ds.ofFace(face), face.direction);
 }
 
 // Normalizes the sides of a face. Sides are returned in relative order to their
@@ -71,7 +99,11 @@ export function normalizedFaceSides(face: Face): Array6<Side> {
 //       -------------------------
 //                  4
 export function normalizedBranchSides(branch: Branch): Array<Side> {
-    return normalizeRelativeSide2Ds(Side2Ds.ofBranch(branch), branch.direction);
+  return normalizeRelativeSide2Ds(Side2Ds.ofBranch(branch), branch.direction);
+}
+
+export function normalizeBranchSidesM(result: Array6<Array<Side>>, branchIndex: number, branch: Branch): void {
+  normalizeRelativeSide2DsM(result, branchIndex, Side2Ds.ofBranch(branch), branch.direction);
 }
 
 // Returns how far above s1 is from s2 if s1 is above and overlapping
