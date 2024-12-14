@@ -41,6 +41,22 @@ export function faceSideNRightY(face: Face, absoluteSideIndex: number): number {
     return Faces.pointNY(face, absoluteSideIndex);
 }
 
+export function branchSideNLeftX(branch: Branch, absoluteSideIndex: number): number {
+    return Branches.pointNX(branch, (absoluteSideIndex + 1) % Directions.values.length);
+}
+
+export function branchSideNLeftY(branch: Branch, absoluteSideIndex: number): number {
+    return Branches.pointNY(branch, (absoluteSideIndex + 1) % Directions.values.length);
+}
+
+export function branchSideNRightX(branch: Branch, absoluteSideIndex: number): number {
+    return Branches.pointNX(branch, absoluteSideIndex);
+}
+
+export function branchSideNRightY(branch: Branch, absoluteSideIndex: number): number {
+    return Branches.pointNY(branch, absoluteSideIndex);
+}
+
 // Side2Ds are returned in relative order:
 //         1
 //       -----

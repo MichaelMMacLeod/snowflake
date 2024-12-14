@@ -18,6 +18,30 @@ export type Branch = {
     growing: boolean,
 }
 
+export function endCenterX(branch: Branch): number {
+    return branch.start.x + branch.length * Directions.cosines[branch.direction];
+}
+
+export function endCenterY(branch: Branch): number {
+    return branch.start.y + branch.length * Directions.sines[branch.direction];
+}
+
+export function pointNX(branch: Branch, absoluteDirection: number): number {
+    const d = rem(absoluteDirection - branch.direction, Directions.values.length);
+    if (d === 5 || d === 0 || d === 1) {
+        return Faces.manualPointNX(endCenterX(branch), branch.size, absoluteDirection);
+    }
+    return Faces.manualPointNX(branch.start.x, branch.size, absoluteDirection);
+}
+
+export function pointNY(branch: Branch, absoluteDirection: number): number {
+    const d = rem(absoluteDirection - branch.direction, Directions.values.length);
+    if (d === 5 || d === 0 || d === 1) {
+        return Faces.manualPointNY(endCenterY(branch), branch.size, absoluteDirection);
+    }
+    return Faces.manualPointNY(branch.start.y, branch.size, absoluteDirection);
+}
+
 export function end(branch: Branch): Point {
     let l = branch.length;
     let x = branch.start.x + l * Directions.cosines[branch.direction];

@@ -72,6 +72,19 @@ export function normalizeSide2DFaceM(result: Side, face: Face, absoluteDirection
   result.height = left.y;
 }
 
+export function normalizeSide2DBranchM(result: Side, branch: Branch, absoluteDirection: number): void {
+  const theta = oneSixthCircle * (1 - absoluteDirection);
+  const side2dLeftX = Side2Ds.branchSideNLeftX(branch, absoluteDirection);
+  const side2dLeftY = Side2Ds.branchSideNLeftY(branch, absoluteDirection);
+  const side2dRightX = Side2Ds.branchSideNRightX(branch, absoluteDirection);
+  const side2dRightY = Side2Ds.branchSideNRightY(branch, absoluteDirection);
+  const left = Points.rotate({ x: side2dLeftX, y: side2dLeftY }, theta);
+  const right = Points.rotate({ x: side2dRightX, y: side2dRightY }, theta);
+  result.left = left.x;
+  result.right = right.x;
+  result.height = left.y;
+}
+
 export function normalizeRelativeSide2Ds(side2Ds: Array6<Side2D>, shapeDir: Direction): Array6<Side> {
   return mapArray6(side2Ds, (s, i) => normalizeSide2D(s, (i + shapeDir) % Directions.values.length));
 }
@@ -89,18 +102,10 @@ export function normalizeFaceRelativeSide2DsM(result: Array6<Array<Side>>, partI
   }
 }
 
-// Normalizes the sides of a face. Sides are returned in relative order to their
-// un-normalized counterparts.
-//         1
-//       -----
-//    2 /     \  0
-//     /       \ _____direction___>
-//     \       /
-//   3  \     /  5
-//       -----
-//         4
-export function normalizedFaceSides(face: Face): Array6<Side> {
-  return normalizeRelativeSide2Ds(Side2Ds.ofFace(face), face.direction);
+export function normalizeBranchRelativeSide2DsM(result: Array6<Array<Side>>, partIndex: number, branch: Branch): void {
+  for (let i = 0; i < Directions.values.length; ++i) {
+    normalizeSide2DBranchM(result[i][partIndex], branch, i);
+  }
 }
 
 export function normalizeFaceSidesM(result: Array6<Array<Side>>, faceIndex: number, face: Face): void {

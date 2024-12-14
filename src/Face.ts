@@ -44,8 +44,16 @@ export function points(face: Face): Array6<Point> {
     return result;
 }
 
+export function manualPointNX(centerX: number, size: number, absoluteDirection: number): number {
+    return centerX + size * Directions.cosines[absoluteDirection];
+}
+
+export function manualPointNY(centerY: number, size: number, absoluteDirection: number): number {
+    return centerY + size * Directions.sines[absoluteDirection];
+}
+
 export function pointNX(face: Face, absoluteDirection: number): number {
-    return face.center.x + face.size * Directions.cosines[absoluteDirection];
+    return manualPointNX(face.center.x, face.size, absoluteDirection);
 }
 
 export function pointNY(face: Face, absoluteDirection: number): number {
