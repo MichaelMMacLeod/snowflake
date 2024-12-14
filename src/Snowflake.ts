@@ -10,20 +10,127 @@ import { Side } from "./Side";
 import * as Sides from "./Side";
 import * as Points from "./Point";
 import { Side2D } from "./Side2D";
+import { Point } from "./Point";
 
 export type Snowflake = {
   faces: Array<Face>,
   branches: Array<Branch>,
+  numFaces: number,
+  numBranches: number,
   //           face side cache,     branch side cache
   sideCaches: [Array6<Array<Side>>, Array6<Array<Side>>],
   numInitialGrownFaces: number,
   numInitialGrownBranches: number,
 };
 
+export function addFaceM(
+  snowflake: Snowflake,
+  centerX: number,
+  centerY: number,
+  size: number,
+  isFirstFace: boolean,
+  direction: Direction,
+  growthScale: number,
+  growing: boolean
+): number {
+  const index = snowflake.numFaces;
+  if (snowflake.faces[index] === undefined) {
+    snowflake.faces[index] = {
+      center: { x: centerX, y: centerY },
+      size,
+      isFirstFace,
+      direction,
+      growthScale,
+      growing
+    };
+  } else {
+    const f = snowflake.faces[index];
+    f.center.x = centerX;
+    f.center.y = centerY;
+    f.size = size;
+    f.isFirstFace = isFirstFace;
+    f.direction = direction;
+    f.growthScale = growthScale;
+    f.growing = growing;
+  }
+  snowflake.numFaces += 1;
+  return index;
+}
+
+export function addBranchM(
+  snowflake: Snowflake,
+  startX: number,
+  startY: number,
+  size: number,
+  length: number,
+  direction: Direction,
+  growthScale: number,
+  growing: boolean,
+): number {
+  const index = snowflake.numBranches;
+  if (snowflake.branches[index] === undefined) {
+    snowflake.branches[index] = {
+      start: { x: startX, y: startY },
+      size,
+      length,
+      direction,
+      growthScale,
+      growing
+    };
+  } else {
+    const b = snowflake.branches[index];
+    b.start.x = startX;
+    b.start.y = startY;
+    b.size = size;
+    b.length = length;
+    b.direction = direction;
+    b.growthScale = growthScale;
+    b.growing = growing;
+  }
+  snowflake.numBranches += 1;
+  return index;
+}
+
+export function forEachFace(snowflake: Snowflake, f: (face: Face, index: number) => void): void {
+  for (let i = 0; i < snowflake.numFaces; ++i) {
+    f(snowflake.faces[i], i);
+  }
+}
+
+export function forEachBranch(snowflake: Snowflake, f: (branch: Branch, index: number) => void): void {
+  for (let i = 0; i < snowflake.numBranches; ++i) {
+    f(snowflake.branches[i], i);
+  }
+}
+
+const oneZeroArray: [1, 0] = [1, 0];
+
+export function forEachGrowingFace(snowflake: Snowflake, f: (face: Face, index: number) => void): void {
+  for (let i = snowflake.numInitialGrownFaces; i < snowflake.numFaces; ++i) {
+    const face = snowflake.faces[i];
+    if (!face.growing) {
+      snowflake.numInitialGrownFaces += oneZeroArray[Math.min(1, i - snowflake.numInitialGrownFaces)];
+      continue;
+    }
+    f(snowflake.faces[i], i);
+  }
+}
+
+export function forEachGrowingBranch(snowflake: Snowflake, f: (branch: Branch, index: number) => void): void {
+  for (let i = snowflake.numInitialGrownBranches; i < snowflake.numBranches; ++i) {
+    const branch = snowflake.branches[i];
+    if (!branch.growing) {
+      snowflake.numInitialGrownBranches += oneZeroArray[Math.min(1, i - snowflake.numInitialGrownBranches)];
+      continue;
+    }
+    f(snowflake.branches[i], i);
+  }
+}
+
 export function reset(s: Snowflake): void {
-  s.faces.length = 1;
-  s.faces[0] = Faces.zero();
-  s.branches.length = 0;
+  s.numFaces = 1;
+  Faces.zeroM(s.faces[0])
+  s.numBranches = 0;
   s.numInitialGrownFaces = 0;
   s.numInitialGrownBranches = 0;
 }
@@ -32,16 +139,8 @@ export function draw(graphic: Graphic, snowflake: Snowflake): boolean {
   let anyPartOutside = false;
   graphic.ctx.strokeStyle = `rgba(255, 255, 255, 0.08)`;
   graphic.ctx.beginPath();
-  snowflake.faces.forEach(f => {
-    if (f.growing) {
-      anyPartOutside ||= Faces.draw(graphic, f)
-    }
-  });
-  snowflake.branches.forEach(b => {
-    if (b.growing) {
-      anyPartOutside ||= Branches.draw(graphic, b)
-    }
-  });
+  forEachGrowingFace(snowflake, (f, _) => anyPartOutside ||= Faces.draw(graphic, f));
+  forEachGrowingBranch(snowflake, (b, _) => anyPartOutside ||= Branches.draw(graphic, b));
   graphic.ctx.stroke();
   return anyPartOutside;
 }
@@ -50,6 +149,8 @@ export function zero(): Snowflake {
   return {
     faces: [Faces.zero()],
     branches: [],
+    numFaces: 1,
+    numBranches: 0,
     sideCaches: [makeArray6(() => []), makeArray6(() => [])],
     numInitialGrownFaces: 0,
     numInitialGrownBranches: 0,
@@ -93,69 +194,56 @@ function addBranchesToFace(snowflake: Snowflake, face: Face): void {
       const randomAdjust = 1;
       return face.growthScale * 0.5 * randomAdjust;
     })();
-    snowflake.branches.push({
-      start: { x, y },
-      size: sizeOfNewBranches,
-      length: 0,
-      direction: dir as Direction,
-      growthScale,
-      growing: true,
-    });
+    addBranchM(snowflake, x, y, sizeOfNewBranches, 0, dir, growthScale, true);
     dir = Directions.next(dir);
   }
 }
 
 export function addBranchesToGrowingFaces(snowflake: Snowflake): void {
-  snowflake.faces.forEach((face) => {
-    if (face.growing) {
-      addBranchesToFace(snowflake, face);
-      face.growing = false;
-    }
+  forEachGrowingFace(snowflake, (face, _) => {
+    addBranchesToFace(snowflake, face);
+    face.growing = false;
   })
 }
 
 function addFaceToBranch(snowflake: Snowflake, branch: Branch): void {
-  snowflake.faces.push({
-    center: Branches.end(branch),
-    isFirstFace: false,
-    size: branch.size,
-    direction: branch.direction,
-    growthScale: branch.growthScale,
-    growing: true,
-  });
+  addFaceM(
+    snowflake,
+    Branches.endCenterX(branch),
+    Branches.endCenterY(branch),
+    branch.size,
+    false,
+    branch.direction,
+    branch.growthScale,
+    true
+  );
 }
 
 export function addFacesToGrowingBranches(snowflake: Snowflake): void {
-  snowflake.branches.forEach(branch => {
-    if (branch.growing) {
-      addFaceToBranch(snowflake, branch);
-      branch.growing = false;
-    }
-  })
+  forEachGrowingBranch(snowflake, (branch, _) => {
+    addFaceToBranch(snowflake, branch);
+    branch.growing = false;
+  });
 }
 
 export function cacheNormalizedSides(snowflake: Snowflake) {
-  snowflake.faces.forEach((f, fi) => {
-    if (f.growing) {
-      for (let i = 0; i < Directions.values.length; ++i) {
-        if (snowflake.sideCaches[0][i][fi] !== undefined) {
-          break;
-        }
-        snowflake.sideCaches[0][i][fi] = Sides.zero();
+  forEachGrowingFace(snowflake, (f, fi) => {
+    for (let i = 0; i < Directions.values.length; ++i) {
+      if (snowflake.sideCaches[0][i][fi] !== undefined) {
+        break;
       }
-      Sides.normalizeFaceRelativeSide2DsM(snowflake.sideCaches[0], fi, f);
+      snowflake.sideCaches[0][i][fi] = Sides.zero();
     }
+    Sides.normalizeFaceRelativeSide2DsM(snowflake.sideCaches[0], fi, f);
   });
-  snowflake.branches.forEach((b, bi) => {
-    if (b.growing) {
-      for (let i = 0; i < Directions.values.length; ++i) {
-        if (snowflake.sideCaches[1][i][bi] !== undefined) {
-          break;
-        }
-        snowflake.sideCaches[1][i][bi] = Sides.zero();
+  forEachGrowingBranch(snowflake, (b, bi) => {
+    for (let i = 0; i < Directions.values.length; ++i) {
+      if (snowflake.sideCaches[1][i][bi] !== undefined) {
+        break;
       }
-      Sides.normalizeBranchRelativeSide2DsM(snowflake.sideCaches[1], bi, b);
+      snowflake.sideCaches[1][i][bi] = Sides.zero();
     }
+    Sides.normalizeBranchRelativeSide2DsM(snowflake.sideCaches[1], bi, b);
   });
 }
 
@@ -226,26 +314,14 @@ export function killPartIfCovered(
   killPartIfCoveredInOneOfTwoDirections(caches, cacheLengths, leftSide, rightSide, leftDirection, rightDirection, part, partIndex);
 }
 
-const oneZeroArray: [1, 0] = [1, 0];
-
 export function killCoveredFaces(snowflake: Snowflake): void {
-  for (let fi = snowflake.numInitialGrownFaces; fi < snowflake.faces.length; ++fi) {
-    const f = snowflake.faces[fi];
-    if (!f.growing) {
-      snowflake.numInitialGrownFaces += oneZeroArray[Math.min(1, fi - snowflake.numInitialGrownFaces)];
-      continue;
-    }
-    killPartIfCovered(f, fi, snowflake.sideCaches, [snowflake.faces.length, snowflake.branches.length], 0);
-  }
+  forEachGrowingFace(snowflake, (f, fi) => {
+    killPartIfCovered(f, fi, snowflake.sideCaches, [snowflake.numFaces, snowflake.numBranches], 0);
+  });
 }
 
 export function killCoveredBranches(snowflake: Snowflake): void {
-  for (let bi = snowflake.numInitialGrownBranches; bi < snowflake.branches.length; ++bi) {
-    const b = snowflake.branches[bi];
-    if (!b.growing) {
-      snowflake.numInitialGrownBranches += oneZeroArray[Math.min(1, bi - snowflake.numInitialGrownBranches)];
-      continue;
-    }
-    killPartIfCovered(b, bi, snowflake.sideCaches, [snowflake.faces.length, snowflake.branches.length], 1);
-  }
+  forEachGrowingBranch(snowflake, (b, bi) => {
+    killPartIfCovered(b, bi, snowflake.sideCaches, [snowflake.numFaces, snowflake.numBranches], 1);
+  });
 }

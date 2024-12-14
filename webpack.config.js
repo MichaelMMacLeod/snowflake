@@ -17,13 +17,14 @@ module.exports = {
         extensions: ['.tsx', '.ts', '.js'],
     },
     optimization: {
-        minimize: false,
+        minimize: true,
         minimizer: [
             new TerserPlugin({
                 terserOptions: {
                     // https://github.com/webpack-contrib/terser-webpack-plugin#terseroptions
                     compress: {
-                        inline: false,
+                        passes: 50,
+                        // inline: false,
                     },
                     mangle: false,
                 },

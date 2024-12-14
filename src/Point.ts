@@ -7,6 +7,11 @@ export function zero(): Point {
   return { x: 0, y: 0 }
 };
 
+export function zeroM(result: Point): void {
+  result.x = 0;
+  result.y = 0;
+}
+
 export function make(x: number, y: number): Point {
   return { x, y };
 }

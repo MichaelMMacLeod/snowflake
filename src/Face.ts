@@ -16,16 +16,27 @@ export type Face = {
     growing: boolean,
 };
 
+const SIZE_ZERO = 0.0025;
+
 export function zero(): Face {
     return {
         center: Points.zero(),
-        size: 0.0025,
+        size: SIZE_ZERO,
         isFirstFace: true,
         direction: 0,
         growthScale: 1,
         growing: true,
     }
 };
+
+export function zeroM(face: Face): void {
+    Points.zeroM(face.center);
+    face.size = SIZE_ZERO;
+    face.isFirstFace = true;
+    face.direction = 0;
+    face.growthScale = 1;
+    face.growing = true;
+}
 
 // Points are returned in order of relative direction:
 //
