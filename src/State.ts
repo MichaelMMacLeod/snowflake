@@ -67,7 +67,7 @@ export type State = {
 };
 
 export function reset(state: State): void {
-    Snowflakes.reset(state.snowflake);
+    Snowflakes.zeroM(state.snowflake);
     state.currentGrowthType = undefined;
     state.growing = true;
     state.updateBank = 0;

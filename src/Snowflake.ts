@@ -127,14 +127,6 @@ export function forEachGrowingBranch(snowflake: Snowflake, f: (branch: Branch, i
   }
 }
 
-export function reset(s: Snowflake): void {
-  s.numFaces = 1;
-  Faces.zeroM(s.faces[0])
-  s.numBranches = 0;
-  s.numInitialGrownFaces = 0;
-  s.numInitialGrownBranches = 0;
-}
-
 export function draw(graphic: Graphic, snowflake: Snowflake): boolean {
   let anyPartOutside = false;
   graphic.ctx.strokeStyle = `rgba(255, 255, 255, 0.08)`;
@@ -155,6 +147,14 @@ export function zero(): Snowflake {
     numInitialGrownFaces: 0,
     numInitialGrownBranches: 0,
   }
+}
+
+export function zeroM(s: Snowflake): void {
+  s.numFaces = 1;
+  Faces.zeroM(s.faces[0])
+  s.numBranches = 0;
+  s.numInitialGrownFaces = 0;
+  s.numInitialGrownBranches = 0;
 }
 
 function addBranchesToFace(snowflake: Snowflake, face: Face): void {
