@@ -39,6 +39,20 @@ export function worldToViewTransform(graphic: Graphic, p: Point): Point {
     return r;
 }
 
+export function viewspaceX(graphic: Graphic, worldX: number): number {
+    const w = graphic.sizePX;
+    return worldX * w * 0.5 + w * 0.5;
+}
+
+export function viewspaceY(graphic: Graphic, worldY: number): number {
+    const h = graphic.sizePX;
+    return worldY * -h * 0.5 + h * 0.5;
+}
+
+export function outsideVisibleArea(graphic: Graphic, viewX: number): boolean {
+    return viewX < 0 || viewX > graphic.sizePX;
+}
+
 export function viewspacePointOutsideVisibleArea(graphic: Graphic, p: Point): boolean {
     return p.x < 0 || p.x > graphic.sizePX
         || p.y < 0 || p.y > graphic.sizePX;

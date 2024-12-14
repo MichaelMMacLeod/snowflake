@@ -1,9 +1,9 @@
 import * as Points from "./Point";
-import { midpointT, Point } from "./Point";
+import { midpointT, midpointTN, Point } from "./Point";
 import { Direction } from "./Direction";
 import * as Directions from "./Direction";
 import { callWithViewspacePoints, Graphic } from "./Graphic";
-import { worldToViewTransform } from "./CoordinateSystem";
+import { outsideVisibleArea, viewspaceX, viewspaceY, worldToViewTransform } from "./CoordinateSystem";
 import * as Faces from "./Face";
 import { Face, setPointNManually } from "./Face";
 import { branchLengthGrowthScalar, branchSizeGrowthScalar } from "./Constants";
@@ -84,29 +84,51 @@ export function points(branch: Branch): Array6<Point> {
 }
 
 export function draw(graphic: Graphic, branch: Branch): boolean {
-    return callWithViewspacePoints(
-        graphic,
-        () => points(branch),
-        () => true,
-        (ps => {
-            const [p0, p1, p2, p3, p4, p5] = ps;
-            const p45 = midpointT(p4, p5, 0.6);
-            const p21 = midpointT(p2, p1, 0.6);
+    const d = branch.direction;
+    const p0x = viewspaceX(graphic, pointNX(branch, (d + 0) % 6));
+    const p0y = viewspaceY(graphic, pointNY(branch, (d + 0) % 6));
+    const p1x = viewspaceX(graphic, pointNX(branch, (d + 1) % 6));
+    const p1y = viewspaceY(graphic, pointNY(branch, (d + 1) % 6));
+    const p2x = viewspaceX(graphic, pointNX(branch, (d + 2) % 6));
+    const p2y = viewspaceY(graphic, pointNY(branch, (d + 2) % 6));
+    const p3x = viewspaceX(graphic, pointNX(branch, (d + 3) % 6));
+    const p3y = viewspaceY(graphic, pointNY(branch, (d + 3) % 6));
+    const p4x = viewspaceX(graphic, pointNX(branch, (d + 4) % 6));
+    const p4y = viewspaceY(graphic, pointNY(branch, (d + 4) % 6));
+    const p5x = viewspaceX(graphic, pointNX(branch, (d + 5) % 6));
+    const p5y = viewspaceY(graphic, pointNY(branch, (d + 5) % 6));
+    if (outsideVisibleArea(graphic, p0x)
+        || outsideVisibleArea(graphic, p1x)
+        || outsideVisibleArea(graphic, p2x)
+        || outsideVisibleArea(graphic, p3x)
+        || outsideVisibleArea(graphic, p4x)
+        || outsideVisibleArea(graphic, p5x)
+        || outsideVisibleArea(graphic, p0y)
+        || outsideVisibleArea(graphic, p1y)
+        || outsideVisibleArea(graphic, p2y)
+        || outsideVisibleArea(graphic, p3y)
+        || outsideVisibleArea(graphic, p4y)
+        || outsideVisibleArea(graphic, p5y)
+    ) {
+        return true;
+    }
+    const p45x = midpointTN(p4x, p5x, 0.6);
+    const p45y = midpointTN(p4y, p5y, 0.6);
+    const p21x = midpointTN(p2x, p1x, 0.6);
+    const p21y = midpointTN(p2y, p1y, 0.6);
 
-            const ctx = graphic.ctx;
-            ctx.moveTo(p5.x, p5.y);
-            ctx.lineTo(p0.x, p0.y);
-            ctx.lineTo(p1.x, p1.y);
-            ctx.moveTo(p45.x, p45.y);
-            ctx.lineTo(p5.x, p5.y);
-            ctx.moveTo(p21.x, p21.y);
-            ctx.lineTo(p1.x, p1.y);
-            ctx.moveTo(p0.x, p0.y);
-            ctx.lineTo(p3.x, p3.y);
+    const ctx = graphic.ctx;
+    ctx.moveTo(p5x, p5y);
+    ctx.lineTo(p0x, p0y);
+    ctx.lineTo(p1x, p1y);
+    ctx.moveTo(p45x, p45y);
+    ctx.lineTo(p5x, p5y);
+    ctx.moveTo(p21x, p21y);
+    ctx.lineTo(p1x, p1y);
+    ctx.moveTo(p0x, p0y);
+    ctx.lineTo(p3x, p3y);
 
-            return false;
-        })
-    );
+    return false;
 }
 
 export function enlarge(branch: Branch, scale: number): void {

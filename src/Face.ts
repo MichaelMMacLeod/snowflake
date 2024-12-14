@@ -1,9 +1,9 @@
 import * as Points from "./Point";
-import { midpoint, midpointT, Point } from "./Point";
+import { midpoint, midpointT, midpointTN, Point } from "./Point";
 import { Direction } from "./Direction";
 import * as Directions from "./Direction";
 import { callWithViewspacePoints, Graphic } from "./Graphic";
-import { worldToViewTransform, worldToViewTransformGuarded } from "./CoordinateSystem";
+import { outsideVisibleArea, viewspaceX, viewspaceY, worldToViewTransform, worldToViewTransformGuarded } from "./CoordinateSystem";
 import { faceSizeGrowthScalar } from "./Constants";
 import { Array6, makeArray6, rem } from "./Utils";
 
@@ -77,60 +77,84 @@ export function setPointNManually(result: Point, direction: Direction, center: P
 }
 
 export function draw(graphic: Graphic, face: Face): boolean {
-    return callWithViewspacePoints(
-        graphic,
-        () => points(face),
-        () => true,
-        (ps => {
-            const [p0, p1, p2, p3, p4, p5] = ps;
-            const p31 = midpointT(p3, p1, 0.6);
-            const p30 = midpointT(p3, p0, 0.6);
-            const p35 = midpointT(p3, p5, 0.6);
-            const p45 = midpointT(p4, p5, 0.6);
-            const p21 = midpointT(p2, p1, 0.6);
+    const d = face.direction;
+    const p0x = viewspaceX(graphic, pointNX(face, (d + 0) % 6));
+    const p0y = viewspaceY(graphic, pointNY(face, (d + 0) % 6));
+    const p1x = viewspaceX(graphic, pointNX(face, (d + 1) % 6));
+    const p1y = viewspaceY(graphic, pointNY(face, (d + 1) % 6));
+    const p2x = viewspaceX(graphic, pointNX(face, (d + 2) % 6));
+    const p2y = viewspaceY(graphic, pointNY(face, (d + 2) % 6));
+    const p3x = viewspaceX(graphic, pointNX(face, (d + 3) % 6));
+    const p3y = viewspaceY(graphic, pointNY(face, (d + 3) % 6));
+    const p4x = viewspaceX(graphic, pointNX(face, (d + 4) % 6));
+    const p4y = viewspaceY(graphic, pointNY(face, (d + 4) % 6));
+    const p5x = viewspaceX(graphic, pointNX(face, (d + 5) % 6));
+    const p5y = viewspaceY(graphic, pointNY(face, (d + 5) % 6));
+    if (outsideVisibleArea(graphic, p0x)
+        || outsideVisibleArea(graphic, p1x)
+        || outsideVisibleArea(graphic, p2x)
+        || outsideVisibleArea(graphic, p3x)
+        || outsideVisibleArea(graphic, p4x)
+        || outsideVisibleArea(graphic, p5x)
+        || outsideVisibleArea(graphic, p0y)
+        || outsideVisibleArea(graphic, p1y)
+        || outsideVisibleArea(graphic, p2y)
+        || outsideVisibleArea(graphic, p3y)
+        || outsideVisibleArea(graphic, p4y)
+        || outsideVisibleArea(graphic, p5y)
+    ) {
+        return true;
+    }
+    const ctx = graphic.ctx;
+    if (face.isFirstFace) {
+        const cx = viewspaceX(graphic, face.center.x);
+        const cy = viewspaceY(graphic, face.center.y);
+        ctx.moveTo(p0x, p0y);
+        ctx.lineTo(p1x, p1y);
+        ctx.lineTo(p2x, p2y);
+        ctx.lineTo(p3x, p3y);
+        ctx.lineTo(p4x, p4y);
+        ctx.lineTo(p5x, p5y);
+        ctx.lineTo(p0x, p0y);
 
-            const ctx = graphic.ctx;
-            if (face.isFirstFace) {
-                const c = worldToViewTransform(graphic, face.center);
-                ctx.moveTo(p0.x, p0.y);
-                ctx.lineTo(p1.x, p1.y);
-                ctx.lineTo(p2.x, p2.y);
-                ctx.lineTo(p3.x, p3.y);
-                ctx.lineTo(p4.x, p4.y);
-                ctx.lineTo(p5.x, p5.y);
-                ctx.lineTo(p0.x, p0.y);
-
-                ctx.moveTo(c.x, c.y);
-                ctx.lineTo(p0.x, p0.y);
-                ctx.moveTo(c.x, c.y);
-                ctx.lineTo(p1.x, p1.y);
-                ctx.moveTo(c.x, c.y);
-                ctx.lineTo(p2.x, p2.y);
-                ctx.moveTo(c.x, c.y);
-                ctx.lineTo(p3.x, p3.y);
-                ctx.moveTo(c.x, c.y);
-                ctx.lineTo(p4.x, p4.y);
-                ctx.moveTo(c.x, c.y);
-                ctx.lineTo(p5.x, p5.y);
-            } else {
-                ctx.moveTo(p45.x, p45.y);
-                ctx.lineTo(p5.x, p5.y);
-                ctx.moveTo(p21.x, p21.y);
-                ctx.lineTo(p1.x, p1.y);
-                ctx.moveTo(p5.x, p5.y);
-                ctx.lineTo(p0.x, p0.y);
-                ctx.lineTo(p1.x, p1.y)
-                ctx.moveTo(p31.x, p31.y);
-                ctx.lineTo(p1.x, p1.y);
-                ctx.moveTo(p30.x, p30.y)
-                ctx.lineTo(p0.x, p0.y);
-                ctx.moveTo(p35.x, p35.y);
-                ctx.lineTo(p5.x, p5.y);
-            }
-
-            return false;
-        })
-    );
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(p0x, p0y);
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(p1x, p1y);
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(p2x, p2y);
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(p3x, p3y);
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(p4x, p4y);
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(p5x, p5y);
+    } else {
+        const p31x = midpointTN(p3x, p1x, 0.6);
+        const p31y = midpointTN(p3y, p1y, 0.6);
+        const p30x = midpointTN(p3x, p0x, 0.6);
+        const p30y = midpointTN(p3y, p0y, 0.6);
+        const p35x = midpointTN(p3x, p5x, 0.6);
+        const p35y = midpointTN(p3y, p5y, 0.6);
+        const p45x = midpointTN(p4x, p5x, 0.6);
+        const p45y = midpointTN(p4y, p5y, 0.6);
+        const p21x = midpointTN(p2x, p1x, 0.6);
+        const p21y = midpointTN(p2y, p1y, 0.6);
+        ctx.moveTo(p45x, p45y);
+        ctx.lineTo(p5x, p5y);
+        ctx.moveTo(p21x, p21y);
+        ctx.lineTo(p1x, p1y);
+        ctx.moveTo(p5x, p5y);
+        ctx.lineTo(p0x, p0y);
+        ctx.lineTo(p1x, p1y)
+        ctx.moveTo(p31x, p31y);
+        ctx.lineTo(p1x, p1y);
+        ctx.moveTo(p30x, p30y)
+        ctx.lineTo(p0x, p0y);
+        ctx.moveTo(p35x, p35y);
+        ctx.lineTo(p5x, p5y);
+    }
+    return false;
 }
 
 export function enlarge(face: Face, scale: number): void {
