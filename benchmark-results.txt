@@ -1,2 +1,3 @@
+2186c11 grew 1000 with average of 17.8285 milliseconds per snowflake
 0841455 grew 1000 with average of 20.100100000023843 milliseconds per snowflake
 c0bd16a grew 1000 with average of 47.620400000035765 milliseconds per snowflake
