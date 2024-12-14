@@ -393,7 +393,7 @@ const configSynchronizer: ConfigSynchronizer = {
         return false;
     },
     graphMouseUpEventListenerNode: (_c, s, newValue, oldValue) => {
-        console.log('graphMouseUpEventListenerNode config setting not yet implemented');
+        // console.log('graphMouseUpEventListenerNode config setting not yet implemented');
         // Maybes.map(
         //     oldValue,
         //     () => {
