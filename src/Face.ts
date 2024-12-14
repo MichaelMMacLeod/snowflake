@@ -44,6 +44,18 @@ export function points(face: Face): Array6<Point> {
     return result;
 }
 
+export function pointNX(face: Face, absoluteDirection: number): number {
+    return face.center.x + face.size * Directions.cosines[absoluteDirection];
+}
+
+export function pointNY(face: Face, absoluteDirection: number): number {
+    return face.center.y + face.size * Directions.sines[absoluteDirection];
+}
+
+// export function pointND(face: Face, pointIndex: number): number {
+//     return (face.direction + pointIndex) % Directions.values.length;
+// }
+
 export function setPointN(result: Point, face: Face, i: number) {
     const d = (face.direction + i) % Directions.values.length;
     result.x = face.center.x + face.size * Directions.cosines[d];

@@ -147,7 +147,7 @@ export function cacheNormalizedSides(snowflake: Snowflake) {
         }
         snowflake.sideCaches[0][i][fi] = Sides.zero();
       }
-      Sides.normalizeFaceSidesM(snowflake.sideCaches[0], fi, f);
+      Sides.normalizeFaceRelativeSide2DsM(snowflake.sideCaches[0], fi, f);
     }
   });
   snowflake.branches.forEach((b, bi) => {

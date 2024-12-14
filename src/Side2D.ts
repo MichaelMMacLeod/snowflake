@@ -25,6 +25,22 @@ function ofPoints(points: Array6<Point>): Array6<Side2D> {
     return result;
 }
 
+export function faceSideNLeftX(face: Face, absoluteSideIndex: number): number {
+    return Faces.pointNX(face, (absoluteSideIndex + 1) % Directions.values.length);
+}
+
+export function faceSideNLeftY(face: Face, absoluteSideIndex: number): number {
+    return Faces.pointNY(face, (absoluteSideIndex + 1) % Directions.values.length);
+}
+
+export function faceSideNRightX(face: Face, absoluteSideIndex: number): number {
+    return Faces.pointNX(face, absoluteSideIndex);
+}
+
+export function faceSideNRightY(face: Face, absoluteSideIndex: number): number {
+    return Faces.pointNY(face, absoluteSideIndex);
+}
+
 // Side2Ds are returned in relative order:
 //         1
 //       -----

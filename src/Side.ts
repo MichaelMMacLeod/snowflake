@@ -59,6 +59,19 @@ export function normalizeSide2DM(result: Side, side2d: Side2D, absoluteDirection
   result.height = left.y;
 }
 
+export function normalizeSide2DFaceM(result: Side, face: Face, absoluteDirection: number): void {
+  const theta = oneSixthCircle * (1 - absoluteDirection);
+  const side2dLeftX = Side2Ds.faceSideNLeftX(face, absoluteDirection);
+  const side2dLeftY = Side2Ds.faceSideNLeftY(face, absoluteDirection);
+  const side2dRightX = Side2Ds.faceSideNRightX(face, absoluteDirection);
+  const side2dRightY = Side2Ds.faceSideNRightY(face, absoluteDirection);
+  const left = Points.rotate({ x: side2dLeftX, y: side2dLeftY }, theta);
+  const right = Points.rotate({ x: side2dRightX, y: side2dRightY }, theta);
+  result.left = left.x;
+  result.right = right.x;
+  result.height = left.y;
+}
+
 export function normalizeRelativeSide2Ds(side2Ds: Array6<Side2D>, shapeDir: Direction): Array6<Side> {
   return mapArray6(side2Ds, (s, i) => normalizeSide2D(s, (i + shapeDir) % Directions.values.length));
 }
@@ -67,6 +80,12 @@ export function normalizeRelativeSide2DsM(result: Array6<Array<Side>>, partIndex
   for (let i = 0; i < Directions.values.length; ++i) {
     const relativeDirection = rem((i - shapeDir), Directions.values.length);
     normalizeSide2DM(result[i][partIndex], side2Ds[relativeDirection], i);
+  }
+}
+
+export function normalizeFaceRelativeSide2DsM(result: Array6<Array<Side>>, partIndex: number, face: Face): void {
+  for (let i = 0; i < Directions.values.length; ++i) {
+    normalizeSide2DFaceM(result[i][partIndex], face, i);
   }
 }
 
