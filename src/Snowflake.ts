@@ -14,10 +14,25 @@ import { Point } from "./Point";
 
 const MAX_FACES: number = 10000;
 const MAX_BRANCHES: number = 10000;
-type CacheIndex = 0 | 1;
-const FACE_CACHE: CacheIndex = 0;
-const BRANCH_CACHE: CacheIndex = 1;
-type SideCache = [Array6<Array<Side>>, Array6<Array<Side>>];
+type CacheIndex = 0 | 1 | 2 | 3 | 4 | 5;
+const NUM_SIDE_ELEMENTS = 3;
+const FACE_CACHES: CacheIndex = 0;
+const FACE_LEFT_CACHE: CacheIndex = 0;
+const FACE_RIGHT_CACHE: CacheIndex = 1;
+const FACE_HEIGHT_CACHE: CacheIndex = 2;
+const BRANCH_CACHES: CacheIndex = 3;
+const BRANCH_LEFT_CACHE: CacheIndex = 3;
+const BRANCH_RIGHT_CACHE: CacheIndex = 4;
+const BRANCH_HEIGHT_CACHE: CacheIndex = 5;
+type SideCache = [
+  Array6<Array<number>>,
+  Array6<Array<number>>,
+  Array6<Array<number>>,
+  Array6<Array<number>>,
+  Array6<Array<number>>,
+  Array6<Array<number>>,
+];
+const JS_ENGINE_MAKE_THIS_AN_ARRAY_OF_DOUBLES_PLEASE_AND_THANK_YOU: number = 0;
 
 export type Snowflake = {
   faces: Array<Face>,
@@ -130,16 +145,25 @@ function zeroParts<P>(maxParts: number, zeroPart: () => P, caches: SideCache, ca
   for (let i = 0; i < maxParts; ++i) {
     result[i] = zeroPart();
     for (let j = 0; j < DIRS; ++j) {
-      caches[cacheIndex][j][i] = Sides.zero();
+      for (let s = 0; s < NUM_SIDE_ELEMENTS; ++s) {
+        caches[cacheIndex + s][j][i] = JS_ENGINE_MAKE_THIS_AN_ARRAY_OF_DOUBLES_PLEASE_AND_THANK_YOU;
+      }
     }
   }
   return result;
 }
 
 export function zero(): Snowflake {
-  const sideCaches: [Array6<Array<Side>>, Array6<Array<Side>>] = [makeArray6(() => []), makeArray6(() => [])];
-  const faces = zeroParts(MAX_FACES, Faces.zero, sideCaches, FACE_CACHE);
-  const branches = zeroParts(MAX_BRANCHES, Branches.zero, sideCaches, BRANCH_CACHE);
+  const sideCaches: SideCache = [
+    makeArray6(() => []),
+    makeArray6(() => []),
+    makeArray6(() => []),
+    makeArray6(() => []),
+    makeArray6(() => []),
+    makeArray6(() => []),
+  ];
+  const faces = zeroParts(MAX_FACES, Faces.zero, sideCaches, FACE_CACHES);
+  const branches = zeroParts(MAX_BRANCHES, Branches.zero, sideCaches, BRANCH_CACHES);
   return {
     faces,
     branches,
@@ -235,22 +259,22 @@ export function addFacesToGrowingBranches(snowflake: Snowflake): void {
 
 export function cacheNormalizedSides(snowflake: Snowflake) {
   forEachGrowingFace(snowflake, (f, fi) => {
-    for (let i = 0; i < Directions.values.length; ++i) {
-      if (snowflake.sideCaches[0][i][fi] !== undefined) {
-        break;
-      }
-      snowflake.sideCaches[0][i][fi] = Sides.zero();
-    }
-    Sides.normalizeFaceRelativeSide2DsM(snowflake.sideCaches[0], fi, f);
+    Sides.normalizeFaceRelativeSide2DsM(
+      snowflake.sideCaches[FACE_LEFT_CACHE],
+      snowflake.sideCaches[FACE_RIGHT_CACHE],
+      snowflake.sideCaches[FACE_HEIGHT_CACHE],
+      fi,
+      f
+    );
   });
   forEachGrowingBranch(snowflake, (b, bi) => {
-    for (let i = 0; i < Directions.values.length; ++i) {
-      if (snowflake.sideCaches[1][i][bi] !== undefined) {
-        break;
-      }
-      snowflake.sideCaches[1][i][bi] = Sides.zero();
-    }
-    Sides.normalizeBranchRelativeSide2DsM(snowflake.sideCaches[1], bi, b);
+    Sides.normalizeBranchRelativeSide2DsM(
+      snowflake.sideCaches[BRANCH_LEFT_CACHE],
+      snowflake.sideCaches[BRANCH_RIGHT_CACHE],
+      snowflake.sideCaches[BRANCH_HEIGHT_CACHE],
+      bi,
+      b
+    );
   });
 }
 
@@ -262,17 +286,24 @@ type Killable = {
 export function killPartIfCoveredInOneDirection(
   part: Killable,
   partIndex: number,
-  side: Side,
-  otherSides: Array<Side>,
+  sideLeftCache: Array<number>,
+  sideRightCache: Array<number>,
+  sideHeightCache: Array<number>,
+  otherLeftSideCache: Array<number>,
+  otherRightSideCache: Array<number>,
+  otherHeightSideCache: Array<number>,
   numOtherSides: number,
-  otherSidesContainsPartSides: boolean,
+  otherCacheContainsPart: boolean,
 ): void {
+  const sl = sideLeftCache[partIndex];
+  const sr = sideRightCache[partIndex];
   for (let oi = 0; oi < numOtherSides && part.growing; ++oi) {
-    const otherLeftSide = otherSides[oi];
-    const overlaps = Sides.overlaps(otherLeftSide, side);
+    const ol = otherLeftSideCache[oi];
+    const or = otherRightSideCache[oi];
+    const overlaps = Sides.overlapsRaw(ol, or, sl, sr);
     if (overlaps
-      && Sides.overlapDistance(otherLeftSide, side) > 0
-      && !(otherSidesContainsPartSides && oi === partIndex)
+      && Sides.overlapDistanceRaw(otherHeightSideCache[oi], sideHeightCache[partIndex]) > 0
+      && !(otherCacheContainsPart && oi === partIndex)
     ) {
       part.growing = false;
       break;
@@ -281,27 +312,37 @@ export function killPartIfCoveredInOneDirection(
 }
 
 export function killPartIfCoveredInOneOfTwoDirections(
-  caches: [Array6<Array<Side>>, Array6<Array<Side>>],
-  cacheLengths: [number, number],
-  leftSide: Side,
-  rightSide: Side,
+  caches: SideCache,
+  numFaces: number,
+  numBranches: number,
   left: Direction,
   right: Direction,
   part: Killable,
   partIndex: number,
+  partIsFace: boolean,
 ): void {
-  for (let ci = 0; ci < caches.length; ++ci) {
-    const cache = caches[ci];
-    const otherLeftSides = cache[left];
-    const otherRightSides = cache[right];
-    const inFaceCache = ci === 0;
-    killPartIfCoveredInOneDirection(part, partIndex, leftSide, otherLeftSides, cacheLengths[ci], inFaceCache);
-    if (!part.growing) {
-      return;
-    }
-    killPartIfCoveredInOneDirection(part, partIndex, rightSide, otherRightSides, cacheLengths[ci], inFaceCache);
-    if (!part.growing) {
-      return;
+  const partCache = partIsFace ? 0 : 3;
+  const plc = caches[partCache];
+  const prc = caches[partCache + 1];
+  const phc = caches[partCache + 2];
+  for (let otherPartCache = 0; otherPartCache < 4; otherPartCache += 3) {
+    const numOtherSides = otherPartCache === 0 ? numFaces : numBranches;
+    const otherCacheContainsPart = partCache === otherPartCache;
+    const olc = caches[otherPartCache];
+    const orc = caches[otherPartCache + 1];
+    const ohc = caches[otherPartCache + 2];
+    for (let leftOrRight = 0; leftOrRight < 2; ++leftOrRight) {
+      const d = leftOrRight === 0 ? left : right;
+      const plcd = plc[d];
+      const prcd = prc[d];
+      const phcd = phc[d];
+      const olcd = olc[d];
+      const orcd = orc[d];
+      const ohcd = ohc[d];
+      killPartIfCoveredInOneDirection(part, partIndex, plcd, prcd, phcd, olcd, orcd, ohcd, numOtherSides, otherCacheContainsPart);
+      if (!part.growing) {
+        return;
+      }
     }
   }
 }
@@ -309,26 +350,48 @@ export function killPartIfCoveredInOneOfTwoDirections(
 export function killPartIfCovered(
   part: Killable,
   partIndex: number,
-  caches: [Array6<Array<Side>>, Array6<Array<Side>>],
-  cacheLengths: [number, number],
-  partCacheIndex: 0 | 1,
+  caches: SideCache,
+  numFaces: number,
+  numBranches: number,
+  partIsFace: boolean,
 ): void {
   const d = part.direction;
   const leftDirection = d;
   const rightDirection = rem(d - 1, Directions.values.length) as Direction;
-  const leftSide = caches[partCacheIndex][leftDirection][partIndex];
-  const rightSide = caches[partCacheIndex][rightDirection][partIndex];
-  killPartIfCoveredInOneOfTwoDirections(caches, cacheLengths, leftSide, rightSide, leftDirection, rightDirection, part, partIndex);
+  killPartIfCoveredInOneOfTwoDirections(
+    caches,
+    numFaces,
+    numBranches,
+    leftDirection,
+    rightDirection,
+    part,
+    partIndex,
+    partIsFace,
+  );
 }
 
 export function killCoveredFaces(snowflake: Snowflake): void {
   forEachGrowingFace(snowflake, (f, fi) => {
-    killPartIfCovered(f, fi, snowflake.sideCaches, [snowflake.numFaces, snowflake.numBranches], 0);
+    killPartIfCovered(
+      f,
+      fi,
+      snowflake.sideCaches,
+      snowflake.numFaces,
+      snowflake.numBranches,
+      true
+    );
   });
 }
 
 export function killCoveredBranches(snowflake: Snowflake): void {
   forEachGrowingBranch(snowflake, (b, bi) => {
-    killPartIfCovered(b, bi, snowflake.sideCaches, [snowflake.numFaces, snowflake.numBranches], 1);
+    killPartIfCovered(
+      b,
+      bi,
+      snowflake.sideCaches,
+      snowflake.numFaces,
+      snowflake.numBranches,
+      false
+    );
   });
 }
