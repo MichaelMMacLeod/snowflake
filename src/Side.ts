@@ -70,12 +70,3 @@ export function overlaps(s1: Side, s2: Side): boolean {
   // s2 ---......
   return s1.left < s2.right && s2.left < s1.right;
 }
-
-function summarize() {
-  const w = window as any;
-  const sorted = [w.c0,w.c1,w.c2,w.c3,w.c4];
-  sorted.sort();
-  console.log(`NumTrueCounts: c0 = ${w.c0}, c1 = ${w.c1}, c2 = ${w.c2}, c3 = ${w.c3}, c4 = ${w.c4}. Sorted: ${sorted}`);
-}
-
-(window as any).summarize = summarize;
