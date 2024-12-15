@@ -38,7 +38,7 @@ import * as Sides from "./Side";
 // growing. This is not for efficiency; if we checked all sides, parts would stop
 // growing because of parts behind them.
 //
-// This algorithm is run once for every frame, so it must be as fast as possible.
+// This algorithm is run once for every update, so it must be as fast as possible.
 // There are several optimizations to ensure it runs at peak performance. These
 // optimizations are enough to make it so that the draw rate of snowflakes is
 // no longer bottlenecked by this algorithm but instead by the speed of 
