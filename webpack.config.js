@@ -17,14 +17,19 @@ module.exports = {
         extensions: ['.tsx', '.ts', '.js'],
     },
     optimization: {
-        minimize: true,
+        minimize: false,
         minimizer: [
             new TerserPlugin({
                 terserOptions: {
                     // https://github.com/webpack-contrib/terser-webpack-plugin#terseroptions
                     compress: {
-                        passes: 50,
-                        // inline: false,
+                        passes: 10,
+                        inline: true,
+                        // When reduce_funcs is true (the default), references to single use
+                        // function names are replaced with immediately-called closures. From
+                        // profiling, it shows that these closures need to be
+                        // allocated/deallocated. If we turn this off, no more allocations occur.
+                        reduce_funcs: false,
                     },
                     mangle: false,
                 },

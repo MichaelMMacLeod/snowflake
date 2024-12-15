@@ -17,7 +17,7 @@ const MAX_BRANCHES: number = 10000;
 type CacheIndex = 0 | 1;
 const FACE_CACHE: CacheIndex = 0;
 const BRANCH_CACHE: CacheIndex = 1;
-type SideCache =  [Array6<Array<Side>>, Array6<Array<Side>>];
+type SideCache = [Array6<Array<Side>>, Array6<Array<Side>>];
 
 export type Snowflake = {
   faces: Array<Face>,
@@ -38,19 +38,9 @@ export function addFaceM(
   direction: Direction,
   growthScale: number,
   growing: boolean
-): number {
-  const index = snowflake.numFaces;
-  if (snowflake.faces[index] === undefined) {
-    snowflake.faces[index] = {
-      center: { x: centerX, y: centerY },
-      size,
-      isFirstFace,
-      direction,
-      growthScale,
-      growing
-    };
-  } else {
-    const f = snowflake.faces[index];
+): boolean {
+  if (snowflake.numFaces < MAX_FACES) {
+    const f = snowflake.faces[snowflake.numFaces];
     f.center.x = centerX;
     f.center.y = centerY;
     f.size = size;
@@ -58,9 +48,10 @@ export function addFaceM(
     f.direction = direction;
     f.growthScale = growthScale;
     f.growing = growing;
+    snowflake.numFaces += 1;
+    return false;
   }
-  snowflake.numFaces += 1;
-  return index;
+  return true;
 }
 
 export function addBranchM(
@@ -72,19 +63,9 @@ export function addBranchM(
   direction: Direction,
   growthScale: number,
   growing: boolean,
-): number {
-  const index = snowflake.numBranches;
-  if (snowflake.branches[index] === undefined) {
-    snowflake.branches[index] = {
-      start: { x: startX, y: startY },
-      size,
-      length,
-      direction,
-      growthScale,
-      growing
-    };
-  } else {
-    const b = snowflake.branches[index];
+): boolean {
+  if (snowflake.numBranches < MAX_BRANCHES) {
+    const b = snowflake.branches[snowflake.numBranches];
     b.start.x = startX;
     b.start.y = startY;
     b.size = size;
@@ -92,9 +73,10 @@ export function addBranchM(
     b.direction = direction;
     b.growthScale = growthScale;
     b.growing = growing;
+    snowflake.numBranches += 1;
+    return false;
   }
-  snowflake.numBranches += 1;
-  return index;
+  return true;
 }
 
 export function forEachFace(snowflake: Snowflake, f: (face: Face, index: number) => void): void {
