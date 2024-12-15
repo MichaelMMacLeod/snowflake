@@ -1,12 +1,15 @@
-import { Either, left, right } from "./Either";
 import * as Eithers from "./Either";
 import { Maybe, none, some } from "./Maybe";
 import * as Maybes from "./Maybe";
-import { scheduleUpdate, installGraphCanvas, setGraphCanvasHeight, setGraphCanvasWidth, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX, setSnowflakeId, State } from "./State";
+import { scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX, setSnowflakeId, State } from "./State";
 import * as States from "./State";
-import { NonEmptyArray, parseSnowflakeId, randomIntInclusive, RGBA } from "./Utils";
+import { parseSnowflakeId, randomIntInclusive } from "./Utils";
 
 export type Config = {
+    // Specifies which snowflake to grow. Must be a number without any
+    // digits which are zero.
+    snowflakeId: string,
+
     // Size in pixels of the side length of the square snowflake canvas.
     snowflakeCanvasSizePX: number,
 
@@ -38,29 +41,6 @@ export type Config = {
 
     // Funciton to call when the 'installSnowflakeCanvas' event fails.
     installSnowflakeCanvasFailureCallback: () => void,
-
-    graphCanvasWidthPX: number,
-    graphCanvasHeightPX: number,
-    graphProgressColor: string,
-    graphProgressLineColor: string,
-    graphBackgroundColor: string,
-    graphForegroundColor: string,
-
-    // Mouse up events, which stop the graph handles from being dragged, if
-    // received by the canvas itself, annoyingly stops the handle even when the
-    // mouse just goes a little bit outside the graph. To fix this, we set the
-    // mouse up event listener on a parent node, usually the document itself.
-    graphMouseUpEventListenerNode: Node,
-
-    // Function to call when the 'installGraphCanvas' event succeeds.
-    installGraphCanvasCallback: (canvas: HTMLCanvasElement) => void,
-
-    // Function to call when the 'installGraphCanvas' event fails.
-    installGraphCanvasFailureCallback: () => void,
-
-    // Specifies which snowflake to grow. Must be a number without any
-    // digits which are zero.
-    snowflakeId: string,
 };
 
 export type ConfigValidator = {
@@ -174,6 +154,7 @@ function expectEventListenerRegistrant(name: string): (actual: any) => Maybe<str
 }
 
 const configValidator: ConfigValidator = {
+    snowflakeId: expectSnowflakeId('snowflakeId'),
     snowflakeCanvasSizePX: expectNat('snowflakeCanvasSizePX'),
     targetGrowthTimeMS: expectNat('targetGrowthTimeMS'),
     upsCap: expectNat('upsCap'),
@@ -183,16 +164,6 @@ const configValidator: ConfigValidator = {
     resetCallback: expectFunction0('resetCallback'),
     installSnowflakeCanvasCallback: expectFunction1('installSnowflakeCanvasCallback'),
     installSnowflakeCanvasFailureCallback: expectFunction0('installSnowflakeCanvasFailureCallback'),
-    installGraphCanvasCallback: expectFunction1('installGraphCanvasCallback'),
-    installGraphCanvasFailureCallback: expectFunction0('installGraphCanvasFailureCallback'),
-    snowflakeId: expectSnowflakeId('snowflakeId'),
-    graphCanvasWidthPX: expectNat('graphCanvasWidthPX'),
-    graphCanvasHeightPX: expectNat('graphCanvasHeightPX'),
-    graphProgressColor: expectCssColor('graphProgressColor'),
-    graphProgressLineColor: expectCssColor('graphProgressLineColor'),
-    graphBackgroundColor: expectCssColor('graphBackgroundColor'),
-    graphForegroundColor: expectCssColor('graphForegroundColor'),
-    graphMouseUpEventListenerNode: expectEventListenerRegistrant('graphMouseUpEventListenerNode'),
 };
 
 function configValidationErrors(config: any): Array<string> {
@@ -256,6 +227,7 @@ export function randomSnowflakeId(): string {
 export function zero(): Config {
     const config = (() => {
         const config: Config = {
+            snowflakeId: randomSnowflakeId(),
             snowflakeCanvasSizePX: 800,
             targetGrowthTimeMS: 8000,
             upsCap: 60,
@@ -265,16 +237,6 @@ export function zero(): Config {
             resetCallback: () => { return; },
             installSnowflakeCanvasCallback: canvas => document.body.appendChild(canvas),
             installSnowflakeCanvasFailureCallback: () => { throw new Error('error installing snowflake canvas'); },
-            installGraphCanvasCallback: canvas => document.body.appendChild(canvas),
-            installGraphCanvasFailureCallback: () => { throw new Error('error installing graph canvas'); },
-            snowflakeId: randomSnowflakeId(),
-            graphCanvasWidthPX: 800,
-            graphCanvasHeightPX: 300,
-            graphProgressColor: 'rgba(255,255,255,0.5)',
-            graphProgressLineColor: 'rgba(255,255,255,1)',
-            graphBackgroundColor: 'rgba(0,0,0,1)',
-            graphForegroundColor: 'rgba(255,255,255,1)',
-            graphMouseUpEventListenerNode: document,
         };
         return validateConfig(config);
     })();
@@ -289,6 +251,14 @@ export type ConfigSynchronizer = {
 }
 
 const configSynchronizer: ConfigSynchronizer = {
+    snowflakeId: (_c, s, newValue, oldValue) => {
+        const newEqOld = Maybes.map(oldValue, () => false, oldValue => newValue === oldValue);
+        if (!newEqOld) {
+            setSnowflakeId(s, newValue);
+            return true;
+        }
+        return false;
+    },
     snowflakeCanvasSizePX: (_c, s, newValue, oldValue) => {
         return Maybes.map(
             oldValue,
@@ -352,62 +322,6 @@ const configSynchronizer: ConfigSynchronizer = {
         s.installSnowflakeCanvasFailureCallback = newValue;
         return false;
     },
-    installGraphCanvasCallback: (_c, s, newValue, _oldValue) => {
-        s.installGraphCanvasCallback = newValue;
-        return false;
-    },
-    installGraphCanvasFailureCallback: (_c, s, newValue, _oldValue) => {
-        s.installGraphCanvasFailureCallback = newValue;
-        return false;
-    },
-    snowflakeId: (_c, s, newValue, oldValue) => {
-        const newEqOld = Maybes.map(oldValue, () => false, oldValue => newValue === oldValue);
-        if (!newEqOld) {
-            setSnowflakeId(s, newValue);
-            return true;
-        }
-        return false;
-    },
-    graphCanvasWidthPX: (_c, s, newValue, _oldValue) => {
-        setGraphCanvasWidth(s, newValue);
-        return false;
-    },
-    graphCanvasHeightPX: (_c, s, newValue, _oldValue) => {
-        setGraphCanvasHeight(s, newValue);
-        return false;
-    },
-    graphProgressColor: (_c, s, newValue, _oldValue) => {
-        s.graph.options.progressColor = newValue;
-        return false;
-    },
-    graphProgressLineColor: (_c, s, newValue, _oldValue) => {
-        s.graph.options.progressLineColor = newValue;
-        return false;
-    },
-    graphBackgroundColor: (_c, s, newValue, _oldValue) => {
-        s.graph.options.backgroundColor = newValue;
-        return false;
-    },
-    graphForegroundColor: (_c, s, newValue, _oldValue) => {
-        s.graph.options.foregroundColor = newValue;
-        return false;
-    },
-    graphMouseUpEventListenerNode: (_c, s, newValue, oldValue) => {
-        // console.log('graphMouseUpEventListenerNode config setting not yet implemented');
-        // Maybes.map(
-        //     oldValue,
-        //     () => {
-        //         if (s.graph.installation === undefined) {
-        //             return;
-        //         }
-        //         s.graph.installation.
-        //     },
-        //     _ => {
-        //         throw new Error('installing graph more than once not currently supported');
-        //     }
-        // );
-        return false;
-    }
 };
 
 export function copy(config: Config): Config {

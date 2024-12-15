@@ -1,30 +1,14 @@
-import {
-    callIfInstalled,
-    defaultGraphInstallationOptions,
-    defaultGraphOptions,
-    drawGrowthInput,
-    Graph,
-    GraphInstallationOptions,
-    GraphOptions,
-    GrowthType,
-    interpretGrowth,
-    randomizeGrowthInput,
-    updateGraph
-} from "./Graph";
-import * as Graphs from "./Graph";
 import { Graphic } from "./Graphic";
 import * as Graphics from "./Graphic";
 import { addBranchesToGrowingFaces, addFacesToGrowingBranches, Snowflake } from "./Snowflake";
 import * as Snowflakes from "./Snowflake";
 import * as Branches from "./Branch";
 import * as Faces from "./Face";
-import { fracPart, NonEmptyArray, parseSnowflakeId } from "./Utils";
+import { fracPart, GrowthType, interpretGrowth, NonEmptyArray, parseSnowflakeId } from "./Utils";
 import * as Eithers from "./Either";
-import { Maybe, none, some } from "./Maybe";
-import * as Maybes from "./Maybe";
 
 export type State = {
-    graph: Graph,
+    growthInput: Array<number>,
     graphic: Graphic | undefined,
     snowflake: Snowflake,
     currentGrowthType: GrowthType | undefined,
@@ -61,9 +45,6 @@ export type State = {
     resetCallback: () => void,
     installSnowflakeCanvasCallback: (canvas: HTMLCanvasElement) => void,
     installSnowflakeCanvasFailureCallback: () => void,
-    installGraphCanvasCallback: (canvas: HTMLCanvasElement) => void,
-    installGraphCanvasFailureCallback: () => void,
-    graphMouseUpEventListenerNode: Node,
 
     updateOnNextFrame: () => void,
     doUpdate: () => void,
@@ -102,7 +83,7 @@ export function setSnowflakeId(state: State, snowflakeId: string): void {
         throw new Error('parsing snowflake id gave zero length array');
     } else {
         const xsNonempty: NonEmptyArray<number> = xs as any;
-        state.graph.growthInput = xsNonempty;
+        state.growthInput = xsNonempty;
     }
 }
 
@@ -116,41 +97,6 @@ export function installSnowflakeCanvas(state: State, snowflakeCanvasSizePX: numb
     } else {
         state.installSnowflakeCanvasCallback(state.graphic.canvas);
     }
-}
-
-export function installGraphCanvas(
-    state: State,
-    width: number,
-    height: number,
-    mouseUpEventListenerNode: Node
-): void {
-    const options: GraphInstallationOptions = {
-        mouseUpEventListenerNode,
-        canvasWidth: width,
-        canvasHeight: height,
-    };
-    Graphs.install(state.graph, options);
-    if (state.graph.installation === undefined) {
-        state.installGraphCanvasFailureCallback();
-    } else {
-        state.installGraphCanvasCallback(state.graph.installation.canvas);
-    }
-}
-
-export function setGraphCanvasWidth(state: State, width: number): void {
-    if (state.graph.installation === undefined) {
-        return;
-    }
-    state.graph.installation.ctx.canvas.width = width;
-    state.graph.installation.canvas.style.width = `${width}px`;
-}
-
-export function setGraphCanvasHeight(state: State, height: number): void {
-    if (state.graph.installation === undefined) {
-        return;
-    }
-    state.graph.installation.ctx.canvas.height = height;
-    state.graph.installation.canvas.style.height = `${height}px`;
 }
 
 export function scheduleUpdate(state: State): void {
@@ -169,14 +115,13 @@ export function setIdealMSBetweenUpdates(state: State, targetGrowthTimeMS: numbe
 }
 
 export function make(): State {
-    const graph = Graphs.make(defaultGraphOptions());
     const snowflake = Snowflakes.zero();
 
     // These defaults are overwritten in Controller which synchronizes
     // this state with the default Config. It's the values in the 
     // default Config that matter.
     const result: State = {
-        graph,
+        growthInput: [0],
         graphic: undefined,
         snowflake,
         currentGrowthType: undefined,
@@ -192,9 +137,6 @@ export function make(): State {
         resetCallback: () => { return; },
         installSnowflakeCanvasCallback: _ => { return; },
         installSnowflakeCanvasFailureCallback: () => { return; },
-        installGraphCanvasCallback: _ => { return; },
-        installGraphCanvasFailureCallback: () => { return; },
-        graphMouseUpEventListenerNode: document,
         hasScheduledUpdate: false,
         updateOnNextFrame: () => { requestAnimationFrame(result.doUpdate); },
         doUpdate: () => {
@@ -216,7 +158,6 @@ function currentTime(state: State): number {
 export function update(state: State): void {
     const {
         snowflake,
-        graph,
         graphic,
     } = state;
     const lastMS = state.currentMS;
@@ -228,7 +169,7 @@ export function update(state: State): void {
     requiredUpdates = Math.floor(requiredUpdates);
 
     function doUpdate() {
-        const growth = interpretGrowth(graph, currentTime(state));
+        const growth = interpretGrowth(state.growthInput, currentTime(state));
 
         if (state.currentGrowthType === undefined) {
             state.currentGrowthType = growth.growthType;
@@ -262,7 +203,7 @@ export function update(state: State): void {
                     v.count = 0;
                 }
                 v.count += 1;
-                console.log(`too large count = ${v.count}, ${state.graph.growthInput}`);
+                console.log(`too large count = ${v.count}, ${state.growthInput}`);
             }
         }
     }
@@ -277,10 +218,4 @@ export function update(state: State): void {
         // console.log(`Grew snowflake in ${(performance.now() - state.resetStartTime) / 1000} seconds`);
         state.growing = false;
     }
-
-    callIfInstalled(graph, i => {
-        updateGraph(graph, i);
-        i.ctx.clearRect(0, 0, i.canvas.width, i.canvas.height);
-        drawGrowthInput(graph, i, currentTime(state));
-    });
 }

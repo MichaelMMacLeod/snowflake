@@ -27,15 +27,6 @@ export class Controller {
         States.installSnowflakeCanvas(this.#state, this.#config.snowflakeCanvasSizePX);
     }
 
-    installGraphCanvas(): void {
-        States.installGraphCanvas(
-            this.#state,
-            this.#config.graphCanvasWidthPX,
-            this.#config.graphCanvasHeightPX,
-            this.#config.graphMouseUpEventListenerNode
-        );
-    }
-
     reset(): void {
         States.reset(this.#state);
     }

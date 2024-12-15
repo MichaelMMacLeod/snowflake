@@ -1,3 +1,4 @@
+import { yChoices } from "./Constants";
 import { Either, left, right } from "./Either";
 
 export function rem(x: number, m: number): number {
@@ -77,3 +78,19 @@ export const sideCacheConstructor: (length: number) => SideCacheArray = length =
 //   }
 //   return result;
 // };
+
+export type GrowthType = 'branching' | 'faceting';
+export type Growth = { scale: number, growthType: GrowthType };
+
+export function interpretGrowth(growthInput: Array<number>, time: number): Growth {
+  let s = lerp(0, growthInput.length - 1, time);
+  let n = fracPart(s);
+  let a = yChoices[growthInput[Math.floor(s)]];
+  let b = yChoices[growthInput[Math.ceil(s)]];
+  let signedScale = lerp(a, b, n);
+  // let timeScalar = -0.01 * s + 1;
+  return {
+    scale: /*timeScalar **/ Math.abs(signedScale),
+    growthType: signedScale > 0.0 ? 'branching' : 'faceting',
+  };
+}
