@@ -1,9 +1,5 @@
 import * as Points from "../src/Point";
-import * as Sides from "../src/Side";
 import { Point } from "../src/Point";
-import { Side2D } from "../src/Side2D";
-import * as Side2Ds from "../src/Side2D";
-import * as Faces from "../src/Face";
 
 function sum(a: number, b: number): number {
     const p1: Point = { x: a, y: 0 };

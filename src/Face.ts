@@ -1,9 +1,9 @@
 import * as Points from "./Point";
-import { midpoint, midpointT, midpointTN, Point } from "./Point";
+import { midpointTN, Point } from "./Point";
 import { Direction } from "./Direction";
 import * as Directions from "./Direction";
-import { callWithViewspacePoints, Graphic } from "./Graphic";
-import { outsideVisibleArea, viewspaceX, viewspaceY, worldToViewTransform, worldToViewTransformGuarded } from "./CoordinateSystem";
+import { Graphic } from "./Graphic";
+import { outsideVisibleArea, viewspaceX, viewspaceY } from "./CoordinateSystem";
 import { faceSizeGrowthScalar } from "./Constants";
 import { Array6, makeArray6, rem } from "./Utils";
 
@@ -38,23 +38,6 @@ export function zeroM(face: Face): void {
     face.growing = true;
 }
 
-// Points are returned in order of relative direction:
-//
-//      [2]-----[1]
-//      /         \
-//     /           \
-//   [3]           [0] --- direction --->
-//     \           /
-//      \         /
-//      [4]-----[5]
-export function points(face: Face): Array6<Point> {
-    const result: Array6<Point> = makeArray6(Points.zero);
-    for (let i = 0; i < Directions.values.length; i += 1) {
-        setPointN(result[i], face, i);
-    }
-    return result;
-}
-
 export function manualPointNX(centerX: number, size: number, absoluteDirection: number): number {
     return centerX + size * Directions.cosines[absoluteDirection];
 }
@@ -68,12 +51,8 @@ export function pointNX(face: Face, absoluteDirection: number): number {
 }
 
 export function pointNY(face: Face, absoluteDirection: number): number {
-    return face.center.y + face.size * Directions.sines[absoluteDirection];
+    return manualPointNY(face.center.y, face.size, absoluteDirection);
 }
-
-// export function pointND(face: Face, pointIndex: number): number {
-//     return (face.direction + pointIndex) % Directions.values.length;
-// }
 
 export function setPointN(result: Point, face: Face, i: number) {
     const d = (face.direction + i) % Directions.values.length;

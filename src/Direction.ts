@@ -4,11 +4,6 @@ import { oneSixthCircle } from "./Constants";
 export type Direction = 0 | 1 | 2 | 3 | 4 | 5;
 export const DIRS: 6 = 6;
 
-function is(i: number): i is Direction {
-    return i === 0 || i === 1 || i === 2 ||
-        i === 3 || i === 4 || i === 5;
-}
-
 export const values: Array6<number> = [
     0 * oneSixthCircle,
     1 * oneSixthCircle,

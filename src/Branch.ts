@@ -1,13 +1,12 @@
 import * as Points from "./Point";
-import { midpointT, midpointTN, Point } from "./Point";
+import { midpointTN, Point } from "./Point";
 import { Direction } from "./Direction";
 import * as Directions from "./Direction";
-import { callWithViewspacePoints, Graphic } from "./Graphic";
+import { Graphic } from "./Graphic";
 import { outsideVisibleArea, viewspaceX, viewspaceY, worldToViewTransform } from "./CoordinateSystem";
 import * as Faces from "./Face";
-import { Face, setPointNManually } from "./Face";
 import { branchLengthGrowthScalar, branchSizeGrowthScalar } from "./Constants";
-import { Array6, makeArray6, rem } from "./Utils";
+import { rem } from "./Utils";
 
 export type Branch = {
     start: Point,
@@ -24,7 +23,7 @@ export function zero(): Branch {
         size: 0,
         length: 0,
         direction: 0,
-        growthScale :0,
+        growthScale: 0,
         growing: false,
     };
 }
@@ -51,47 +50,6 @@ export function pointNY(branch: Branch, absoluteDirection: number): number {
         return Faces.manualPointNY(endCenterY(branch), branch.size, absoluteDirection);
     }
     return Faces.manualPointNY(branch.start.y, branch.size, absoluteDirection);
-}
-
-export function end(branch: Branch): Point {
-    let l = branch.length;
-    let x = branch.start.x + l * Directions.cosines[branch.direction];
-    let y = branch.start.y + l * Directions.sines[branch.direction];
-    return { x, y };
-}
-
-function setPointNManuallyStartFace(branch: Branch, result: Point, i: number) {
-    const direction = branch.direction;
-    const center = branch.start;
-    const size = branch.size;
-    setPointNManually(result, direction, center, size, i)
-}
-
-function setPointNManuallyEndFace(branch: Branch, result: Point, i: number, endFaceCenter: Point) {
-    const direction = branch.direction;
-    const size = branch.size;
-    setPointNManually(result, direction, endFaceCenter, size, i)
-}
-
-// Points are returned in order of relative direction:
-//
-//      [2]------------------------------[1]
-//      /                                  \
-//     /                                    \
-//   [3]                                    [0] --- direction --->
-//     \                                    /
-//      \                                  /
-//      [4]------------------------------[5]
-export function points(branch: Branch): Array6<Point> {
-    const result = makeArray6(Points.zero);
-    const endFaceCenter = end(branch);
-    setPointNManuallyEndFace(branch, result[0], 0, endFaceCenter);
-    setPointNManuallyEndFace(branch, result[1], 1, endFaceCenter);
-    setPointNManuallyStartFace(branch, result[2], 2);
-    setPointNManuallyStartFace(branch, result[3], 3);
-    setPointNManuallyStartFace(branch, result[4], 4);
-    setPointNManuallyEndFace(branch, result[5], 5, endFaceCenter);
-    return result;
 }
 
 export function draw(graphic: Graphic, branch: Branch): boolean {

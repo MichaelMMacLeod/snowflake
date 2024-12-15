@@ -1,28 +1,10 @@
-import { oneSixthCircle } from "./Constants";
 import { Face } from "./Face";
-import { Point } from "./Point";
 import * as Points from "./Point";
-import { Side2D } from "./Side2D";
 import * as Side2Ds from "./Side2D";
-import { Array6, mapArray6, rem, SideCacheArray } from "./Utils";
+import { Array6, rem, SideCacheArray } from "./Utils";
 import * as Directions from "./Direction";
 import { Direction } from "./Direction";
-import * as Faces from "./Face";
 import { Branch } from "./Branch";
-
-export type Side = {
-  left: number,
-  right: number,
-  height: number,
-};
-
-export function zero(): Side {
-  return {
-    left: 0,
-    right: 0,
-    height: 0,
-  }
-}
 
 export function normalizeSide2DFaceM(
   resultLeft: SideCacheArray,
@@ -82,24 +64,16 @@ export function normalizeBranchRelativeSide2DsM(
     normalizeSide2DBranchM(resultLeft[i], resultRight[i], resultHeight[i], partIndex, branch, i);
   }
 }
-
-export function overlapDistance(s1: Side, s2: Side): number {
-  return s1.height - s2.height;
-}
-
-export function overlapDistanceRaw(height1: number, height2: number) {
+export function overlapDistance(height1: number, height2: number) {
   return height1 - height2;
 }
 
-export function overlaps(s1: Side, s2: Side): boolean {
+// Returns 'true' if the line segments l1...r1 and l2...r2 overlap.
+export function overlaps(l1: number, r1: number, l2: number, r2: number): boolean {
   // s1 ---......
   // s2       ......---
   //    and
   // s1       ......--- 
   // s2 ---......
-  return s1.left < s2.right && s2.left < s1.right;
-}
-
-export function overlapsRaw(l1: number, r1: number, l2: number, r2: number): boolean {
   return l1 < r2 && l2 < r1;
 }
