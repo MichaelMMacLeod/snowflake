@@ -1032,12 +1032,12 @@
             iccb(canvas);
             // canvas.style.filter = 'drop-shadow(0px 0px 8px white)'
         };
+        const reconfigure = () => controller.configure(config);
         config.finishedGrowingCallback = () => {
             numSnowflakesGrown += 1;
             if (numSnowflakesGrown < maxSnowflakes) {
                 config.snowflakeId = snowflakeIds[numSnowflakesGrown - 1];
-                setTimeout(() =>
-                    controller.configure(config), 0);
+                setTimeout(reconfigure, 0);
             }
             if (numSnowflakesGrown % 100 === 0) {
                 const endTime = performance.now();

@@ -64,6 +64,9 @@ export type State = {
     installGraphCanvasCallback: (canvas: HTMLCanvasElement) => void,
     installGraphCanvasFailureCallback: () => void,
     graphMouseUpEventListenerNode: Node,
+
+    updateOnNextFrame: () => void,
+    doUpdate: () => void,
 };
 
 export function reset(state: State): void {
@@ -155,16 +158,7 @@ export function scheduleUpdate(state: State): void {
         return;
     } else if (state.growing && state.playing) {
         state.hasScheduledUpdate = true;
-        setTimeout(
-            () => {
-                requestAnimationFrame(() => {
-                    update(state);
-                    state.hasScheduledUpdate = false;
-                    scheduleUpdate(state);
-                });
-            },
-            state.idealMSBetweenUpdates
-        )
+        setTimeout(state.updateOnNextFrame, state.idealMSBetweenUpdates);
     } else {
         state.hasScheduledUpdate = false;
     }
@@ -202,6 +196,12 @@ export function make(): State {
         installGraphCanvasFailureCallback: () => { return; },
         graphMouseUpEventListenerNode: document,
         hasScheduledUpdate: false,
+        updateOnNextFrame: () => { requestAnimationFrame(result.doUpdate); },
+        doUpdate: () => {
+            update(result);
+            result.hasScheduledUpdate = false;
+            scheduleUpdate(result);
+        }
     };
 
     scheduleUpdate(result);
