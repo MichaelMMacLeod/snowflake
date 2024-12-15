@@ -267,11 +267,13 @@ export function killPartIfCoveredInOneDirection(
   numOtherSides: number,
   otherSidesContainsPartSides: boolean,
 ): void {
-  for (let oi = 0; oi < numOtherSides; ++oi) {
-    const isThisPartSide = otherSidesContainsPartSides && oi === partIndex;
+  for (let oi = 0; oi < numOtherSides && part.growing; ++oi) {
     const otherLeftSide = otherSides[oi];
-    const distance = Sides.overlaps(otherLeftSide, side);
-    if (distance !== undefined && !isThisPartSide) {
+    const overlaps = Sides.overlaps(otherLeftSide, side);
+    if (overlaps
+      && Sides.overlapDistance(otherLeftSide, side) > 0
+      && !(otherSidesContainsPartSides && oi === partIndex)
+    ) {
       part.growing = false;
       break;
     }

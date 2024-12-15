@@ -58,42 +58,24 @@ export function normalizeBranchRelativeSide2DsM(result: Array6<Array<Side>>, par
   }
 }
 
-// Returns how far above s1 is from s2 if s1 is above and overlapping
-// s2, otherwise returns undefined.
-export function overlaps(s1: Side, s2: Side): number | undefined {
-  // const c1 = s1.height > s2.height;
-  // const c2 = s1.left < s2.left && s1.right > s2.left;
-  // const c3 = s1.left > s2.left && s2.right > s1.left;
-  // const c4 = s1.left < s2.left && s1.right > s2.right;
-  // const c5 = s1.left > s2.left && s1.right < s2.right;
-  if ((s1.height > s2.height) && ((s1.left < s2.left && s1.right > s2.right) || (s1.left > s2.left && s2.right > s1.left) || (s1.left < s2.left && s1.right > s2.left) || (s1.left > s2.left && s1.right < s2.right))) {
-    return s1.height - s2.height;
-  }
-  return undefined;
-  // const w = window as any;
-  // // 212916781 34053371 20584139 16045439 7337022
-  // // 16045439c4, 20584139c3, 212916781c1, 34053371c2, 7337022c5
-  // //212916781c1 34053371c2 20584139c3 16045439c4 7337022c5
-  // w.c1 = w.c1 === undefined ? 0 : w.c1;
-  // w.c2 = w.c2 === undefined ? 0 : w.c2;
-  // w.c3 = w.c3 === undefined ? 0 : w.c3;
-  // w.c4 = w.c4 === undefined ? 0 : w.c4;
-  // w.c5 = w.c5 === undefined ? 0 : w.c5;
-  // w.c1 += +c1;
-  // w.c2 += +c2;
-  // w.c3 += +c3;
-  // w.c4 += +c4;
-  // w.c5 += +c5;
-  // w.summarize = () => {
-  //   console.log(w.c1, w.c2, w.c3, w.c4, w.c5);
-  // }
-  // if (s1.height > s2.height &&
-  //   (s1.left < s2.left && s1.right > s2.left ||
-  //     s1.left > s2.left && s2.right > s1.left ||
-  //     s1.left < s2.left && s1.right > s2.right ||
-  //     s1.left > s2.left && s1.right < s2.right)) {
-  //   return s1.height - s2.height;
-  // }
-
-  // return undefined;
+export function overlapDistance(s1: Side, s2: Side): number {
+  return s1.height - s2.height;
 }
+
+export function overlaps(s1: Side, s2: Side): boolean {
+  // s1 ---......
+  // s2       ......---
+  //    and
+  // s1       ......--- 
+  // s2 ---......
+  return s1.left < s2.right && s2.left < s1.right;
+}
+
+function summarize() {
+  const w = window as any;
+  const sorted = [w.c0,w.c1,w.c2,w.c3,w.c4];
+  sorted.sort();
+  console.log(`NumTrueCounts: c0 = ${w.c0}, c1 = ${w.c1}, c2 = ${w.c2}, c3 = ${w.c3}, c4 = ${w.c4}. Sorted: ${sorted}`);
+}
+
+(window as any).summarize = summarize;
