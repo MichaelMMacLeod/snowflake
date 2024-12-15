@@ -4,7 +4,7 @@ import { Point } from "./Point";
 import * as Points from "./Point";
 import { Side2D } from "./Side2D";
 import * as Side2Ds from "./Side2D";
-import { Array6, mapArray6, rem } from "./Utils";
+import { Array6, mapArray6, rem, SideCacheArray } from "./Utils";
 import * as Directions from "./Direction";
 import { Direction } from "./Direction";
 import * as Faces from "./Face";
@@ -25,9 +25,9 @@ export function zero(): Side {
 }
 
 export function normalizeSide2DFaceM(
-  resultLeft: Array<number>,
-  resultRight: Array<number>,
-  resultHeight: Array<number>,
+  resultLeft: SideCacheArray,
+  resultRight: SideCacheArray,
+  resultHeight: SideCacheArray,
   partIndex: number,
   face: Face,
   absoluteDirection: number
@@ -43,9 +43,9 @@ export function normalizeSide2DFaceM(
 }
 
 export function normalizeSide2DBranchM(
-  resultLeft: Array<number>,
-  resultRight: Array<number>,
-  resultHeight: Array<number>,
+  resultLeft: SideCacheArray,
+  resultRight: SideCacheArray,
+  resultHeight: SideCacheArray,
   partIndex: number,
   branch: Branch,
   absoluteDirection: number
@@ -61,9 +61,9 @@ export function normalizeSide2DBranchM(
 }
 
 export function normalizeFaceRelativeSide2DsM(
-  resultLeft: Array6<Array<number>>,
-  resultRight: Array6<Array<number>>,
-  resultHeight: Array6<Array<number>>,
+  resultLeft: Array6<SideCacheArray>,
+  resultRight: Array6<SideCacheArray>,
+  resultHeight: Array6<SideCacheArray>,
   partIndex: number, face: Face
 ): void {
   for (let i = 0; i < Directions.values.length; ++i) {
@@ -72,9 +72,9 @@ export function normalizeFaceRelativeSide2DsM(
 }
 
 export function normalizeBranchRelativeSide2DsM(
-  resultLeft: Array6<Array<number>>,
-  resultRight: Array6<Array<number>>,
-  resultHeight: Array6<Array<number>>,
+  resultLeft: Array6<SideCacheArray>,
+  resultRight: Array6<SideCacheArray>,
+  resultHeight: Array6<SideCacheArray>,
   partIndex: number,
   branch: Branch
 ): void {

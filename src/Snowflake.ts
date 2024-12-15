@@ -5,34 +5,27 @@ import * as Branches from "./Branch";
 import { Graphic } from "./Graphic";
 import { Direction, DIRS } from "./Direction";
 import * as Directions from "./Direction";
-import { Array6, makeArray6, rem } from "./Utils";
-import { Side } from "./Side";
+import { Array6, makeArray6, rem, SideCacheArray, sideCacheConstructor } from "./Utils";
 import * as Sides from "./Side";
-import * as Points from "./Point";
-import { Side2D } from "./Side2D";
-import { Point } from "./Point";
 
 const MAX_FACES: number = 10000;
 const MAX_BRANCHES: number = 10000;
 type CacheIndex = 0 | 1 | 2 | 3 | 4 | 5;
-const NUM_SIDE_ELEMENTS = 3;
-const FACE_CACHES: CacheIndex = 0;
 const FACE_LEFT_CACHE: CacheIndex = 0;
 const FACE_RIGHT_CACHE: CacheIndex = 1;
 const FACE_HEIGHT_CACHE: CacheIndex = 2;
-const BRANCH_CACHES: CacheIndex = 3;
 const BRANCH_LEFT_CACHE: CacheIndex = 3;
 const BRANCH_RIGHT_CACHE: CacheIndex = 4;
 const BRANCH_HEIGHT_CACHE: CacheIndex = 5;
 type SideCache = [
-  Array6<Array<number>>,
-  Array6<Array<number>>,
-  Array6<Array<number>>,
-  Array6<Array<number>>,
-  Array6<Array<number>>,
-  Array6<Array<number>>,
+  Array6<SideCacheArray>,
+  Array6<SideCacheArray>,
+  Array6<SideCacheArray>,
+  Array6<SideCacheArray>,
+  Array6<SideCacheArray>,
+  Array6<SideCacheArray>,
 ];
-const JS_ENGINE_MAKE_THIS_AN_ARRAY_OF_DOUBLES_PLEASE_AND_THANK_YOU: number = 0;
+const JS_ENGINE_MAKE_THIS_AN_ARRAY_OF_DOUBLES_PLEASE_AND_THANK_YOU: number = 0.12345;
 
 export type Snowflake = {
   faces: Array<Face>,
@@ -140,30 +133,31 @@ export function draw(graphic: Graphic, snowflake: Snowflake): boolean {
   return anyPartOutside;
 }
 
-function zeroParts<P>(maxParts: number, zeroPart: () => P, caches: SideCache, cacheIndex: CacheIndex): Array<P> {
+function zeroParts<P>(maxParts: number, zeroPart: () => P): Array<P> {
   const result = [];
   for (let i = 0; i < maxParts; ++i) {
     result[i] = zeroPart();
-    for (let j = 0; j < DIRS; ++j) {
-      for (let s = 0; s < NUM_SIDE_ELEMENTS; ++s) {
-        caches[cacheIndex + s][j][i] = JS_ENGINE_MAKE_THIS_AN_ARRAY_OF_DOUBLES_PLEASE_AND_THANK_YOU;
-      }
-    }
   }
   return result;
 }
 
+function sideCacheZeroFunc(length: number): () => SideCacheArray {
+  return () => sideCacheConstructor(length);
+}
+
 export function zero(): Snowflake {
+  const mkFaceCache = sideCacheZeroFunc(MAX_FACES);
+  const mkBranchCache = sideCacheZeroFunc(MAX_BRANCHES);
   const sideCaches: SideCache = [
-    makeArray6(() => []),
-    makeArray6(() => []),
-    makeArray6(() => []),
-    makeArray6(() => []),
-    makeArray6(() => []),
-    makeArray6(() => []),
+    makeArray6(mkFaceCache),
+    makeArray6(mkFaceCache),
+    makeArray6(mkFaceCache),
+    makeArray6(mkBranchCache),
+    makeArray6(mkBranchCache),
+    makeArray6(mkBranchCache),
   ];
-  const faces = zeroParts(MAX_FACES, Faces.zero, sideCaches, FACE_CACHES);
-  const branches = zeroParts(MAX_BRANCHES, Branches.zero, sideCaches, BRANCH_CACHES);
+  const faces = zeroParts(MAX_FACES, Faces.zero);
+  const branches = zeroParts(MAX_BRANCHES, Branches.zero);
   return {
     faces,
     branches,
@@ -286,12 +280,12 @@ type Killable = {
 export function killPartIfCoveredInOneDirection(
   part: Killable,
   partIndex: number,
-  sideLeftCache: Array<number>,
-  sideRightCache: Array<number>,
-  sideHeightCache: Array<number>,
-  otherLeftSideCache: Array<number>,
-  otherRightSideCache: Array<number>,
-  otherHeightSideCache: Array<number>,
+  sideLeftCache: SideCacheArray,
+  sideRightCache: SideCacheArray,
+  sideHeightCache: SideCacheArray,
+  otherLeftSideCache: SideCacheArray,
+  otherRightSideCache: SideCacheArray,
+  otherHeightSideCache: SideCacheArray,
   numOtherSides: number,
   otherCacheContainsPart: boolean,
 ): void {

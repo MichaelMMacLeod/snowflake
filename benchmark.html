@@ -1011,45 +1011,52 @@
             "1583319223328333"
         ];
 
-        const startTime = performance.now();
+        function addTask() {
+            const startTime = performance.now();
 
-        let numSnowflakesGrown = 0;
-        const maxSnowflakes = 1000;
+            let numSnowflakesGrown = 0;
+            const maxSnowflakes = 1000;
 
-        const controller = Main.main();
-        const config = controller.defaultConfig();
+            const controller = Main.main();
+            const config = controller.defaultConfig();
 
-        window.controller = controller;
-        window.config = config;
+            window.controller = controller;
+            window.config = config;
 
-        config.snowflakeCanvasSizePX = 800;
-        config.targetGrowthTimeMS = 0;
-        config.upsCap = 10000000;
-        config.maxUpdates = 500;
-        config.playing = true;
-        const iccb = config.installSnowflakeCanvasCallback;
-        config.installSnowflakeCanvasCallback = canvas => {
-            iccb(canvas);
-            // canvas.style.filter = 'drop-shadow(0px 0px 8px white)'
-        };
-        const reconfigure = () => controller.configure(config);
-        config.finishedGrowingCallback = () => {
-            numSnowflakesGrown += 1;
-            if (numSnowflakesGrown < maxSnowflakes) {
-                config.snowflakeId = snowflakeIds[numSnowflakesGrown - 1];
-                setTimeout(reconfigure, 0);
-            }
-            if (numSnowflakesGrown % 100 === 0) {
-                const endTime = performance.now();
-                const timeMS = endTime - startTime;
-                const timeS = timeMS / 1000;
-                const averageMS = timeMS / numSnowflakesGrown;
-                console.log(`grew ${numSnowflakesGrown} with average of ${averageMS} milliseconds per snowflake`);
-            }
-        };
+            config.snowflakeCanvasSizePX = 800;
+            config.targetGrowthTimeMS = 0;
+            config.upsCap = 10000000;
+            // config.upsCap = 60;
+            config.maxUpdates = 500;
+            config.playing = true;
+            const iccb = config.installSnowflakeCanvasCallback;
+            config.installSnowflakeCanvasCallback = canvas => {
+                iccb(canvas);
+                // canvas.style.filter = 'drop-shadow(0px 0px 8px white)'
+            };
+            const reconfigure = () => controller.configure(config);
+            config.finishedGrowingCallback = () => {
+                numSnowflakesGrown += 1;
+                if (numSnowflakesGrown < maxSnowflakes) {
+                    config.snowflakeId = snowflakeIds[numSnowflakesGrown - 1];
+                    setTimeout(reconfigure, 0);
+                }
+                if (numSnowflakesGrown % 100 === 0) {
+                    const endTime = performance.now();
+                    const timeMS = endTime - startTime;
+                    const timeS = timeMS / 1000;
+                    const averageMS = timeMS / numSnowflakesGrown;
+                    console.log(`grew ${numSnowflakesGrown} with average of ${averageMS} milliseconds per snowflake`);
+                }
+            };
 
-        controller.configure(config);
-        controller.installSnowflakeCanvas();
+            controller.configure(config);
+            controller.installSnowflakeCanvas();
+        }
+
+        for (let i = 0; i < 1; ++i) {
+            addTask();
+        }
     </script>
 
 </body>
