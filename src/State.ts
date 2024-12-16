@@ -4,12 +4,14 @@ import { addBranchesToGrowingFaces, addFacesToGrowingBranches, Snowflake } from 
 import * as Snowflakes from "./Snowflake";
 import * as Branches from "./Branch";
 import * as Faces from "./Face";
-import { fracPart, GrowthType, interpretGrowth, NonEmptyArray, parseSnowflakeId } from "./Utils";
+import { fracPart, GrowthType, interpretGrowth, NonEmptyArray } from "./Utils";
 import * as Eithers from "./Either";
+import { isSome, mapSome, Maybe, none } from "./Maybe";
+import * as Maybes from "./Maybe";
 
 export type State = {
-    growthInput: Array<number>,
-    graphic: Graphic | undefined,
+    growthInput: NonEmptyArray<number>,
+    graphic: Maybe<Graphic>,
     snowflake: Snowflake,
     currentGrowthType: GrowthType | undefined,
     idealMSBetweenUpdates: number,
@@ -58,44 +60,26 @@ export function reset(state: State): void {
     state.updateCount = 0;
     state.currentMS = performance.now();
     state.resetStartTime = performance.now();
-    if (state.graphic !== undefined) {
-        Graphics.clear(state.graphic);
-    }
+    mapSome(state.graphic, g => Graphics.clear(g));
     state.resetCallback();
     scheduleUpdate(state);
 }
 
 export function setSnowflakeCanvasSizePX(state: State, snowflakeCanvasSizePX: number): boolean {
-    if (state.graphic === undefined) {
-        return false;
-    }
-    state.graphic.sizePX = snowflakeCanvasSizePX;
-    state.graphic.ctx.canvas.width = snowflakeCanvasSizePX;
-    state.graphic.ctx.canvas.height = snowflakeCanvasSizePX;
-    state.graphic.canvas.style.width = `${snowflakeCanvasSizePX}px`;
-    state.graphic.canvas.style.height = `${snowflakeCanvasSizePX}px`;
-    return true;
+    mapSome(state.graphic, g => {
+        g.sizePX = snowflakeCanvasSizePX;
+        g.ctx.canvas.width = snowflakeCanvasSizePX;
+        g.ctx.canvas.height = snowflakeCanvasSizePX;
+        g.canvas.style.width = `${snowflakeCanvasSizePX}px`;
+        g.canvas.style.height = `${snowflakeCanvasSizePX}px`;
+    });
+    return isSome(state.graphic);
 }
 
-export function setSnowflakeId(state: State, snowflakeId: string): void {
-    const xs: Array<number> = Eithers.map(parseSnowflakeId(snowflakeId), v => { throw new Error('invalid snowflake ID') }, v => v);
-    if (xs.length === 0) {
-        throw new Error('parsing snowflake id gave zero length array');
-    } else {
-        const xsNonempty: NonEmptyArray<number> = xs as any;
-        state.growthInput = xsNonempty;
-    }
-}
-
-export function installSnowflakeCanvas(state: State, snowflakeCanvasSizePX: number): void {
-    if (state.graphic !== undefined) {
-        throw new Error('snowflake already installed');
-    }
-    state.graphic = Graphics.make(snowflakeCanvasSizePX);
-    if (state.graphic === undefined) {
-        state.installSnowflakeCanvasFailureCallback();
-    } else {
-        state.installSnowflakeCanvasCallback(state.graphic.canvas);
+export function initializeGraphic(state: State, snowflakeCanvasSizePX: number): Maybe<Graphic> {
+    return Maybes.orElse(state.graphic, () => {
+        state.graphic = Graphics.make(snowflakeCanvasSizePX);
+        return state.graphic;
     }
 }
 
@@ -114,7 +98,7 @@ export function setIdealMSBetweenUpdates(state: State, targetGrowthTimeMS: numbe
     state.idealMSBetweenUpdates = Math.max(1000 / upsCap, targetGrowthTimeMS / state.maxUpdates);
 }
 
-export function make(): State {
+export function zero(): State {
     const snowflake = Snowflakes.zero();
 
     // These defaults are overwritten in Controller which synchronizes
@@ -122,7 +106,7 @@ export function make(): State {
     // default Config that matter.
     const result: State = {
         growthInput: [0],
-        graphic: undefined,
+        graphic: none(),
         snowflake,
         currentGrowthType: undefined,
         growing: true,
@@ -194,8 +178,8 @@ export function update(state: State): void {
             Snowflakes.forEachGrowingFace(snowflake, (f, _) => Faces.enlarge(f, growth.scale));
         }
 
-        if (graphic !== undefined) {
-            if (Snowflakes.draw(graphic, snowflake)) {
+        mapSome(state.graphic, g => {
+            if (Snowflakes.draw(g, snowflake)) {
                 state.updateCount = state.maxUpdates;
                 state.updateBank = 0;
                 let v = window as any;
@@ -205,7 +189,7 @@ export function update(state: State): void {
                 v.count += 1;
                 console.log(`too large count = ${v.count}, ${state.growthInput}`);
             }
-        }
+        });
     }
 
     for (let i = 0; i < requiredUpdates; ++i) {

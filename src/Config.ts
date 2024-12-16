@@ -1,57 +1,38 @@
 import * as Eithers from "./Either";
+import { Either, left, right } from "./Either";
 import { Maybe, none, some } from "./Maybe";
 import * as Maybes from "./Maybe";
 import { scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX, setSnowflakeId, State } from "./State";
 import * as States from "./State";
-import { parseSnowflakeId, randomIntInclusive } from "./Utils";
+import { NonEmptyArray, okOrElse, randomIntInclusive } from "./Utils";
+
+export type UnparsedConfig = {
+    snowflakeID: any,
+    snowflakeCanvasSizePX: any,
+    targetGrowthTimeMS: any,
+    upsCap: any,
+    maxUpdates: any,
+    playing: any,
+    finishedGrowingCallback: any,
+    resetCallback: any,
+    installSnowflakeCanvasCallback: any,
+    installSnowflakeCanvasFailureCallback: any,
+};
 
 export type Config = {
-    // Specifies which snowflake to grow. Must be a number without any
-    // digits which are zero.
-    snowflakeId: string,
-
-    // Size in pixels of the side length of the square snowflake canvas.
+    snowflakeID: NonEmptyArray<number>,
     snowflakeCanvasSizePX: number,
-
-    // Desired time for the snowflake to fully grow in milliseconds.
-    // Actual growth time may be lower if the snowflake hits the edge
-    // of the canvas, and higher if the actual updates per second are
-    // too low.
     targetGrowthTimeMS: number,
-
-    // Upper bound on the number of updates per second performed.
     upsCap: number,
-
-    // Maximum number of 'growth updates' to the snowflake. The actual
-    // number of updates may be lower if the snowflake hits the edge of
-    // the canvas before this maximum is reached.
     maxUpdates: number,
-
-    // True if the snowflake is currently allowed to grow, false otherwise.
     playing: boolean,
-
-    // Function to call once the snowflake has finished growing.
     finishedGrowingCallback: () => void,
-
-    // Function to call when the snowflake is reset via a 'reset' event.
     resetCallback: () => void,
-
-    // Function to call when the 'installSnowflakeCanvas' event succeeds.
     installSnowflakeCanvasCallback: (canvas: HTMLCanvasElement) => void,
-
-    // Funciton to call when the 'installSnowflakeCanvas' event fails.
     installSnowflakeCanvasFailureCallback: () => void,
 };
 
-export type ConfigValidator = {
-    [K in keyof Config]: (value: any) => Maybe<string>
-}
-
-function isObject(value: any): boolean {
-    return typeof value === 'object' && !Array.isArray(value) && value !== null
-}
-
-function isBoolean(value: any): boolean {
+function isBoolean(value: any): value is boolean {
     return typeof value === 'boolean';
 }
 
@@ -63,187 +44,158 @@ function isFunctionN(value: any, argCount: number): boolean {
     return isFunction(value) && value.length === argCount;
 }
 
-function isFunction0(value: any): boolean {
+function isFunction0(value: any): value is () => any {
     return isFunctionN(value, 0);
 }
 
-function isFunction1(value: any): boolean {
+function isFunction1(value: any): value is (a: any) => any {
     return isFunctionN(value, 1);
 }
 
-function isFunction2(value: any): boolean {
-    return isFunctionN(value, 2);
-}
-
-function isCssColor(value: any): boolean {
-    return CSS.supports('color', value);
-}
-
-function isEventListenerRegistrant(value: any): boolean {
-    return value.addEventListener !== undefined
-        && value.removeEventListener !== undefined
-        && isFunction2(value.addEventListener) && isFunction2(value.removeEventListener);
-}
-
-function expect(name: string, kind: string, actual: any): string {
-    return `${name}: expected ${kind}, got '${actual}'`;
-}
-
-function expectSnowflakeId(name: string): (actual: any) => Maybe<string> {
-    return actual => {
-        return Eithers.map(
-            parseSnowflakeId(actual),
-            err => some(expect(name, 'snowflake ID', err)),
-            _ => none(),
-        );
-    };
-}
-
-function expectNat(name: string): (actual: any) => Maybe<string> {
-    return actual => {
-        if (!Number.isSafeInteger(actual)) {
-            return some(expect(name, 'integer', actual));
-        }
-        if (actual < 0) {
-            return some(expect(name, 'nonnegative integer', actual));
-        }
-        return none();
-    };
-}
-
-function expectBool(name: string): (actual: any) => Maybe<string> {
-    return actual => {
-        return Maybes.then(!isBoolean(actual), () => expect(name, 'boolean', actual));
-    };
-}
-
-function expectFunction0(name: string): (actual: any) => Maybe<string> {
-    return actual => {
-        return Maybes.then(
-            !isFunction0(actual),
-            () => expect(name, 'function requiring zero arguments', actual)
-        );
-    };
-}
-
-function expectFunction1(name: string): (actual: any) => Maybe<string> {
-    return actual => {
-        return Maybes.then(
-            !isFunction1(actual),
-            () => expect(name, 'function requiring one argument', actual),
-        );
-    };
-}
-
-function expectCssColor(name: string): (actual: any) => Maybe<string> {
-    return actual => {
-        return Maybes.then(
-            !isCssColor(actual),
-            () => expect(name, 'valid css color', actual)
-        );
-    };
-}
-
-function expectEventListenerRegistrant(name: string): (actual: any) => Maybe<string> {
-    return actual => {
-        return Maybes.then(
-            !isEventListenerRegistrant(actual),
-            () => expect(name, 'html node with .addEventListener and .removeEventListener', actual),
-        );
-    };
-}
-
-const configValidator: ConfigValidator = {
-    snowflakeId: expectSnowflakeId('snowflakeId'),
-    snowflakeCanvasSizePX: expectNat('snowflakeCanvasSizePX'),
-    targetGrowthTimeMS: expectNat('targetGrowthTimeMS'),
-    upsCap: expectNat('upsCap'),
-    maxUpdates: expectNat('maxUpdates'),
-    playing: expectBool('playing'),
-    finishedGrowingCallback: expectFunction0('finishedGrowingCallback'),
-    resetCallback: expectFunction0('resetCallback'),
-    installSnowflakeCanvasCallback: expectFunction1('installSnowflakeCanvasCallback'),
-    installSnowflakeCanvasFailureCallback: expectFunction0('installSnowflakeCanvasFailureCallback'),
-};
-
-function configValidationErrors(config: any): Array<string> {
-    const errors: Array<string> = [];
-    const cv: any = configValidator;
-
-    if (!isObject(config)) {
-        errors.push(`expected config to be an object, but got: '${config}'`);
-        return errors;
+export function parseSnowflakeID(value: any): Either<string, NonEmptyArray<number>> {
+    if (value.toString === undefined) {
+        return left('integer or string containing digits [1-9]');
     }
+    const digits = value.toString();
+    const result = [];
+    for (let i = 0; i < digits.length; ++i) {
+        const digit = parseInt(digits[i], 10);
+        if (Number.isNaN(digit)) {
+            return left('integer or string containing digits [1-9]');
+        }
+        if (digit === 0) {
+            return left('integer or string containing digits [1-9]');
+        }
+        const parsedDigit = digit - 1;
+        result.push(parsedDigit);
+    }
+    if (result.length === 0) {
+        return left('integer or string containing at least one nonzero digit');
+    }
+    return right(result as NonEmptyArray<number>);
+}
 
-    for (let [k, _v] of Object.entries(cv)) {
-        if (!(k in config)) {
-            errors.push(`missing key in config: '${k}'`);
+function parseNat(value: any): Either<string, number> {
+    if (!Number.isSafeInteger(value)) {
+        return left('integer');
+    }
+    if (value < 0) {
+        return left('nonnegative integer');
+    }
+    return right(value);
+}
+
+function makeParser<T>(predicate: (value: any) => value is T, expected: string): (value: any) => Either<string, T> {
+    return v => okOrElse(Maybes.then(predicate(v), () => v), () => expected)
+}
+
+const parseBool = makeParser(isBoolean, 'boolean');
+const parseFunction0 = makeParser(isFunction0, 'function requiring no arguments');
+const parseFunction1 = makeParser(isFunction1, 'function requiring one argument');
+
+type ConfigParser = {
+    [K in keyof UnparsedConfig]: (value: any) => Either<string, Config[K]>
+}
+
+const configParser: ConfigParser = {
+    snowflakeID: parseSnowflakeID,
+    snowflakeCanvasSizePX: parseNat,
+    targetGrowthTimeMS: parseNat,
+    upsCap: parseNat,
+    maxUpdates: parseNat,
+    playing: parseBool,
+    finishedGrowingCallback: parseFunction0,
+    resetCallback: parseFunction0,
+    installSnowflakeCanvasCallback: parseFunction1,
+    installSnowflakeCanvasFailureCallback: parseFunction0,
+}
+
+type ParserFailure = { expected: string, actual: any };
+
+function isObject(value: any): value is Object {
+    return typeof value === 'object' && !Array.isArray(value) && value !== null;
+}
+
+function parseConfig(u: UnparsedConfig): Either<Array<ParserFailure>, Config> {
+    const errors: Array<ParserFailure> = [];
+    const parser: any = configParser;
+    const result = zero();
+    if (!isObject(u)) {
+        errors.push({ expected: 'object', actual: u });
+        return left(errors);
+    }
+    for (let [k, _v] of Object.entries(parser)) {
+        if (!(k in u)) {
+            errors.push({ expected: `object with key '${k}'`, actual: u });
         }
     }
     if (errors.length > 0) {
-        return errors;
+        return left(errors);
     }
-
-    for (let [k, v] of Object.entries(config)) {
-        const validator = cv[k];
-        if (validator === undefined) {
-            errors.push(`unexpected key in config: '${k}'`);
+    for (let [k, v] of Object.entries(u)) {
+        const kParser = parser[k];
+        if (kParser === undefined) {
+            errors.push({ expected: `object without key '${k}'`, actual: u });
         } else {
-            const validation: Maybe<string> = validator(v);
-            Maybes.map(
-                validation,
-                () => { return; },
-                validation => errors.push(validation),
+            const r: Either<string, any> = kParser(v);
+            Eithers.map(
+                r,
+                expectedType => errors.push({ expected: `${k} to be ${expectedType}`, actual: v }),
+                parsed => (result as any)[k] = v,
             );
         }
     }
-
-    return errors;
-}
-
-function validateConfig(config: any): Config | undefined {
-    const errors = configValidationErrors(config);
     if (errors.length > 0) {
-        console.error('errors detected when validating snowflake configuration');
-        errors.forEach(e => console.error(e));
-        return undefined;
+        return left(errors);
     }
-    return config as Config;
+    return right(result);
 }
 
-export function randomSnowflakeId(): string {
-    const digits = [randomIntInclusive(1, 4)];
-    for (let i = 1; i < 16; i++) {
-        digits.push(randomIntInclusive(1, 9));
-    }
-    const id = digits.join('');
+function parseErrorString(e: ParserFailure): string {
+    return `expected ${e.expected}, received ${e.actual}`;
+}
+
+function parseErrorsString(e: Array<ParserFailure>): string {
+    return 'errors detected when validating config\n' + e.map(parseErrorString).join('\n');
+}
+
+export function parseConfigAndDisplayErrors(u: UnparsedConfig): Config {
     return Eithers.map(
-        parseSnowflakeId(id),
+        parseConfig(u),
+        errors => { throw new Error(parseErrorsString(errors)) },
+        config => config,
+    );
+}
+
+export function randomSnowflakeId(): Array<number> {
+    const id = [randomIntInclusive(1, 4)];
+    for (let i = 1; i < 16; i++) {
+        id.push(randomIntInclusive(1, 9));
+    }
+    return Eithers.map(
+        parseSnowflakeID(id),
         _err => { throw new Error(`randomSnowflakeId returned invalid ID: '${id}'`) },
         _id => id
     );
 }
 
+export function randomSnowflakeIdString(): string {
+    return randomSnowflakeId().join('');
+}
+
 export function zero(): Config {
-    const config = (() => {
-        const config: Config = {
-            snowflakeId: randomSnowflakeId(),
-            snowflakeCanvasSizePX: 800,
-            targetGrowthTimeMS: 8000,
-            upsCap: 60,
-            maxUpdates: 500,
-            playing: true,
-            finishedGrowingCallback: () => { return; },
-            resetCallback: () => { return; },
-            installSnowflakeCanvasCallback: canvas => document.body.appendChild(canvas),
-            installSnowflakeCanvasFailureCallback: () => { throw new Error('error installing snowflake canvas'); },
-        };
-        return validateConfig(config);
-    })();
-    if (config === undefined) {
-        throw new Error('default config is invalid');
-    }
-    return config;
+    return parseConfigAndDisplayErrors({
+        snowflakeID: randomSnowflakeIdString(),
+        snowflakeCanvasSizePX: 800,
+        targetGrowthTimeMS: 8000,
+        upsCap: 60,
+        maxUpdates: 500,
+        playing: true,
+        finishedGrowingCallback: () => { return; },
+        resetCallback: () => { return; },
+        installSnowflakeCanvasCallback: (canvas: HTMLCanvasElement) => document.body.appendChild(canvas),
+        installSnowflakeCanvasFailureCallback: () => { throw new Error('error installing snowflake canvas'); },
+    });
 }
 
 export type ConfigSynchronizer = {
@@ -251,10 +203,10 @@ export type ConfigSynchronizer = {
 }
 
 const configSynchronizer: ConfigSynchronizer = {
-    snowflakeId: (_c, s, newValue, oldValue) => {
+    snowflakeID: (_c, s, newValue, oldValue) => {
         const newEqOld = Maybes.map(oldValue, () => false, oldValue => newValue === oldValue);
         if (!newEqOld) {
-            setSnowflakeId(s, newValue);
+            s.growthInput = newValue;
             return true;
         }
         return false;
@@ -274,11 +226,9 @@ const configSynchronizer: ConfigSynchronizer = {
     targetGrowthTimeMS: (c, s, newValue, oldValue) => {
         setIdealMSBetweenUpdates(s, newValue, c.upsCap);
         return false;
-        // return Maybes.map(oldValue, () => true, o => o !== newValue);
     },
     upsCap: (c, s, newValue, oldValue) => {
         setIdealMSBetweenUpdates(s, c.targetGrowthTimeMS, newValue);
-        // return Maybes.map(oldValue, () => true, o => o !== newValue);
         return false;
     },
     maxUpdates: (_c, s, newValue, oldValue) => {
@@ -332,18 +282,12 @@ export function copy(config: Config): Config {
     return result;
 }
 
-export function sync(oldValidatedConfig: Maybe<Config>, newUnvalidatedConfig: Config, state: State): void {
-    const maybeConfig = validateConfig(newUnvalidatedConfig);
-    if (maybeConfig === undefined) {
-        return;
-    }
-    const config = maybeConfig;
+export function sync(oldConfig: Maybe<Config>, newConfig: Config, state: State): void {
     const cs: any = configSynchronizer;
-
     let needsReset = false;
-    for (let [k, v] of Object.entries(config)) {
-        const oldValue = Maybes.mapSome(oldValidatedConfig, old => (old as any)[k]);
-        needsReset = cs[k](config, state, v, oldValue) || needsReset;
+    for (let [k, v] of Object.entries(newConfig)) {
+        const oldValue = Maybes.mapSome(oldConfig, old => (old as any)[k]);
+        needsReset = cs[k](newConfig, state, v, oldValue) || needsReset;
     }
     if (needsReset) {
         States.reset(state);

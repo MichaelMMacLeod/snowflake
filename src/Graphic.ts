@@ -1,4 +1,4 @@
-import { } from "./CoordinateSystem";
+import { Maybe, none, some } from "./Maybe";
 
 export type Graphic = {
     sizePX: number,
@@ -6,11 +6,11 @@ export type Graphic = {
     ctx: CanvasRenderingContext2D,
 };
 
-export function make(sizePX: number): Graphic | undefined {
+export function make(sizePX: number): Maybe<Graphic> {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (ctx === null) {
-        return undefined;
+        return none();
     }
     // Setting ctx.canvas.(width|height) changes the number of pixels we
     // can render to. Changing canvas.style.(width|height) changes the
@@ -20,7 +20,7 @@ export function make(sizePX: number): Graphic | undefined {
     ctx.canvas.height = sizePX;
     canvas.style.width = `${sizePX}px`;
     canvas.style.height = `${sizePX}px`;
-    return { sizePX, canvas, ctx };
+    return some({ sizePX, canvas, ctx });
 }
 
 export function clear(graphic: Graphic): void {

@@ -21,6 +21,14 @@ export function map<T, U>(
     }
 }
 
+export function isSome<T>(m: Maybe<T>): boolean {
+    return map(m, () => false, _ => true);
+}
+
+export function isNone<T>(m: Maybe<T>): boolean {
+    return !isSome(m);
+}
+
 export function mapSome<T, U>(
     m: Maybe<T>,
     onSome: (value: T) => U
@@ -42,4 +50,8 @@ export function then<T>(b: boolean, onTrue: () => T): Maybe<T> {
 
 export function unwrapOr<T>(m: Maybe<T>, onNone: () => T): T {
     return map(m, onNone, v => v);
+}
+
+export function orElse<T>(m: Maybe<T>, onNone: () => Maybe<T>): Maybe<T> {
+    return map(m, onNone, v => some(v));
 }
