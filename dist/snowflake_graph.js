@@ -1459,11 +1459,8 @@ function SnowflakeGraph_zero() {
     result.root.appendChild(result.g);
     setSVGAttributes(result.root, ROOT_ATTRS);
     result.handles = [
-        addHandle(g, 100, 100),
-        addHandle(g, 200, 200),
-        addHandle(g, 300, 300),
-        addHandle(g, 400, 100),
-        addHandle(g, 500, 300),
+        addHandle(g, 0, 0),
+        addHandle(g, 0, 0),
     ];
     fitLineToHandles(result.line, result.handles);
     syncToSnowflakeID(result, expect(ok(parseSnowflakeID("1993245298354729")), 'unable to parse snowflake id'));
