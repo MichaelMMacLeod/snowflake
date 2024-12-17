@@ -1,6 +1,7 @@
 import { yChoices } from "./Constants";
 import { Either, left, right } from "./Either";
-import { Maybe } from "./Maybe";
+import * as Eithers from "./Either";
+import { Maybe, none, some } from "./Maybe";
 import * as Maybes from "./Maybe";
 
 export function rem(x: number, m: number): number {
@@ -82,6 +83,10 @@ export function okOrElse<T, E>(m: Maybe<T>, onNone: () => E): Either<E, T> {
   );
 }
 
-// export function v1<L,R>(es: Array<Either<L,R>>, f: ()): Either<L
-
-export type Exact<A, B> = A extends B ? (B extends A ? A : never) : never
+export function ok<L, R>(e: Either<L, R>): Maybe<R> {
+  return Eithers.map(
+    e,
+    () => none(),
+    r => some(r),
+  );
+}

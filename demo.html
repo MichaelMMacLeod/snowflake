@@ -3,9 +3,14 @@
 
 <head>
   <title>Demo</title>
+  <style>
+    html {
+      color-scheme: light dark;
+    }
+  </style>
 </head>
 
-<body style="background: black">
+<body>
   <script src="dist/snowflake.js"></script>
   <script src="dist/snowflake_graph.js"></script>
   <script>
@@ -16,11 +21,13 @@
     document.body.appendChild(graph);
     document.body.appendChild(snowflake);
     window.config = {
+      snowflakeID: '1782719971238',
       upsCap: 1000,
-      targetGrowthTimeMS: 1000,
+      targetGrowthTimeMS: 3000,
       finishedGrowingCallback: () => console.log('done growing'),
     };
     snowflake.configure(config);
+    graph.setSnowflakeID(config.snowflakeID);
   </script>
 </body>
 

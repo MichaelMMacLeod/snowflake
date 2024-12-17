@@ -4,7 +4,7 @@ import { Maybe, none, some } from "./Maybe";
 import * as Maybes from "./Maybe";
 import { scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX, State } from "./State";
 import * as States from "./State";
-import { Exact, NonEmptyArray, okOrElse, randomIntInclusive } from "./Utils";
+import { NonEmptyArray, okOrElse, randomIntInclusive } from "./Utils";
 
 export type UnparsedConfig = {
     snowflakeID: string,

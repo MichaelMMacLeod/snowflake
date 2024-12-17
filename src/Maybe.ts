@@ -55,3 +55,7 @@ export function unwrapOr<T>(m: Maybe<T>, onNone: () => T): T {
 export function orElse<T>(m: Maybe<T>, onNone: () => Maybe<T>): Maybe<T> {
     return map(m, onNone, v => some(v));
 }
+
+export function expect<T>(m: Maybe<T>, error: string): T {
+    return map(m, () => { throw new Error(error); }, t => t);
+}
