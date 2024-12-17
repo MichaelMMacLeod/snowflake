@@ -3,7 +3,10 @@ const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = {
     mode: 'production',
-    entry: './src/SnowflakeElement.ts',
+    entry: {
+        snowflake: './src/SnowflakeElement.ts',
+        snowflake_graph: './src/SnowflakeGraphElement.ts',
+    },
     module: {
         rules: [
             {
@@ -37,19 +40,8 @@ module.exports = {
         ],
     },
     output: {
-        library: 'SnowflakeElement',
-        filename: 'snowflake.js',
+        library: '[name]',
+        filename: '[name].js',
         path: path.resolve(__dirname, 'dist'),
-        // library: {
-        //     name: {
-        //         root: 'SnowflakeElement',
-        //     }
-        // }
-        // library: 'Snowflake',
-        // libraryTarget: 'umd',
-        // libraryExport: 'default',
-        // filename: 'snowflake.js',
-        // path: path.resolve(__dirname, 'dist'),
-        // library: 'Main',
     },
 };
