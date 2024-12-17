@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Demo</title>
+</head>
+
+<body style="background: black">
+  <script src="dist/snowflake.js"></script>
+  <script>
+    customElements.define('snowflake-element', SnowflakeElement.default);
+    window.snowflake = document.createElement('snowflake-element');
+    document.body.appendChild(snowflake);
+    window.config = {
+      upsCap: 1000,
+      targetGrowthTimeMS: 1000,
+      finishedGrowingCallback: () => console.log('done growing'),
+    };
+    snowflake.configure(config);
+  </script>
+</body>
+
+</html>

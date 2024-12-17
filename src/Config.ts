@@ -2,21 +2,21 @@ import * as Eithers from "./Either";
 import { Either, left, right } from "./Either";
 import { Maybe, none, some } from "./Maybe";
 import * as Maybes from "./Maybe";
-import { scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX, setSnowflakeId, State } from "./State";
+import { scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX, State } from "./State";
 import * as States from "./State";
-import { NonEmptyArray, okOrElse, randomIntInclusive } from "./Utils";
+import { Exact, NonEmptyArray, okOrElse, randomIntInclusive } from "./Utils";
 
 export type UnparsedConfig = {
-    snowflakeID: any,
-    snowflakeCanvasSizePX: any,
-    targetGrowthTimeMS: any,
-    upsCap: any,
-    maxUpdates: any,
-    playing: any,
-    finishedGrowingCallback: any,
-    resetCallback: any,
-    installSnowflakeCanvasCallback: any,
-    installSnowflakeCanvasFailureCallback: any,
+    snowflakeID: string,
+    snowflakeCanvasSizePX: number,
+    targetGrowthTimeMS: number,
+    upsCap: number,
+    maxUpdates: number,
+    playing: boolean,
+    finishedGrowingCallback: () => void,
+    resetCallback: () => void,
+    installSnowflakeCanvasCallback: (canvas: HTMLCanvasElement) => void,
+    installSnowflakeCanvasFailureCallback: () => void,
 };
 
 export type Config = {
@@ -119,15 +119,10 @@ function isObject(value: any): value is Object {
 function parseConfig(u: UnparsedConfig): Either<Array<ParserFailure>, Config> {
     const errors: Array<ParserFailure> = [];
     const parser: any = configParser;
-    const result = zero();
+    const result = {};
     if (!isObject(u)) {
-        errors.push({ expected: 'object', actual: u });
+        errors.push({ expected: 'object', actual: JSON.stringify(u) });
         return left(errors);
-    }
-    for (let [k, _v] of Object.entries(parser)) {
-        if (!(k in u)) {
-            errors.push({ expected: `object with key '${k}'`, actual: u });
-        }
     }
     if (errors.length > 0) {
         return left(errors);
@@ -141,14 +136,14 @@ function parseConfig(u: UnparsedConfig): Either<Array<ParserFailure>, Config> {
             Eithers.map(
                 r,
                 expectedType => errors.push({ expected: `${k} to be ${expectedType}`, actual: v }),
-                parsed => (result as any)[k] = v,
+                parsed => (result as any)[k] = parsed,
             );
         }
     }
     if (errors.length > 0) {
         return left(errors);
     }
-    return right(result);
+    return right(result as Config);
 }
 
 function parseErrorString(e: ParserFailure): string {
@@ -167,25 +162,29 @@ export function parseConfigAndDisplayErrors(u: UnparsedConfig): Config {
     );
 }
 
-export function randomSnowflakeId(): Array<number> {
-    const id = [randomIntInclusive(1, 4)];
+function snowflakeIDString(id: NonEmptyArray<number>): string {
+    return id.map(n => n + 1).join('');
+}
+
+export function randomSnowflakeId(): NonEmptyArray<number> {
+    const id: NonEmptyArray<number> = [randomIntInclusive(0, 3)];
     for (let i = 1; i < 16; i++) {
-        id.push(randomIntInclusive(1, 9));
+        id.push(randomIntInclusive(0, 8));
     }
     return Eithers.map(
-        parseSnowflakeID(id),
+        parseSnowflakeID(snowflakeIDString(id)),
         _err => { throw new Error(`randomSnowflakeId returned invalid ID: '${id}'`) },
         _id => id
     );
 }
 
-export function randomSnowflakeIdString(): string {
-    return randomSnowflakeId().join('');
+export function randomSnowflakeIDString(): string {
+    return snowflakeIDString(randomSnowflakeId());
 }
 
 export function zero(): Config {
     return parseConfigAndDisplayErrors({
-        snowflakeID: randomSnowflakeIdString(),
+        snowflakeID: randomSnowflakeIDString(),
         snowflakeCanvasSizePX: 800,
         targetGrowthTimeMS: 8000,
         upsCap: 60,
@@ -198,9 +197,11 @@ export function zero(): Config {
     });
 }
 
-export type ConfigSynchronizer = {
-    [K in keyof Config]: (c: Config, s: State, newValue: Config[K], oldValue: Maybe<Config[K]>) => boolean
-}
+export type ConfigSynchronizer = Omit<
+    {
+        [K in keyof Config]: (c: Config, s: State, newValue: Config[K], oldValue: Maybe<Config[K]>) => boolean
+    },
+    'isParsed'>;
 
 const configSynchronizer: ConfigSynchronizer = {
     snowflakeID: (_c, s, newValue, oldValue) => {
@@ -273,14 +274,6 @@ const configSynchronizer: ConfigSynchronizer = {
         return false;
     },
 };
-
-export function copy(config: Config): Config {
-    const result = zero();
-    for (let [k, v] of Object.entries(config)) {
-        (result as any)[k] = v;
-    }
-    return result;
-}
 
 export function sync(oldConfig: Maybe<Config>, newConfig: Config, state: State): void {
     const cs: any = configSynchronizer;

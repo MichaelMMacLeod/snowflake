@@ -80,7 +80,7 @@ export function initializeGraphic(state: State, snowflakeCanvasSizePX: number): 
     return Maybes.orElse(state.graphic, () => {
         state.graphic = Graphics.make(snowflakeCanvasSizePX);
         return state.graphic;
-    }
+    });
 }
 
 export function scheduleUpdate(state: State): void {
@@ -199,7 +199,6 @@ export function update(state: State): void {
 
     if (state.updateCount >= state.maxUpdates) {
         state.finishedGrowingCallback();
-        // console.log(`Grew snowflake in ${(performance.now() - state.resetStartTime) / 1000} seconds`);
         state.growing = false;
     }
 }

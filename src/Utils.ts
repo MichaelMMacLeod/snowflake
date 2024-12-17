@@ -81,3 +81,7 @@ export function okOrElse<T, E>(m: Maybe<T>, onNone: () => E): Either<E, T> {
     v => right(v),
   );
 }
+
+// export function v1<L,R>(es: Array<Either<L,R>>, f: ()): Either<L
+
+export type Exact<A, B> = A extends B ? (B extends A ? A : never) : never

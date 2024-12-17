@@ -3,7 +3,7 @@ const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = {
     mode: 'production',
-    entry: './src/Main.ts',
+    entry: './src/SnowflakeElement.ts',
     module: {
         rules: [
             {
@@ -17,7 +17,7 @@ module.exports = {
         extensions: ['.tsx', '.ts', '.js'],
     },
     optimization: {
-        minimize: true,
+        minimize: false,
         minimizer: [
             new TerserPlugin({
                 terserOptions: {
@@ -37,8 +37,19 @@ module.exports = {
         ],
     },
     output: {
+        library: 'SnowflakeElement',
         filename: 'snowflake.js',
         path: path.resolve(__dirname, 'dist'),
-        library: 'Main',
+        // library: {
+        //     name: {
+        //         root: 'SnowflakeElement',
+        //     }
+        // }
+        // library: 'Snowflake',
+        // libraryTarget: 'umd',
+        // libraryExport: 'default',
+        // filename: 'snowflake.js',
+        // path: path.resolve(__dirname, 'dist'),
+        // library: 'Main',
     },
 };
