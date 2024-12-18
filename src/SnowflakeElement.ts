@@ -1,9 +1,10 @@
-import { Config, parseConfigAndDisplayErrors, randomSnowflakeIDString, sync, UnparsedConfig } from "./Config";
-import * as Configs from "./Config";
+import { parseConfigAndDisplayErrors, randomSnowflakeIDString, sync } from "./Config";
 import { none, some } from "./Maybe";
 import * as Maybes from "./Maybe";
 import { initializeGraphic, State } from "./State";
 import * as States from "./State";
+import { Config, configParser, configSynchronizer, UnparsedConfig } from "./SnowflakeConfig";
+import * as Configs from "./SnowflakeConfig";
 
 export default class SnowflakeElement extends HTMLElement {
     #state: State;
@@ -15,7 +16,7 @@ export default class SnowflakeElement extends HTMLElement {
         this.#shadow = this.attachShadow({ mode: 'open' });
         this.#state = States.zero();
         this.#config = Configs.zero();
-        sync(none(), this.#config, this.#state);
+        sync(configSynchronizer, this.#state, () => States.reset(this.#state), none(), this.#config);
     }
 
     connectedCallback() {
@@ -40,8 +41,8 @@ export default class SnowflakeElement extends HTMLElement {
     }
 
     configure(unparsedConfig: UnparsedConfig): void {
-        const config = parseConfigAndDisplayErrors(unparsedConfig);
-        sync(some(this.#config), config, this.#state);
+        const config = parseConfigAndDisplayErrors(configParser, unparsedConfig);
+        sync(configSynchronizer, this.#state, () => States.reset(this.#state), some(this.#config), config);
         this.#config = config;
     }
 
