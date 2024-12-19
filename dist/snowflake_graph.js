@@ -140,7 +140,7 @@ function convertRGBAToString(rgba) {
     const { r, g, b, a } = rgba;
     return `rgba(${r}, ${g}, ${b}, ${a})`;
 }
-function Utils_randomIntInclusive(min, max) {
+function randomIntInclusive(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
 }
 const sideCacheConstructor = length => new Float64Array(length);
@@ -161,6 +161,10 @@ function okOrElse(m, onNone) {
 }
 function ok(e) {
     return map(e, () => none(), r => some(r));
+}
+function arraysEqual(a1, a2, eqT) {
+    return a1.length === a2.length
+        && a1.every((v, i) => eqT(v, a2[i]));
 }
 
 ;// ./src/Config.ts
@@ -214,6 +218,24 @@ function parseNat(value) {
     }
     return right(value);
 }
+function parseNonnegativeFloat(value) {
+    if (!Number.isFinite(value)) {
+        return Either_left('finite, non-NaN float');
+    }
+    if (value < 0) {
+        return Either_left('non-negative float');
+    }
+    return Either_right(value);
+}
+function parsePositiveFloat(value) {
+    if (!Number.isFinite(value)) {
+        return Either_left('finite, non-NaN float');
+    }
+    if (value <= 0) {
+        return Either_left('positive float');
+    }
+    return Either_right(value);
+}
 function makeParser(predicate, expected) {
     return v => okOrElse(then(predicate(v), () => v), () => expected);
 }
@@ -229,10 +251,10 @@ function parseConfig(u, configParser) {
     const result = {};
     if (!isObject(u)) {
         errors.push({ expected: 'object', actual: JSON.stringify(u) });
-        return left(errors);
+        return Either_left(errors);
     }
     if (errors.length > 0) {
-        return left(errors);
+        return Either_left(errors);
     }
     for (const [k, v] of Object.entries(u)) {
         const kParser = parser[k];
@@ -241,13 +263,13 @@ function parseConfig(u, configParser) {
         }
         else {
             const r = kParser(v);
-            Eithers.map(r, expectedType => errors.push({ expected: `${k} to be ${expectedType}`, actual: v }), parsed => result[k] = parsed);
+            map(r, expectedType => errors.push({ expected: `${k} to be ${expectedType}`, actual: v }), parsed => result[k] = parsed);
         }
     }
     if (errors.length > 0) {
-        return left(errors);
+        return Either_left(errors);
     }
-    return right(result);
+    return Either_right(result);
 }
 function parseErrorString(e) {
     return `expected ${e.expected}, received ${e.actual}`;
@@ -256,7 +278,7 @@ function parseErrorsString(e) {
     return 'errors detected when validating config\n' + e.map(parseErrorString).join('\n');
 }
 function parseConfigAndDisplayErrors(configParser, u) {
-    return Eithers.map(parseConfig(u, configParser), errors => { throw new Error(parseErrorsString(errors)); }, config => config);
+    return map(parseConfig(u, configParser), errors => { throw new Error(parseErrorsString(errors)); }, config => config);
 }
 function snowflakeIDString(id) {
     return id.map(n => n + 1).join('');
@@ -266,7 +288,7 @@ function randomSnowflakeId() {
     for (let i = 1; i < 16; i++) {
         id.push(randomIntInclusive(0, 8));
     }
-    return Eithers.map(parseSnowflakeID(snowflakeIDString(id)), _err => { throw new Error(`randomSnowflakeId returned invalid ID: '${id}'`); }, _id => id);
+    return map(parseSnowflakeID(snowflakeIDString(id)), _err => { throw new Error(`randomSnowflakeId returned invalid ID: '${id}'`); }, _id => id);
 }
 function randomSnowflakeIDString() {
     return snowflakeIDString(randomSnowflakeId());
@@ -275,7 +297,7 @@ function sync(configSynchronizer, state, resetState, oldConfig, newConfig) {
     const cs = configSynchronizer;
     let needsReset = false;
     for (let [k, v] of Object.entries(newConfig)) {
-        const oldValue = Maybes.mapSome(oldConfig, old => old[k]);
+        const oldValue = mapSome(oldConfig, old => old[k]);
         needsReset = cs[k](newConfig, state, v, oldValue) || needsReset;
     }
     if (needsReset) {
@@ -468,6 +490,84 @@ function zero() {
     return result;
 }
 
+;// ./src/SnowflakeGraphState.ts
+
+
+
+
+function SnowflakeGraphState_zero() {
+    return {
+        graph: none(),
+        snowflakeID: [0, 0],
+        percentGrown: 0,
+        aspectRatio: 3,
+    };
+}
+function initialize(state) {
+    return Maybe_map(state.graph, () => {
+        const g = zero();
+        state.graph = some(g);
+        return g.root;
+    }, g => {
+        return g.root;
+    });
+}
+function setPercentDone(state, percentGrown) {
+    state.percentGrown = percentGrown;
+}
+function setSnowflakeID(state, snowflakeID) {
+    state.snowflakeID = snowflakeID;
+    mapSome(state.graph, g => syncToSnowflakeID(g, snowflakeID));
+}
+function setAspectRatio(state, aspectRatio) {
+    state.aspectRatio = aspectRatio;
+}
+
+;// ./src/SnowflakeGraphConfig.ts
+
+
+
+
+const configParser = {
+    percentGrown: parseNonnegativeFloat,
+    snowflakeID: parseSnowflakeID,
+    aspectRatio: parsePositiveFloat,
+};
+function SnowflakeGraphConfig_zero() {
+    return parseConfigAndDisplayErrors(configParser, {
+        percentGrown: 0,
+        snowflakeID: randomSnowflakeIDString(),
+        aspectRatio: 3,
+    });
+}
+const configSynchronizer = {
+    percentGrown: (_c, s, newValue, oldValue) => {
+        const newEqOld = Maybe_map(oldValue, () => false, oldValue => newValue === oldValue);
+        if (!newEqOld) {
+            setPercentDone(s, newValue);
+            return true;
+        }
+        return false;
+    },
+    snowflakeID: (_c, s, newValue, oldValue) => {
+        const eqNumber = (a, b) => a === b;
+        const newEqOld = Maybe_map(oldValue, () => false, oldValue => arraysEqual(newValue, oldValue, eqNumber));
+        if (!newEqOld) {
+            setSnowflakeID(s, newValue);
+            return true;
+        }
+        return false;
+    },
+    aspectRatio: (_c, s, newValue, oldValue) => {
+        const newEqOld = Maybe_map(oldValue, () => false, oldValue => newValue === oldValue);
+        if (!newEqOld) {
+            setAspectRatio(s, newValue);
+            return true;
+        }
+        return false;
+    },
+};
+
 ;// ./src/SnowflakeGraphElement.ts
 var __classPrivateFieldSet = (undefined && undefined.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
     if (kind === "m") throw new TypeError("Private method is not writable");
@@ -480,7 +580,7 @@ var __classPrivateFieldGet = (undefined && undefined.__classPrivateFieldGet) || 
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _SnowflakeGraphElement_shadow, _SnowflakeGraphElement_snowflakeID, _SnowflakeGraphElement_graph;
+var _SnowflakeGraphElement_shadow, _SnowflakeGraphElement_config, _SnowflakeGraphElement_state;
 
 
 
@@ -490,16 +590,21 @@ class SnowflakeGraphElement extends HTMLElement {
     constructor() {
         super();
         _SnowflakeGraphElement_shadow.set(this, void 0);
-        _SnowflakeGraphElement_snowflakeID.set(this, void 0);
-        _SnowflakeGraphElement_graph.set(this, void 0);
+        _SnowflakeGraphElement_config.set(this, void 0);
+        _SnowflakeGraphElement_state.set(this, void 0);
         __classPrivateFieldSet(this, _SnowflakeGraphElement_shadow, this.attachShadow({ mode: 'open' }), "f");
-        __classPrivateFieldSet(this, _SnowflakeGraphElement_snowflakeID, [4, 4], "f");
-        __classPrivateFieldSet(this, _SnowflakeGraphElement_graph, none(), "f");
+        __classPrivateFieldSet(this, _SnowflakeGraphElement_config, SnowflakeGraphConfig_zero(), "f");
+        __classPrivateFieldSet(this, _SnowflakeGraphElement_state, SnowflakeGraphState_zero(), "f");
+        sync(configSynchronizer, __classPrivateFieldGet(this, _SnowflakeGraphElement_state, "f"), () => { return; }, none(), __classPrivateFieldGet(this, _SnowflakeGraphElement_config, "f"));
+    }
+    configure(unparsedConfig) {
+        const config = parseConfigAndDisplayErrors(configParser, unparsedConfig);
+        sync(configSynchronizer, __classPrivateFieldGet(this, _SnowflakeGraphElement_state, "f"), () => { return; }, some(__classPrivateFieldGet(this, _SnowflakeGraphElement_config, "f")), config);
+        __classPrivateFieldSet(this, _SnowflakeGraphElement_config, config, "f");
     }
     connectedCallback() {
-        const g = zero();
-        __classPrivateFieldSet(this, _SnowflakeGraphElement_graph, some(g), "f");
-        __classPrivateFieldGet(this, _SnowflakeGraphElement_shadow, "f").appendChild(g.root);
+        const element = initialize(__classPrivateFieldGet(this, _SnowflakeGraphElement_state, "f"));
+        __classPrivateFieldGet(this, _SnowflakeGraphElement_shadow, "f").appendChild(element);
     }
     disconnectedCallback() {
         console.log('sfg disconnectedCallback');
@@ -507,12 +612,8 @@ class SnowflakeGraphElement extends HTMLElement {
     adoptedCallback() {
         console.log('sfg adoptedCallback');
     }
-    setSnowflakeID(unparsedID) {
-        __classPrivateFieldSet(this, _SnowflakeGraphElement_snowflakeID, expect(ok(parseSnowflakeID(unparsedID)), 'invalid snowflake id'), "f");
-        mapSome(__classPrivateFieldGet(this, _SnowflakeGraphElement_graph, "f"), g => syncToSnowflakeID(g, __classPrivateFieldGet(this, _SnowflakeGraphElement_snowflakeID, "f")));
-    }
 }
-_SnowflakeGraphElement_shadow = new WeakMap(), _SnowflakeGraphElement_snowflakeID = new WeakMap(), _SnowflakeGraphElement_graph = new WeakMap();
+_SnowflakeGraphElement_shadow = new WeakMap(), _SnowflakeGraphElement_config = new WeakMap(), _SnowflakeGraphElement_state = new WeakMap();
 /* harmony default export */ const src_SnowflakeGraphElement = (SnowflakeGraphElement);
 
 snowflake_graph = __webpack_exports__;

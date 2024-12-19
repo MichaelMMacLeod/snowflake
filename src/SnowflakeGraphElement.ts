@@ -1,26 +1,48 @@
-import { parseSnowflakeID } from "./Config";
+import { parseConfigAndDisplayErrors, parseSnowflakeID, sync } from "./Config";
+import { GraphState } from "./SnowflakeGraphState";
 import { Maybe, none, some } from "./Maybe";
 import * as Maybes from "./Maybe";
 import * as SnowflakeGraphs from "./SnowflakeGraph";
 import { SnowflakeGraph } from "./SnowflakeGraph";
+import * as GraphStates from "./SnowflakeGraphState";
 import { NonEmptyArray, ok } from "./Utils";
+import { Config, configParser, configSynchronizer, UnparsedConfig } from "./SnowflakeGraphConfig";
+import * as GraphConfigs from "./SnowflakeGraphConfig";
 
 export default class SnowflakeGraphElement extends HTMLElement {
     #shadow: ShadowRoot;
-    #snowflakeID: NonEmptyArray<number>;
-    #graph: Maybe<SnowflakeGraph>;
+    #config: Config;
+    #state: GraphState;
 
     constructor() {
         super();
         this.#shadow = this.attachShadow({ mode: 'open' });
-        this.#snowflakeID = [4,4];
-        this.#graph = none();
+        this.#config = GraphConfigs.zero();
+        this.#state = GraphStates.zero();
+        sync(
+            configSynchronizer,
+            this.#state,
+            () => { return; },
+            none(),
+            this.#config,
+        )
+    }
+
+    configure(unparsedConfig: UnparsedConfig): void {
+        const config = parseConfigAndDisplayErrors(configParser, unparsedConfig);
+        sync(
+            configSynchronizer,
+            this.#state,
+            () => { return; },
+            some(this.#config),
+            config,
+        );
+        this.#config = config;
     }
 
     connectedCallback() {
-        const g = SnowflakeGraphs.zero()
-        this.#graph = some(g);
-        this.#shadow.appendChild(g.root);
+        const element = GraphStates.initialize(this.#state);
+        this.#shadow.appendChild(element);
     }
 
     disconnectedCallback() {
@@ -30,10 +52,5 @@ export default class SnowflakeGraphElement extends HTMLElement {
 
     adoptedCallback() {
         console.log('sfg adoptedCallback');
-    }
-
-    setSnowflakeID(unparsedID: string): void {
-        this.#snowflakeID = Maybes.expect(ok(parseSnowflakeID(unparsedID)), 'invalid snowflake id');
-        Maybes.mapSome(this.#graph, g => SnowflakeGraphs.syncToSnowflakeID(g, this.#snowflakeID));
     }
 }

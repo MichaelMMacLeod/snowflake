@@ -26,8 +26,13 @@
       targetGrowthTimeMS: 3000,
       finishedGrowingCallback: () => console.log('done growing'),
     };
+    window.graphConfig = {
+      snowflakeID: '1782719971239998',
+      aspectRatio: 6,
+      percentGrown: 0.5,
+    };
     snowflake.configure(config);
-    graph.setSnowflakeID(config.snowflakeID);
+    graph.configure(graphConfig);
   </script>
 </body>
 

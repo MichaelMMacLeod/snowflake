@@ -1,6 +1,6 @@
 import { ConfigParser, ConfigSynchronizer, parseBool, parseConfigAndDisplayErrors, parseFunction0, parseFunction1, parseNat, parseSnowflakeID, randomSnowflakeIDString } from "./Config";
 import { Either } from "./Either";
-import { scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX } from "./State";
+import { scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX, State } from "./State";
 import { NonEmptyArray } from "./Utils";
 import * as Maybes from "./Maybe";
 
@@ -61,7 +61,7 @@ export function zero(): Config {
     );
 }
 
-export const configSynchronizer: ConfigSynchronizer<Config> = {
+export const configSynchronizer: ConfigSynchronizer<State, Config> = {
     snowflakeID: (_c, s, newValue, oldValue) => {
         const newEqOld = Maybes.map(oldValue, () => false, oldValue => newValue === oldValue);
         if (!newEqOld) {

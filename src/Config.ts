@@ -59,6 +59,26 @@ export function parseNat(value: any): Either<string, number> {
     return right(value);
 }
 
+export function parseNonnegativeFloat(value: any): Either<string, number> {
+    if (!Number.isFinite(value)) {
+        return left('finite, non-NaN float');
+    }
+    if (value < 0) {
+        return left('non-negative float');
+    }
+    return right(value);
+}
+
+export function parsePositiveFloat(value: any): Either<string, number> {
+    if (!Number.isFinite(value)) {
+        return left('finite, non-NaN float');
+    }
+    if (value <= 0) {
+        return left('positive float');
+    }
+    return right(value);
+}
+
 function makeParser<T>(predicate: (value: any) => value is T, expected: string): (value: any) => Either<string, T> {
     return v => okOrElse(Maybes.then(predicate(v), () => v), () => expected)
 }
@@ -111,11 +131,11 @@ export function parseConfig<UnparsedConfig, Config>(
     return right(result as Config);
 }
 
-function parseErrorString(e: ParserFailure): string {
+export function parseErrorString(e: ParserFailure): string {
     return `expected ${e.expected}, received ${e.actual}`;
 }
 
-function parseErrorsString(e: Array<ParserFailure>): string {
+export function parseErrorsString(e: Array<ParserFailure>): string {
     return 'errors detected when validating config\n' + e.map(parseErrorString).join('\n');
 }
 
@@ -150,12 +170,12 @@ export function randomSnowflakeIDString(): string {
     return snowflakeIDString(randomSnowflakeId());
 }
 
-export type ConfigSynchronizer<Config> = {
+export type ConfigSynchronizer<State, Config> = {
     [K in keyof Config]: (c: Config, s: State, newValue: Config[K], oldValue: Maybe<Config[K]>) => boolean
 };
 
 export function sync<Config extends Object, State>(
-    configSynchronizer: ConfigSynchronizer<Config>,
+    configSynchronizer: ConfigSynchronizer<State, Config>,
     state: State,
     resetState: () => void,
     oldConfig: Maybe<Config>,
