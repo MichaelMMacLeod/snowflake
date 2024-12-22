@@ -1,9 +1,9 @@
 import { ConfigParser, ConfigSynchronizer, parseBool, parseConfigAndDisplayErrors, parseFunction0, parseFunction1, parseNat, parseNonnegativeFloat, parsePositiveFloat, parseSnowflakeID, randomSnowflakeIDString } from "./Config";
 import { Either } from "./Either";
-import { scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX } from "./State";
+import { scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX } from "./SnowflakeState";
 import { arraysEqual, NonEmptyArray } from "./Utils";
 import * as Maybes from "./Maybe";
-import { GraphState, setAspectRatio, setPercentDone, setSnowflakeID } from "./SnowflakeGraphState";
+import { GraphState, setAspectRatio, setPercentGrown, setSnowflakeID } from "./SnowflakeGraphState";
 
 export type UnparsedConfig = {
     percentGrown: number,
@@ -38,7 +38,7 @@ export const configSynchronizer: ConfigSynchronizer<GraphState, Config> = {
     percentGrown: (_c, s, newValue, oldValue) => {
         const newEqOld = Maybes.map(oldValue, () => false, oldValue => newValue === oldValue);
         if (!newEqOld) {
-            setPercentDone(s, newValue);
+            setPercentGrown(s, newValue);
             return true;
         }
         return false;

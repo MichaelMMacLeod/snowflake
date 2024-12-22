@@ -1,5 +1,5 @@
 import { mapSome, Maybe, none, some } from "./Maybe";
-import { SnowflakeGraph, syncToSnowflakeID } from "./SnowflakeGraph";
+import { SnowflakeGraph, syncToPercentGrown, syncToSnowflakeID } from "./SnowflakeGraph";
 import * as SnowflakeGraphs from "./SnowflakeGraph";
 import { NonEmptyArray } from "./Utils";
 import * as Maybes from "./Maybe";
@@ -33,8 +33,9 @@ export function initialize(state: GraphState): Node {
         });
 }
 
-export function setPercentDone(state: GraphState, percentGrown: number): void {
+export function setPercentGrown(state: GraphState, percentGrown: number): void {
     state.percentGrown = percentGrown;
+    mapSome(state.graph, g => syncToPercentGrown(g, percentGrown));
 }
 
 export function setSnowflakeID(state: GraphState, snowflakeID: NonEmptyArray<number>): void {

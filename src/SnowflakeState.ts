@@ -47,6 +47,7 @@ export type State = {
     resetCallback: () => void,
     installSnowflakeCanvasCallback: (canvas: HTMLCanvasElement) => void,
     installSnowflakeCanvasFailureCallback: () => void,
+    updatedCallback: () => void,
 
     updateOnNextFrame: () => void,
     doUpdate: () => void,
@@ -122,6 +123,7 @@ export function zero(): State {
         installSnowflakeCanvasCallback: _ => { return; },
         installSnowflakeCanvasFailureCallback: () => { return; },
         hasScheduledUpdate: false,
+        updatedCallback: () => { return; },
         updateOnNextFrame: () => { requestAnimationFrame(result.doUpdate); },
         doUpdate: () => {
             update(result);
@@ -135,15 +137,13 @@ export function zero(): State {
     return result;
 }
 
-function currentTime(state: State): number {
+export function percentGrown(state: State): number {
     return state.updateCount / state.maxUpdates;
 }
 
 export function update(state: State): void {
-    const {
-        snowflake,
-        graphic,
-    } = state;
+    const snowflake = state.snowflake;
+
     const lastMS = state.currentMS;
     state.currentMS = performance.now();
     const deltaMS = state.currentMS - lastMS;
@@ -153,7 +153,7 @@ export function update(state: State): void {
     requiredUpdates = Math.floor(requiredUpdates);
 
     function doUpdate() {
-        const growth = interpretGrowth(state.growthInput, currentTime(state));
+        const growth = interpretGrowth(state.growthInput, percentGrown(state));
 
         if (state.currentGrowthType === undefined) {
             state.currentGrowthType = growth.growthType;
@@ -196,6 +196,8 @@ export function update(state: State): void {
         doUpdate();
         state.updateCount += 1;
     }
+
+    state.updatedCallback();
 
     if (state.updateCount >= state.maxUpdates) {
         state.finishedGrowingCallback();

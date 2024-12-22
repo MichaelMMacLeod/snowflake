@@ -66,6 +66,11 @@ svg * {
   stroke: var(--SFG-color-foreground);
 }
 
+.sf-graph-progress {
+  fill: var(--SFG-color-foreground);
+  fill-opacity: 0.2;
+}
+
 .sf-graph {
   filter: drop-shadow(0 0 ${10 * SIZE_SCALAR}px var(--SFG-color-foreground));
 }
@@ -92,6 +97,13 @@ const LINE_ATTRS = {
     'class': 'sf-graph-line',
     'stroke-width': `${LINE_WIDTH}`,
     'fill': 'none',
+};
+
+const PROGRESS_ATTRS = {
+    'class': 'sf-graph-progress',
+    'x': `${MARGIN_WIDTH}`,
+    'y': '0',
+    'height': `${VIEWPORT_HEIGHT}`,
 };
 
 function setSVGAttributes(element: SVGElement, attributes: { [key: string]: string }): void {
@@ -159,7 +171,22 @@ export type SnowflakeGraph = {
     g: SVGElement,
     handles: Array<GraphHandle>,
     line: SVGElement,
+    progress: SVGElement,
 };
+
+function createProgress(g: SVGElement): SVGElement {
+    const result = createSVGElement('rect', PROGRESS_ATTRS);
+    g.appendChild(result);
+    return result;
+}
+
+function fitProgressToGrowth(progress: SVGElement, percentGrown: number): void {
+    const width = GRAPHABLE_VIEWPORT_WIDTH * percentGrown;
+    setSVGAttributes(progress, {
+        'width': width.toString(),
+        'height': VIEWPORT_HEIGHT.toString(),
+    });
+}
 
 export function syncToSnowflakeID(g: SnowflakeGraph, id: NonEmptyArray<number>): void {
     while (g.handles.length < id.length) {
@@ -186,6 +213,10 @@ export function syncToSnowflakeID(g: SnowflakeGraph, id: NonEmptyArray<number>):
     fitLineToHandles(g.line, g.handles);
 }
 
+export function syncToPercentGrown(g: SnowflakeGraph, percentGrown: number): void {
+    fitProgressToGrowth(g.progress, percentGrown);
+}
+
 export function zero(): SnowflakeGraph {
     const root = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     const style = document.createElement('style');
@@ -197,6 +228,7 @@ export function zero(): SnowflakeGraph {
         g,
         handles: [],
         line: createLine(g),
+        progress: createProgress(g),
     };
     result.root.appendChild(result.g);
     setSVGAttributes(result.root, ROOT_ATTRS);

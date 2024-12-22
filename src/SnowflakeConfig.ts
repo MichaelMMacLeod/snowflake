@@ -1,6 +1,6 @@
 import { ConfigParser, ConfigSynchronizer, parseBool, parseConfigAndDisplayErrors, parseFunction0, parseFunction1, parseNat, parseSnowflakeID, randomSnowflakeIDString } from "./Config";
 import { Either } from "./Either";
-import { scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX, State } from "./State";
+import { scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX, State } from "./SnowflakeState";
 import { NonEmptyArray } from "./Utils";
 import * as Maybes from "./Maybe";
 
@@ -15,6 +15,7 @@ export type UnparsedConfig = {
     resetCallback: () => void,
     installSnowflakeCanvasCallback: (canvas: HTMLCanvasElement) => void,
     installSnowflakeCanvasFailureCallback: () => void,
+    updatedCallback: () => void,
 };
 
 export type Config = {
@@ -28,6 +29,7 @@ export type Config = {
     resetCallback: () => void,
     installSnowflakeCanvasCallback: (canvas: HTMLCanvasElement) => void,
     installSnowflakeCanvasFailureCallback: () => void,
+    updatedCallback: () => void,
 };
 
 export const configParser: ConfigParser<UnparsedConfig, Config> = {
@@ -41,6 +43,7 @@ export const configParser: ConfigParser<UnparsedConfig, Config> = {
     resetCallback: parseFunction0,
     installSnowflakeCanvasCallback: parseFunction1,
     installSnowflakeCanvasFailureCallback: parseFunction0,
+    updatedCallback: parseFunction0,
 }
 
 export function zero(): Config {
@@ -57,6 +60,7 @@ export function zero(): Config {
             resetCallback: () => { return; },
             installSnowflakeCanvasCallback: (canvas: HTMLCanvasElement) => document.body.appendChild(canvas),
             installSnowflakeCanvasFailureCallback: () => { throw new Error('error installing snowflake canvas'); },
+            updatedCallback: () => { return; },
         },
     );
 }
@@ -129,6 +133,10 @@ export const configSynchronizer: ConfigSynchronizer<State, Config> = {
     },
     installSnowflakeCanvasFailureCallback: (_c, s, newValue, _oldValue) => {
         s.installSnowflakeCanvasFailureCallback = newValue;
+        return false;
+    },
+    updatedCallback: (_c, s, newValue, _oldValue) => {
+        s.updatedCallback = newValue;
         return false;
     },
 };

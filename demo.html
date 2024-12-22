@@ -20,16 +20,21 @@
     window.graph = document.createElement('snowflake-graph-element');
     document.body.appendChild(graph);
     document.body.appendChild(snowflake);
-    window.config = {
-      snowflakeID: '1782719971238',
-      upsCap: 1000,
-      targetGrowthTimeMS: 3000,
-      finishedGrowingCallback: () => console.log('done growing'),
-    };
     window.graphConfig = {
       snowflakeID: '1782719971239998',
       aspectRatio: 6,
       percentGrown: 0.5,
+    };
+    window.config = {
+      snowflakeID: '1782719971238',
+      upsCap: 1000,
+      targetGrowthTimeMS: 10000,
+      finishedGrowingCallback: () => console.log('done growing'),
+      updatedCallback: () => {
+        graphConfig.snowflakeID = config.snowflakeID;
+        graphConfig.percentGrown = snowflake.percentGrown();
+        graph.configure(graphConfig);
+      },
     };
     snowflake.configure(config);
     graph.configure(graphConfig);

@@ -370,6 +370,11 @@ svg * {
   stroke: var(--SFG-color-foreground);
 }
 
+.sf-graph-progress {
+  fill: var(--SFG-color-foreground);
+  fill-opacity: 0.2;
+}
+
 .sf-graph {
   filter: drop-shadow(0 0 ${10 * SIZE_SCALAR}px var(--SFG-color-foreground));
 }
@@ -393,6 +398,12 @@ const LINE_ATTRS = {
     'class': 'sf-graph-line',
     'stroke-width': `${LINE_WIDTH}`,
     'fill': 'none',
+};
+const PROGRESS_ATTRS = {
+    'class': 'sf-graph-progress',
+    'x': `${MARGIN_WIDTH}`,
+    'y': '0',
+    'height': `${VIEWPORT_HEIGHT}`,
 };
 function setSVGAttributes(element, attributes) {
     for (const [k, v] of Object.entries(attributes)) {
@@ -442,6 +453,18 @@ function fitLineToHandles(line, handles) {
     }).join(' ');
     setSVGAttributes(line, { 'points': points });
 }
+function createProgress(g) {
+    const result = createSVGElement('rect', PROGRESS_ATTRS);
+    g.appendChild(result);
+    return result;
+}
+function fitProgressToGrowth(progress, percentGrown) {
+    const width = GRAPHABLE_VIEWPORT_WIDTH * percentGrown;
+    setSVGAttributes(progress, {
+        'width': width.toString(),
+        'height': VIEWPORT_HEIGHT.toString(),
+    });
+}
 function syncToSnowflakeID(g, id) {
     while (g.handles.length < id.length) {
         g.handles.push(addHandle(g.g, 0, 0));
@@ -467,6 +490,9 @@ function syncToSnowflakeID(g, id) {
     });
     fitLineToHandles(g.line, g.handles);
 }
+function syncToPercentGrown(g, percentGrown) {
+    fitProgressToGrowth(g.progress, percentGrown);
+}
 function zero() {
     const root = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     const style = document.createElement('style');
@@ -478,6 +504,7 @@ function zero() {
         g,
         handles: [],
         line: createLine(g),
+        progress: createProgress(g),
     };
     result.root.appendChild(result.g);
     setSVGAttributes(result.root, ROOT_ATTRS);
@@ -512,8 +539,9 @@ function initialize(state) {
         return g.root;
     });
 }
-function setPercentDone(state, percentGrown) {
+function setPercentGrown(state, percentGrown) {
     state.percentGrown = percentGrown;
+    mapSome(state.graph, g => syncToPercentGrown(g, percentGrown));
 }
 function setSnowflakeID(state, snowflakeID) {
     state.snowflakeID = snowflakeID;
@@ -544,7 +572,7 @@ const configSynchronizer = {
     percentGrown: (_c, s, newValue, oldValue) => {
         const newEqOld = Maybe_map(oldValue, () => false, oldValue => newValue === oldValue);
         if (!newEqOld) {
-            setPercentDone(s, newValue);
+            setPercentGrown(s, newValue);
             return true;
         }
         return false;

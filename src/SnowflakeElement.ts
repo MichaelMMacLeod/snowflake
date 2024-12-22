@@ -1,8 +1,8 @@
 import { parseConfigAndDisplayErrors, randomSnowflakeIDString, sync } from "./Config";
 import { none, some } from "./Maybe";
 import * as Maybes from "./Maybe";
-import { initializeGraphic, State } from "./State";
-import * as States from "./State";
+import { initializeGraphic, State } from "./SnowflakeState";
+import * as States from "./SnowflakeState";
 import { Config, configParser, configSynchronizer, UnparsedConfig } from "./SnowflakeConfig";
 import * as Configs from "./SnowflakeConfig";
 
@@ -52,5 +52,9 @@ export default class SnowflakeElement extends HTMLElement {
 
     randomSnowflakeId(): string {
         return randomSnowflakeIDString();
+    }
+
+    percentGrown(): number {
+        return States.percentGrown(this.#state);
     }
 }
