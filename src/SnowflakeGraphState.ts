@@ -9,7 +9,6 @@ export type GraphState = {
     graph: Maybe<SnowflakeGraph>
     percentGrown: number,
     aspectRatio: number,
-    handleMovedCallback: () => void,
 };
 
 export function zero(): GraphState {
@@ -17,7 +16,6 @@ export function zero(): GraphState {
         graph: none(),
         percentGrown: 0,
         aspectRatio: 3,
-        handleMovedCallback: () => { return },
     };
 }
 

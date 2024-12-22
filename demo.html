@@ -27,14 +27,15 @@
       snowflakeID: '17827239998',
       aspectRatio: 6,
       percentGrown: 0.5,
-      handleMovedCallback: () => {
-        console.log(`SnowflakeID: ${graph.snowflakeID()}`);
+      handleMovedCallback: snowflakeID => {
+        config.snowflakeID = snowflakeID;
+        snowflake.configure(config);
       },
     };
     window.config = {
       snowflakeID: '17827239998',
       upsCap: 100000,
-      targetGrowthTimeMS: 30000,
+      targetGrowthTimeMS: 1000,
       finishedGrowingCallback: () => console.log('done growing'),
       updatedCallback: () => {
         graphConfig.snowflakeID = config.snowflakeID;

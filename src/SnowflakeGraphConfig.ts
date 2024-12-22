@@ -9,21 +9,21 @@ export type UnparsedConfig = {
     percentGrown: number,
     snowflakeID: string,
     aspectRatio: number,
-    handleMovedCallback: () => void,
+    handleMovedCallback: (snowflakeID: string) => void,
 };
 
 export type Config = {
     percentGrown: number,
     snowflakeID: NonEmptyArray<number>,
     aspectRatio: number,
-    handleMovedCallback: () => void,
+    handleMovedCallback: (snowflakeID: string) => void,
 };
 
 export const configParser: ConfigParser<UnparsedConfig, Config> = {
     percentGrown: parseNonnegativeFloat,
     snowflakeID: parseSnowflakeID,
     aspectRatio: parsePositiveFloat,
-    handleMovedCallback: parseFunction0,
+    handleMovedCallback: parseFunction1,
 };
 
 export function zero(): Config {
@@ -33,7 +33,7 @@ export function zero(): Config {
             percentGrown: 0,
             snowflakeID: randomSnowflakeIDString(),
             aspectRatio: 3,
-            handleMovedCallback: () => { return; },
+            handleMovedCallback: _id => { return; },
         },
     );
 }
@@ -65,7 +65,7 @@ export const configSynchronizer: ConfigSynchronizer<GraphState, Config> = {
         return false;
     },
     handleMovedCallback: (_c, s, newValue, oldValue) => {
-        s.handleMovedCallback = newValue;
+        Maybes.mapSome(s.graph, g => g.handleMovedCallback = newValue);
         return false;
     },
 };

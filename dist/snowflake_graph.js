@@ -309,6 +309,7 @@ function sync(configSynchronizer, state, resetState, oldConfig, newConfig) {
 
 
 
+
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const SIZE_SCALAR = 0.5;
 const VIEWPORT_WIDTH = 600;
@@ -537,12 +538,14 @@ function zero() {
         progress: createProgress(g),
         handleBeingDragged: Maybe_none(),
         mouseCoordinates: Maybe_none(),
+        handleMovedCallback: (snowflakeID) => { return; },
     };
     function updateHandlePosition(h, ev) {
         const p = { x: ev.offsetX, y: ev.offsetY };
         const yChoice = closestYChoice(result, p);
         result.snowflakeID[h] = yChoice;
         syncToSnowflakeID(result);
+        result.handleMovedCallback(snowflakeIDString(result.snowflakeID));
     }
     function handleMouseDown(ev) {
         const h = closestGraphHandle(result, ev);
@@ -581,7 +584,6 @@ function SnowflakeGraphState_zero() {
         graph: Maybe_none(),
         percentGrown: 0,
         aspectRatio: 3,
-        handleMovedCallback: () => { return; },
     };
 }
 function initialize(state) {
@@ -616,14 +618,14 @@ const configParser = {
     percentGrown: parseNonnegativeFloat,
     snowflakeID: parseSnowflakeID,
     aspectRatio: parsePositiveFloat,
-    handleMovedCallback: parseFunction0,
+    handleMovedCallback: parseFunction1,
 };
 function SnowflakeGraphConfig_zero() {
     return parseConfigAndDisplayErrors(configParser, {
         percentGrown: 0,
         snowflakeID: randomSnowflakeIDString(),
         aspectRatio: 3,
-        handleMovedCallback: () => { return; },
+        handleMovedCallback: _id => { return; },
     });
 }
 const configSynchronizer = {
@@ -653,7 +655,7 @@ const configSynchronizer = {
         return false;
     },
     handleMovedCallback: (_c, s, newValue, oldValue) => {
-        s.handleMovedCallback = newValue;
+        mapSome(s.graph, g => g.handleMovedCallback = newValue);
         return false;
     },
 };

@@ -1,4 +1,4 @@
-import { parseSnowflakeID } from "./Config";
+import { parseSnowflakeID, snowflakeIDString } from "./Config";
 import { yChoices } from "./Constants";
 import { clamp, NonEmptyArray, ok } from "./Utils";
 import * as Maybes from "./Maybe";
@@ -176,6 +176,7 @@ export type SnowflakeGraph = {
     progress: SVGElement,
     handleBeingDragged: Maybe<number>,
     mouseCoordinates: Maybe<Point>,
+    handleMovedCallback: (snowflakeID: string) => void,
 };
 
 function createProgress(g: SVGElement): SVGElement {
@@ -271,12 +272,14 @@ export function zero(): SnowflakeGraph {
         progress: createProgress(g),
         handleBeingDragged: none(),
         mouseCoordinates: none(),
+        handleMovedCallback: (snowflakeID: string) => { return; },
     };
     function updateHandlePosition(h: number, ev: MouseEvent) {
         const p = { x: ev.offsetX, y: ev.offsetY };
         const yChoice = closestYChoice(result, p);
         result.snowflakeID[h] = yChoice;
         syncToSnowflakeID(result);
+        result.handleMovedCallback(snowflakeIDString(result.snowflakeID));
     }
     function handleMouseDown(ev: MouseEvent): void {
         const h = closestGraphHandle(result, ev);
