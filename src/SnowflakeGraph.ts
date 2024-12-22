@@ -175,7 +175,6 @@ export type SnowflakeGraph = {
     line: SVGElement,
     progress: SVGElement,
     handleBeingDragged: Maybe<number>,
-    mouseCoordinates: Maybe<Point>,
     handleMovedCallback: (snowflakeID: string) => void,
 };
 
@@ -271,7 +270,6 @@ export function zero(): SnowflakeGraph {
         line: createLine(g),
         progress: createProgress(g),
         handleBeingDragged: none(),
-        mouseCoordinates: none(),
         handleMovedCallback: (snowflakeID: string) => { return; },
     };
     function updateHandlePosition(h: number, ev: MouseEvent) {

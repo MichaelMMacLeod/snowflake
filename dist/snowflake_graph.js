@@ -537,7 +537,6 @@ function zero() {
         line: createLine(g),
         progress: createProgress(g),
         handleBeingDragged: Maybe_none(),
-        mouseCoordinates: Maybe_none(),
         handleMovedCallback: (snowflakeID) => { return; },
     };
     function updateHandlePosition(h, ev) {
