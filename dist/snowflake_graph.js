@@ -311,113 +311,134 @@ function sync(configSynchronizer, state, resetState, oldConfig, newConfig) {
 
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
-const SIZE_SCALAR = 0.5;
-const VIEWPORT_WIDTH = 600;
-const VIEWPORT_HEIGHT = 200;
-const HANDLE_OUTER_HOVER_SCALE = 1.5;
-const HANDLE_OUTER_SIZE = SIZE_SCALAR * 15;
-const HANDLE_OUTER_HOVERED_SIZE = HANDLE_OUTER_SIZE * HANDLE_OUTER_HOVER_SCALE;
-const HANDLE_INNER_SIZE = SIZE_SCALAR * 10;
-const LINE_WIDTH = SIZE_SCALAR * 5;
-const MARGIN_WIDTH = HANDLE_OUTER_HOVERED_SIZE * 2;
-const MARGIN_HEIGHT = HANDLE_OUTER_HOVERED_SIZE * 2;
-const GRAPHABLE_VIEWPORT_WIDTH = VIEWPORT_WIDTH - MARGIN_WIDTH * 2;
-const GRAPHABLE_VIEWPORT_HEIGHT = VIEWPORT_HEIGHT - MARGIN_HEIGHT * 2;
-const ROOT_ATTRS = {
-    'viewBox': `0 0 ${VIEWPORT_WIDTH} ${VIEWPORT_HEIGHT}`,
-    'xmlns': `${SVG_NS}`,
-    'width': '60em',
-    'height': '20em',
-};
-const ROOT_STYLE = `
-@media (prefers-color-scheme: dark) {
-  svg * {
-    --SFG-color-background: #111111;
-    --SFG-color-foreground: #ffffff;
-  }
+function makeConstants(SIZE_SCALAR, ASPECT_RATIO) {
+    const VIEWPORT_HEIGHT = 200;
+    const VIEWPORT_WIDTH = ASPECT_RATIO * VIEWPORT_HEIGHT;
+    const HANDLE_OUTER_HOVER_SCALE = 1.5;
+    const HANDLE_OUTER_SIZE = SIZE_SCALAR * 15;
+    const HANDLE_OUTER_HOVERED_SIZE = HANDLE_OUTER_SIZE * HANDLE_OUTER_HOVER_SCALE;
+    const HANDLE_INNER_SIZE = SIZE_SCALAR * 10;
+    const LINE_WIDTH = SIZE_SCALAR * 5;
+    const MARGIN_WIDTH = HANDLE_OUTER_HOVERED_SIZE * 2;
+    const MARGIN_HEIGHT = HANDLE_OUTER_HOVERED_SIZE * 2;
+    const GRAPHABLE_VIEWPORT_WIDTH = VIEWPORT_WIDTH - MARGIN_WIDTH * 2;
+    const GRAPHABLE_VIEWPORT_HEIGHT = VIEWPORT_HEIGHT - MARGIN_HEIGHT * 2;
+    const ROOT_ATTRS = {
+        'viewBox': `0 0 ${VIEWPORT_WIDTH} ${VIEWPORT_HEIGHT}`,
+        'xmlns': `${SVG_NS}`,
+        'width': '60em',
+        'height': '20em',
+    };
+    const ROOT_STYLE = `
+    @media (prefers-color-scheme: dark) {
+      svg * {
+        --SFG-color-background: #111111;
+        --SFG-color-foreground: #ffffff;
+      }
+    }
+    
+    @media (prefers-color-scheme: light) {
+      svg * {
+        --SFG-color-background: #ffffff;
+        --SFG-color-foreground: #000000;
+      }
+    }
+    
+    svg * {
+      transform-box: fill-box;
+    }
+    
+    .sf-graph-handle-inside {
+      fill: var(--SFG-color-foreground);
+    }
+    
+    .sf-graph-handle-outside {
+      stroke: var(--SFG-color-foreground);
+    }
+    
+    .sf-graph-handle-outside {
+      scale: 1;
+      transition: scale 0.1s;
+      transform-origin: center;
+    }
+    
+    .sf-graph-handle-outside:hover {
+      scale: ${HANDLE_OUTER_HOVER_SCALE};
+    }
+    
+    .sf-graph-line {
+      stroke: var(--SFG-color-foreground);
+    }
+    
+    .sf-graph-progress {
+      fill: var(--SFG-color-foreground);
+      fill-opacity: 0.1;
+    }
+    
+    .sf-graph {
+      filter: drop-shadow(0 0 ${10 * SIZE_SCALAR}px var(--SFG-color-foreground));
+    }
+    `;
+    const HANDLE_INSIDE_ATTRS = {
+        'class': 'sf-graph-handle-inside',
+        'r': `${HANDLE_INNER_SIZE}`,
+        'cx': '0',
+        'cy': '0',
+    };
+    const HANDLE_OUTSIDE_ATTRS = {
+        'class': 'sf-graph-handle-outside',
+        'r': `${HANDLE_OUTER_SIZE}`,
+        'fill-opacity': '0',
+        'stroke-width': `${LINE_WIDTH}`,
+        'cx': '0',
+        'cy': '0',
+    };
+    const LINE_ATTRS = {
+        'class': 'sf-graph-line',
+        'stroke-width': `${LINE_WIDTH}`,
+        'fill': 'none',
+    };
+    const PROGRESS_ATTRS = {
+        'class': 'sf-graph-progress',
+        'x': `${MARGIN_WIDTH}`,
+        'y': '0',
+        'height': `${VIEWPORT_HEIGHT}`,
+    };
+    return {
+        SIZE_SCALAR,
+        VIEWPORT_WIDTH,
+        VIEWPORT_HEIGHT,
+        HANDLE_OUTER_HOVER_SCALE,
+        HANDLE_OUTER_SIZE,
+        HANDLE_OUTER_HOVERED_SIZE,
+        HANDLE_INNER_SIZE,
+        LINE_WIDTH,
+        MARGIN_WIDTH,
+        MARGIN_HEIGHT,
+        GRAPHABLE_VIEWPORT_WIDTH,
+        GRAPHABLE_VIEWPORT_HEIGHT,
+        ROOT_ATTRS,
+        ROOT_STYLE,
+        HANDLE_INSIDE_ATTRS,
+        HANDLE_OUTSIDE_ATTRS,
+        LINE_ATTRS,
+        PROGRESS_ATTRS,
+    };
 }
-
-@media (prefers-color-scheme: light) {
-  svg * {
-    --SFG-color-background: #ffffff;
-    --SFG-color-foreground: #000000;
-  }
-}
-
-svg * {
-  transform-box: fill-box;
-}
-
-.sf-graph-handle-inside {
-  fill: var(--SFG-color-foreground);
-}
-
-.sf-graph-handle-outside {
-  stroke: var(--SFG-color-foreground);
-}
-
-.sf-graph-handle-outside {
-  scale: 1;
-  transition: scale 0.1s;
-  transform-origin: center;
-}
-
-.sf-graph-handle-outside:hover {
-  scale: ${HANDLE_OUTER_HOVER_SCALE};
-}
-
-.sf-graph-line {
-  stroke: var(--SFG-color-foreground);
-}
-
-.sf-graph-progress {
-  fill: var(--SFG-color-foreground);
-  fill-opacity: 0.1;
-}
-
-.sf-graph {
-  filter: drop-shadow(0 0 ${10 * SIZE_SCALAR}px var(--SFG-color-foreground));
-}
-`;
-const HANDLE_INSIDE_ATTRS = {
-    'class': 'sf-graph-handle-inside',
-    'r': `${HANDLE_INNER_SIZE}`,
-    'cx': '0',
-    'cy': '0',
-};
-const HANDLE_OUTSIDE_ATTRS = {
-    'class': 'sf-graph-handle-outside',
-    'r': `${HANDLE_OUTER_SIZE}`,
-    'fill-opacity': '0',
-    'stroke-width': `${LINE_WIDTH}`,
-    'cx': '0',
-    'cy': '0',
-};
-const LINE_ATTRS = {
-    'class': 'sf-graph-line',
-    'stroke-width': `${LINE_WIDTH}`,
-    'fill': 'none',
-};
-const PROGRESS_ATTRS = {
-    'class': 'sf-graph-progress',
-    'x': `${MARGIN_WIDTH}`,
-    'y': '0',
-    'height': `${VIEWPORT_HEIGHT}`,
-};
 function setSVGAttributes(element, attributes) {
     for (const [k, v] of Object.entries(attributes)) {
         element.setAttribute(k, v);
     }
 }
 function createSVGElement(element, attributes) {
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', element);
+    const svg = document.createElementNS(SVG_NS, element);
     setSVGAttributes(svg, attributes);
     return svg;
 }
-function handleZero() {
+function handleZero(cs) {
     const g = createSVGElement('g', { 'class': 'sf-graph-handle' });
-    const inside = createSVGElement('circle', HANDLE_INSIDE_ATTRS);
-    const outside = createSVGElement('circle', HANDLE_OUTSIDE_ATTRS);
+    const inside = createSVGElement('circle', cs.HANDLE_INSIDE_ATTRS);
+    const outside = createSVGElement('circle', cs.HANDLE_OUTSIDE_ATTRS);
     g.appendChild(inside);
     g.appendChild(outside);
     return {
@@ -431,15 +452,15 @@ function setHandleLocation(handle, x, y) {
     setSVGAttributes(handle.inside, attrs);
     setSVGAttributes(handle.outside, attrs);
 }
-function addHandle(g, x, y) {
-    const result = handleZero();
+function addHandle(cs, g, x, y) {
+    const result = handleZero(cs);
     setHandleLocation(result, x, y);
     g.appendChild(result.g);
     g.appendChild(result.g);
     return result;
 }
-function createLine(g) {
-    const result = createSVGElement('polyline', LINE_ATTRS);
+function createLine(cs, g) {
+    const result = createSVGElement('polyline', cs.LINE_ATTRS);
     ;
     g.appendChild(result);
     return result;
@@ -452,22 +473,22 @@ function fitLineToHandles(line, handles) {
     }).join(' ');
     setSVGAttributes(line, { 'points': points });
 }
-function createProgress(g) {
-    const result = createSVGElement('rect', PROGRESS_ATTRS);
+function createProgress(cs, g) {
+    const result = createSVGElement('rect', cs.PROGRESS_ATTRS);
     g.appendChild(result);
     return result;
 }
-function fitProgressToGrowth(progress, percentGrown) {
-    const width = GRAPHABLE_VIEWPORT_WIDTH * percentGrown;
+function fitProgressToGrowth(cs, progress, percentGrown) {
+    const width = cs.GRAPHABLE_VIEWPORT_WIDTH * percentGrown;
     setSVGAttributes(progress, {
         'width': width.toString(),
-        'height': VIEWPORT_HEIGHT.toString(),
+        'height': cs.VIEWPORT_HEIGHT.toString(),
     });
 }
 function syncToSnowflakeID(g) {
     const id = g.snowflakeID;
     while (g.handles.length < id.length) {
-        g.handles.push(addHandle(g.g, 0, 0));
+        g.handles.push(addHandle(g.constants, g.g, 0, 0));
     }
     while (g.handles.length > id.length) {
         const h = g.handles.pop();
@@ -479,10 +500,10 @@ function syncToSnowflakeID(g) {
         }
     }
     g.handles.forEach((h, i) => {
-        const x0 = MARGIN_WIDTH;
-        const y0 = MARGIN_HEIGHT;
-        const dx = GRAPHABLE_VIEWPORT_WIDTH / (id.length - 1);
-        const dy = GRAPHABLE_VIEWPORT_HEIGHT / (Constants_yChoices.length - 1);
+        const x0 = g.constants.MARGIN_WIDTH;
+        const y0 = g.constants.MARGIN_HEIGHT;
+        const dx = g.constants.GRAPHABLE_VIEWPORT_WIDTH / (id.length - 1);
+        const dy = g.constants.GRAPHABLE_VIEWPORT_HEIGHT / (Constants_yChoices.length - 1);
         const x = x0 + dx * i;
         const y = y0 + dy * id[i];
         setSVGAttributes(h.inside, { 'cx': x.toString(), 'cy': y.toString() });
@@ -491,7 +512,7 @@ function syncToSnowflakeID(g) {
     fitLineToHandles(g.line, g.handles);
 }
 function syncToPercentGrown(g, percentGrown) {
-    fitProgressToGrowth(g.progress, percentGrown);
+    fitProgressToGrowth(g.constants, g.progress, percentGrown);
 }
 function graphHandleCenter(g) {
     const r = g.getBoundingClientRect();
@@ -523,19 +544,21 @@ function closestYChoice(g, p) {
     const i = Math.floor(y * Constants_yChoices.length);
     return clamp(i, 0, Constants_yChoices.length - 1);
 }
-function zero() {
-    const root = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+function syncToConstants(root, constants) {
+    root.replaceChildren(); // remove all of root's children.
     const style = document.createElement('style');
-    style.textContent = ROOT_STYLE;
+    style.textContent = constants.ROOT_STYLE;
     root.appendChild(style);
     const g = createSVGElement('g', { 'class': 'sf-graph' });
     const result = {
+        constants,
         snowflakeID: [0, 0],
         root,
+        style,
         g,
         handles: [],
-        line: createLine(g),
-        progress: createProgress(g),
+        line: createLine(constants, g),
+        progress: createProgress(constants, g),
         handleBeingDragged: Maybe_none(),
         handleMovedCallback: (snowflakeID) => { return; },
     };
@@ -563,14 +586,19 @@ function zero() {
     window.addEventListener('mouseup', handleMouseUp);
     window.addEventListener('mousemove', handleMouseMove);
     result.root.appendChild(result.g);
-    setSVGAttributes(result.root, ROOT_ATTRS);
+    setSVGAttributes(result.root, constants.ROOT_ATTRS);
     result.handles = [
-        addHandle(g, 0, 0),
-        addHandle(g, 0, 0),
+        addHandle(constants, g, 0, 0),
+        addHandle(constants, g, 0, 0),
     ];
     fitLineToHandles(result.line, result.handles);
     syncToSnowflakeID(result);
     return result;
+}
+function zero() {
+    const root = document.createElementNS(SVG_NS, 'svg');
+    const constants = makeConstants(0.5, 3);
+    return syncToConstants(root, constants);
 }
 
 ;// ./src/SnowflakeGraphState.ts
