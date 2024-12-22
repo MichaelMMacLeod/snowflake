@@ -60,10 +60,10 @@ function map(e, onLeft, onRight) {
 }
 
 ;// ./src/Maybe.ts
-function none() {
+function Maybe_none() {
     return { v: 0 };
 }
-function some(value) {
+function Maybe_some(value) {
     return { v: 1, d: value };
 }
 function Maybe_map(m, onNone, onSome) {
@@ -83,22 +83,22 @@ function isNone(m) {
 function mapSome(m, onSome) {
     switch (m.v) {
         case 0:
-            return none();
+            return Maybe_none();
         case 1:
-            return some(onSome(m.d));
+            return Maybe_some(onSome(m.d));
     }
 }
 function then(b, onTrue) {
     if (b) {
-        return some(onTrue());
+        return Maybe_some(onTrue());
     }
-    return none();
+    return Maybe_none();
 }
 function unwrapOr(m, onNone) {
     return Maybe_map(m, onNone, v => v);
 }
 function orElse(m, onNone) {
-    return Maybe_map(m, onNone, v => some(v));
+    return Maybe_map(m, onNone, v => Maybe_some(v));
 }
 function expect(m, error) {
     return Maybe_map(m, () => { throw new Error(error); }, t => t);
@@ -160,7 +160,7 @@ function okOrElse(m, onNone) {
     return Maybe_map(m, () => Either_left(onNone()), v => Either_right(v));
 }
 function ok(e) {
-    return map(e, () => none(), r => some(r));
+    return Eithers.map(e, () => none(), r => some(r));
 }
 function arraysEqual(a1, a2, eqT) {
     return a1.length === a2.length
@@ -306,7 +306,6 @@ function sync(configSynchronizer, state, resetState, oldConfig, newConfig) {
 }
 
 ;// ./src/SnowflakeGraph.ts
-
 
 
 
@@ -464,7 +463,8 @@ function fitProgressToGrowth(progress, percentGrown) {
         'height': VIEWPORT_HEIGHT.toString(),
     });
 }
-function syncToSnowflakeID(g, id) {
+function syncToSnowflakeID(g) {
+    const id = g.snowflakeID;
     while (g.handles.length < id.length) {
         g.handles.push(addHandle(g.g, 0, 0));
     }
@@ -492,6 +492,36 @@ function syncToSnowflakeID(g, id) {
 function syncToPercentGrown(g, percentGrown) {
     fitProgressToGrowth(g.progress, percentGrown);
 }
+function graphHandleCenter(g) {
+    const r = g.getBoundingClientRect();
+    return {
+        x: r.x + r.width * 0.5,
+        y: r.y + r.height * 0.5,
+    };
+}
+function distanceToGraphHandle(g, p) {
+    // return distance(graphHandleCenter(g), p);
+    return Math.abs(graphHandleCenter(g).x - p.x);
+}
+function closestGraphHandle(g, ev) {
+    const p = { x: ev.offsetX, y: ev.offsetY };
+    let closest = 0;
+    let closestDistance = Infinity;
+    g.handles.forEach((h, i) => {
+        const d = distanceToGraphHandle(h.outside, p);
+        if (d < closestDistance) {
+            closest = i;
+            closestDistance = d;
+        }
+    });
+    return closest;
+}
+function closestYChoice(g, p) {
+    const r = g.root.getBoundingClientRect();
+    const y = p.y / r.height;
+    const i = Math.floor(y * Constants_yChoices.length);
+    return clamp(i, 0, Constants_yChoices.length - 1);
+}
 function zero() {
     const root = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     const style = document.createElement('style');
@@ -499,12 +529,37 @@ function zero() {
     root.appendChild(style);
     const g = createSVGElement('g', { 'class': 'sf-graph' });
     const result = {
+        snowflakeID: [0, 0],
         root,
         g,
         handles: [],
         line: createLine(g),
         progress: createProgress(g),
+        handleBeingDragged: Maybe_none(),
+        mouseCoordinates: Maybe_none(),
     };
+    function updateHandlePosition(h, ev) {
+        const p = { x: ev.offsetX, y: ev.offsetY };
+        const yChoice = closestYChoice(result, p);
+        result.snowflakeID[h] = yChoice;
+        syncToSnowflakeID(result);
+    }
+    function handleMouseDown(ev) {
+        const h = closestGraphHandle(result, ev);
+        result.handleBeingDragged = Maybe_some(h);
+        updateHandlePosition(h, ev);
+    }
+    function handleMouseUp(ev) {
+        result.handleBeingDragged = Maybe_none();
+    }
+    function handleMouseMove(ev) {
+        mapSome(result.handleBeingDragged, h => {
+            updateHandlePosition(h, ev);
+        });
+    }
+    root.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('mousemove', handleMouseMove);
     result.root.appendChild(result.g);
     setSVGAttributes(result.root, ROOT_ATTRS);
     result.handles = [
@@ -512,7 +567,7 @@ function zero() {
         addHandle(g, 0, 0),
     ];
     fitLineToHandles(result.line, result.handles);
-    syncToSnowflakeID(result, expect(ok(parseSnowflakeID("1993245298354729")), 'unable to parse snowflake id'));
+    syncToSnowflakeID(result);
     return result;
 }
 
@@ -523,16 +578,16 @@ function zero() {
 
 function SnowflakeGraphState_zero() {
     return {
-        graph: none(),
-        snowflakeID: [0, 0],
+        graph: Maybe_none(),
         percentGrown: 0,
         aspectRatio: 3,
+        handleMovedCallback: () => { return; },
     };
 }
 function initialize(state) {
     return Maybe_map(state.graph, () => {
         const g = zero();
-        state.graph = some(g);
+        state.graph = Maybe_some(g);
         return g.root;
     }, g => {
         return g.root;
@@ -543,8 +598,10 @@ function setPercentGrown(state, percentGrown) {
     mapSome(state.graph, g => syncToPercentGrown(g, percentGrown));
 }
 function setSnowflakeID(state, snowflakeID) {
-    state.snowflakeID = snowflakeID;
-    mapSome(state.graph, g => syncToSnowflakeID(g, snowflakeID));
+    mapSome(state.graph, g => {
+        g.snowflakeID = snowflakeID;
+        syncToSnowflakeID(g);
+    });
 }
 function setAspectRatio(state, aspectRatio) {
     state.aspectRatio = aspectRatio;
@@ -559,12 +616,14 @@ const configParser = {
     percentGrown: parseNonnegativeFloat,
     snowflakeID: parseSnowflakeID,
     aspectRatio: parsePositiveFloat,
+    handleMovedCallback: parseFunction0,
 };
 function SnowflakeGraphConfig_zero() {
     return parseConfigAndDisplayErrors(configParser, {
         percentGrown: 0,
         snowflakeID: randomSnowflakeIDString(),
         aspectRatio: 3,
+        handleMovedCallback: () => { return; },
     });
 }
 const configSynchronizer = {
@@ -591,6 +650,10 @@ const configSynchronizer = {
             setAspectRatio(s, newValue);
             return true;
         }
+        return false;
+    },
+    handleMovedCallback: (_c, s, newValue, oldValue) => {
+        s.handleMovedCallback = newValue;
         return false;
     },
 };
@@ -622,11 +685,11 @@ class SnowflakeGraphElement extends HTMLElement {
         __classPrivateFieldSet(this, _SnowflakeGraphElement_shadow, this.attachShadow({ mode: 'open' }), "f");
         __classPrivateFieldSet(this, _SnowflakeGraphElement_config, SnowflakeGraphConfig_zero(), "f");
         __classPrivateFieldSet(this, _SnowflakeGraphElement_state, SnowflakeGraphState_zero(), "f");
-        sync(configSynchronizer, __classPrivateFieldGet(this, _SnowflakeGraphElement_state, "f"), () => { return; }, none(), __classPrivateFieldGet(this, _SnowflakeGraphElement_config, "f"));
+        sync(configSynchronizer, __classPrivateFieldGet(this, _SnowflakeGraphElement_state, "f"), () => { return; }, Maybe_none(), __classPrivateFieldGet(this, _SnowflakeGraphElement_config, "f"));
     }
     configure(unparsedConfig) {
         const config = parseConfigAndDisplayErrors(configParser, unparsedConfig);
-        sync(configSynchronizer, __classPrivateFieldGet(this, _SnowflakeGraphElement_state, "f"), () => { return; }, some(__classPrivateFieldGet(this, _SnowflakeGraphElement_config, "f")), config);
+        sync(configSynchronizer, __classPrivateFieldGet(this, _SnowflakeGraphElement_state, "f"), () => { return; }, Maybe_some(__classPrivateFieldGet(this, _SnowflakeGraphElement_config, "f")), config);
         __classPrivateFieldSet(this, _SnowflakeGraphElement_config, config, "f");
     }
     connectedCallback() {

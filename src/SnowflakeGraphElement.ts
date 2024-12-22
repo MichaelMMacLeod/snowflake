@@ -1,4 +1,4 @@
-import { parseConfigAndDisplayErrors, parseSnowflakeID, sync } from "./Config";
+import { parseConfigAndDisplayErrors, parseSnowflakeID, snowflakeIDString, sync } from "./Config";
 import { GraphState } from "./SnowflakeGraphState";
 import { Maybe, none, some } from "./Maybe";
 import * as Maybes from "./Maybe";

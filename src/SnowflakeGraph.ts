@@ -1,8 +1,10 @@
 import { parseSnowflakeID } from "./Config";
 import { yChoices } from "./Constants";
-import { NonEmptyArray, ok } from "./Utils";
-import * as Eithers from "./Either";
+import { clamp, NonEmptyArray, ok } from "./Utils";
 import * as Maybes from "./Maybe";
+import { mapSome, Maybe, none, some } from "./Maybe";
+import { Point } from "./Point";
+import * as Points from "./Point";
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const SIZE_SCALAR = 0.5;
@@ -166,11 +168,14 @@ function fitLineToHandles(line: SVGElement, handles: Array<GraphHandle>): void {
 }
 
 export type SnowflakeGraph = {
+    snowflakeID: NonEmptyArray<number>,
     root: SVGElement,
     g: SVGElement,
     handles: Array<GraphHandle>,
     line: SVGElement,
     progress: SVGElement,
+    handleBeingDragged: Maybe<number>,
+    mouseCoordinates: Maybe<Point>,
 };
 
 function createProgress(g: SVGElement): SVGElement {
@@ -187,7 +192,8 @@ function fitProgressToGrowth(progress: SVGElement, percentGrown: number): void {
     });
 }
 
-export function syncToSnowflakeID(g: SnowflakeGraph, id: NonEmptyArray<number>): void {
+export function syncToSnowflakeID(g: SnowflakeGraph): void {
+    const id = g.snowflakeID;
     while (g.handles.length < id.length) {
         g.handles.push(addHandle(g.g, 0, 0));
     }
@@ -216,6 +222,40 @@ export function syncToPercentGrown(g: SnowflakeGraph, percentGrown: number): voi
     fitProgressToGrowth(g.progress, percentGrown);
 }
 
+function graphHandleCenter(g: SVGElement): Point {
+    const r = g.getBoundingClientRect();
+    return {
+        x: r.x + r.width * 0.5,
+        y: r.y + r.height * 0.5,
+    }
+}
+
+function distanceToGraphHandle(g: SVGElement, p: Point): number {
+    // return distance(graphHandleCenter(g), p);
+    return Math.abs(graphHandleCenter(g).x - p.x);
+}
+
+function closestGraphHandle(g: SnowflakeGraph, ev: MouseEvent): number {
+    const p = { x: ev.offsetX, y: ev.offsetY}
+    let closest = 0;
+    let closestDistance = Infinity;
+    g.handles.forEach((h, i) => {
+        const d = distanceToGraphHandle(h.outside, p);
+        if (d < closestDistance) {
+            closest = i;
+            closestDistance = d;
+        }
+    });
+    return closest;
+}
+
+function closestYChoice(g: SnowflakeGraph, p: Point): number {
+    const r = g.root.getBoundingClientRect();
+    const y = p.y / r.height;
+    const i = Math.floor(y * yChoices.length);
+    return clamp(i, 0, yChoices.length - 1);
+}
+
 export function zero(): SnowflakeGraph {
     const root = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     const style = document.createElement('style');
@@ -223,12 +263,37 @@ export function zero(): SnowflakeGraph {
     root.appendChild(style);
     const g = createSVGElement('g', { 'class': 'sf-graph' });
     const result: SnowflakeGraph = {
+        snowflakeID: [0, 0],
         root,
         g,
         handles: [],
         line: createLine(g),
         progress: createProgress(g),
+        handleBeingDragged: none(),
+        mouseCoordinates: none(),
     };
+    function updateHandlePosition(h: number, ev: MouseEvent) {
+        const p = { x: ev.offsetX, y: ev.offsetY };
+        const yChoice = closestYChoice(result, p);
+        result.snowflakeID[h] = yChoice;
+        syncToSnowflakeID(result);
+    }
+    function handleMouseDown(ev: MouseEvent): void {
+        const h = closestGraphHandle(result, ev);
+        result.handleBeingDragged = some(h);
+        updateHandlePosition(h, ev);
+    }
+    function handleMouseUp(ev: MouseEvent): void {
+        result.handleBeingDragged = none();
+    }
+    function handleMouseMove(ev: MouseEvent): void {
+        mapSome(result.handleBeingDragged, h => {
+            updateHandlePosition(h, ev);
+        });
+    }
+    root.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('mousemove', handleMouseMove);
     result.root.appendChild(result.g);
     setSVGAttributes(result.root, ROOT_ATTRS);
     result.handles = [
@@ -236,6 +301,6 @@ export function zero(): SnowflakeGraph {
         addHandle(g, 0, 0),
     ];
     fitLineToHandles(result.line, result.handles);
-    syncToSnowflakeID(result, Maybes.expect(ok(parseSnowflakeID("1993245298354729")), 'unable to parse snowflake id'));
+    syncToSnowflakeID(result);
     return result;
 }

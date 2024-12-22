@@ -9,18 +9,21 @@ export type UnparsedConfig = {
     percentGrown: number,
     snowflakeID: string,
     aspectRatio: number,
+    handleMovedCallback: () => void,
 };
 
 export type Config = {
     percentGrown: number,
     snowflakeID: NonEmptyArray<number>,
     aspectRatio: number,
+    handleMovedCallback: () => void,
 };
 
 export const configParser: ConfigParser<UnparsedConfig, Config> = {
     percentGrown: parseNonnegativeFloat,
     snowflakeID: parseSnowflakeID,
     aspectRatio: parsePositiveFloat,
+    handleMovedCallback: parseFunction0,
 };
 
 export function zero(): Config {
@@ -30,6 +33,7 @@ export function zero(): Config {
             percentGrown: 0,
             snowflakeID: randomSnowflakeIDString(),
             aspectRatio: 3,
+            handleMovedCallback: () => { return; },
         },
     );
 }
@@ -58,6 +62,10 @@ export const configSynchronizer: ConfigSynchronizer<GraphState, Config> = {
             setAspectRatio(s, newValue);
             return true;
         }
+        return false;
+    },
+    handleMovedCallback: (_c, s, newValue, oldValue) => {
+        s.handleMovedCallback = newValue;
         return false;
     },
 };

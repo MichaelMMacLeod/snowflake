@@ -76,3 +76,16 @@ export function rotateX(x: number, y: number, direction: Direction) {
 export function rotateY(x: number, y: number, direction: Direction) {
   return x * Directions.sines[direction] + y * Directions.cosines[direction];
 }
+
+export function distance(p1: Point, p2: Point): number {
+  const dx = p2.x - p1.x;
+  const dy = p2.y - p1.y;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+export function ofMouseEvent(ev: MouseEvent): Point {
+  return {
+    x: ev.x,
+    y: ev.y,
+  };
+}

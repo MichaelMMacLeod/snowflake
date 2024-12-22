@@ -3,20 +3,21 @@ import { SnowflakeGraph, syncToPercentGrown, syncToSnowflakeID } from "./Snowfla
 import * as SnowflakeGraphs from "./SnowflakeGraph";
 import { NonEmptyArray } from "./Utils";
 import * as Maybes from "./Maybe";
+import { Point } from "./Point";
 
 export type GraphState = {
     graph: Maybe<SnowflakeGraph>
-    snowflakeID: NonEmptyArray<number>,
     percentGrown: number,
     aspectRatio: number,
+    handleMovedCallback: () => void,
 };
 
 export function zero(): GraphState {
     return {
         graph: none(),
-        snowflakeID: [0, 0],
         percentGrown: 0,
         aspectRatio: 3,
+        handleMovedCallback: () => { return },
     };
 }
 
@@ -39,8 +40,10 @@ export function setPercentGrown(state: GraphState, percentGrown: number): void {
 }
 
 export function setSnowflakeID(state: GraphState, snowflakeID: NonEmptyArray<number>): void {
-    state.snowflakeID = snowflakeID;
-    mapSome(state.graph, g => syncToSnowflakeID(g, snowflakeID));
+    mapSome(state.graph, g => {
+        g.snowflakeID = snowflakeID;
+        syncToSnowflakeID(g);
+    });
 }
 
 export function setAspectRatio(state: GraphState, aspectRatio: number): void {

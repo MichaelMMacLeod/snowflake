@@ -7,6 +7,9 @@
     html {
       color-scheme: light dark;
     }
+    /* snowflake-graph-element {
+      margin-left: 10em;
+    } */
   </style>
 </head>
 
@@ -24,6 +27,9 @@
       snowflakeID: '17827239998',
       aspectRatio: 6,
       percentGrown: 0.5,
+      handleMovedCallback: () => {
+        console.log(`SnowflakeID: ${graph.snowflakeID()}`);
+      },
     };
     window.config = {
       snowflakeID: '17827239998',
