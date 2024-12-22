@@ -372,7 +372,7 @@ svg * {
 
 .sf-graph-progress {
   fill: var(--SFG-color-foreground);
-  fill-opacity: 0.2;
+  fill-opacity: 0.1;
 }
 
 .sf-graph {
@@ -382,7 +382,6 @@ svg * {
 const HANDLE_INSIDE_ATTRS = {
     'class': 'sf-graph-handle-inside',
     'r': `${HANDLE_INNER_SIZE}`,
-    'fill': 'black',
     'cx': '0',
     'cy': '0',
 };

@@ -21,14 +21,14 @@
     document.body.appendChild(graph);
     document.body.appendChild(snowflake);
     window.graphConfig = {
-      snowflakeID: '1782719971239998',
+      snowflakeID: '17827239998',
       aspectRatio: 6,
       percentGrown: 0.5,
     };
     window.config = {
-      snowflakeID: '1782719971238',
-      upsCap: 1000,
-      targetGrowthTimeMS: 10000,
+      snowflakeID: '17827239998',
+      upsCap: 100000,
+      targetGrowthTimeMS: 30000,
       finishedGrowingCallback: () => console.log('done growing'),
       updatedCallback: () => {
         graphConfig.snowflakeID = config.snowflakeID;
@@ -36,8 +36,8 @@
         graph.configure(graphConfig);
       },
     };
-    snowflake.configure(config);
     graph.configure(graphConfig);
+    snowflake.configure(config);
   </script>
 </body>
 
