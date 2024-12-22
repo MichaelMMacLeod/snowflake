@@ -7,6 +7,21 @@
     html {
       color-scheme: light dark;
     }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --SF-color-background: #111111;
+        --SF-color-foreground: #ffffff;
+      }
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --SF-color-background: #ffffff;
+        --SF-color-foreground: #000000;
+      }
+    }
+
     /* snowflake-graph-element {
       margin-left: 10em;
     } */
