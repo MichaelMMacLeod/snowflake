@@ -600,6 +600,9 @@ function zero() {
     const constants = makeConstants(0.5, 3);
     return syncToConstants(root, constants);
 }
+function setAspectRatio(g, aspectRatio) {
+    const constants = makeConstants(0.5, aspectRatio);
+}
 
 ;// ./src/SnowflakeGraphState.ts
 
@@ -632,7 +635,7 @@ function setSnowflakeID(state, snowflakeID) {
         syncToSnowflakeID(g);
     });
 }
-function setAspectRatio(state, aspectRatio) {
+function SnowflakeGraphState_setAspectRatio(state, aspectRatio) {
     state.aspectRatio = aspectRatio;
 }
 
@@ -676,7 +679,7 @@ const configSynchronizer = {
     aspectRatio: (_c, s, newValue, oldValue) => {
         const newEqOld = Maybe_map(oldValue, () => false, oldValue => newValue === oldValue);
         if (!newEqOld) {
-            setAspectRatio(s, newValue);
+            SnowflakeGraphState_setAspectRatio(s, newValue);
             return true;
         }
         return false;

@@ -303,7 +303,10 @@ function closestYChoice(g: SnowflakeGraph, p: Point): number {
     return clamp(i, 0, yChoices.length - 1);
 }
 
-function syncToConstants(root: SVGSVGElement, constants: Constants): SnowflakeGraph {
+function syncToConstants(
+    root: SVGSVGElement,
+    constants: Constants
+): SnowflakeGraph {
     root.replaceChildren(); // remove all of root's children.
     const style = document.createElement('style');
     style.textContent = constants.ROOT_STYLE;
@@ -359,4 +362,9 @@ export function zero(): SnowflakeGraph {
     const root = document.createElementNS(SVG_NS, 'svg');
     const constants = makeConstants(0.5, 3);
     return syncToConstants(root, constants);
+}
+
+export function setAspectRatio(g: SnowflakeGraph, aspectRatio: number): void {
+    const constants = makeConstants(0.5, aspectRatio);
+
 }
