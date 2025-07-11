@@ -38,8 +38,9 @@
     window.graph = document.createElement('snowflake-graph-element');
     document.body.appendChild(graph);
     document.body.appendChild(snowflake);
+    const snowflakeID = '17827239998';
     window.graphConfig = {
-      snowflakeID: '17827239998',
+      snowflakeID,
       aspectRatio: 6,
       percentGrown: 0.5,
       handleMovedCallback: snowflakeID => {
@@ -48,7 +49,7 @@
       },
     };
     window.config = {
-      snowflakeID: '17827239998',
+      snowflakeID,
       upsCap: 100000,
       targetGrowthTimeMS: 1000,
       finishedGrowingCallback: () => console.log('done growing'),

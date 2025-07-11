@@ -540,7 +540,7 @@ function closestGraphHandle(g, ev) {
 }
 function closestYChoice(g, p) {
     const r = g.root.getBoundingClientRect();
-    const y = p.y / r.height;
+    const y = (p.y - r.y - g.constants.MARGIN_HEIGHT + g.constants.HANDLE_OUTER_SIZE / 2) / (r.height - 2 * g.constants.MARGIN_HEIGHT);
     const i = Math.floor(y * Constants_yChoices.length);
     return clamp(i, 0, Constants_yChoices.length - 1);
 }
@@ -563,7 +563,7 @@ function syncToConstants(root, constants) {
         handleMovedCallback: (snowflakeID) => { return; },
     };
     function updateHandlePosition(h, ev) {
-        const p = { x: ev.offsetX, y: ev.offsetY };
+        const p = { x: ev.clientX, y: ev.clientY };
         const yChoice = closestYChoice(result, p);
         result.snowflakeID[h] = yChoice;
         syncToSnowflakeID(result);
