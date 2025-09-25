@@ -602,6 +602,8 @@ function zero() {
 }
 function setAspectRatio(g, aspectRatio) {
     const constants = makeConstants(0.5, aspectRatio);
+    // TODO
+    // syncToConstants(g.root, constants);
 }
 
 ;// ./src/SnowflakeGraphState.ts
@@ -637,6 +639,7 @@ function setSnowflakeID(state, snowflakeID) {
 }
 function SnowflakeGraphState_setAspectRatio(state, aspectRatio) {
     state.aspectRatio = aspectRatio;
+    mapSome(state.graph, g => setAspectRatio(g, state.aspectRatio));
 }
 
 ;// ./src/SnowflakeGraphConfig.ts

@@ -46,4 +46,5 @@ export function setSnowflakeID(state: GraphState, snowflakeID: NonEmptyArray<num
 
 export function setAspectRatio(state: GraphState, aspectRatio: number): void {
     state.aspectRatio = aspectRatio;
+    mapSome(state.graph, g => SnowflakeGraphs.setAspectRatio(g, state.aspectRatio));
 }

@@ -215,7 +215,7 @@ function fitLineToHandles(line: SVGElement, handles: Array<GraphHandle>): void {
 export type SnowflakeGraph = {
     constants: Constants,
     snowflakeID: NonEmptyArray<number>,
-    root: SVGElement,
+    root: SVGSVGElement,
     style: HTMLStyleElement,
     g: SVGElement,
     handles: Array<GraphHandle>,
@@ -366,5 +366,6 @@ export function zero(): SnowflakeGraph {
 
 export function setAspectRatio(g: SnowflakeGraph, aspectRatio: number): void {
     const constants = makeConstants(0.5, aspectRatio);
-
+    // TODO
+    // syncToConstants(g.root, constants);
 }
