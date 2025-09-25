@@ -544,7 +544,15 @@ function closestYChoice(g, p) {
     const i = Math.floor(y * Constants_yChoices.length);
     return clamp(i, 0, Constants_yChoices.length - 1);
 }
-function syncToConstants(root, constants) {
+function syncToConstants(g, cs) {
+    g.constants = cs;
+    g.style.textContent = cs.ROOT_STYLE;
+    setSVGAttributes(g.root, cs.ROOT_ATTRS);
+    syncToSnowflakeID(g);
+}
+function zero() {
+    const root = document.createElementNS(SVG_NS, 'svg');
+    const constants = makeConstants(0.5, 3);
     root.replaceChildren(); // remove all of root's children.
     const style = document.createElement('style');
     style.textContent = constants.ROOT_STYLE;
@@ -595,15 +603,9 @@ function syncToConstants(root, constants) {
     syncToSnowflakeID(result);
     return result;
 }
-function zero() {
-    const root = document.createElementNS(SVG_NS, 'svg');
-    const constants = makeConstants(0.5, 3);
-    return syncToConstants(root, constants);
-}
 function setAspectRatio(g, aspectRatio) {
     const constants = makeConstants(0.5, aspectRatio);
-    // TODO
-    // syncToConstants(g.root, constants);
+    syncToConstants(g, constants);
 }
 
 ;// ./src/SnowflakeGraphState.ts
