@@ -9,6 +9,7 @@ import * as Points from "./Point";
 type Attributes = { [key: string]: string };
 
 type Constants = {
+    ASPECT_RATIO: number,
     SIZE_SCALAR: number,
     VIEWPORT_WIDTH: number,
     VIEWPORT_HEIGHT: number,
@@ -131,6 +132,7 @@ function makeConstants(SIZE_SCALAR: number, ASPECT_RATIO: number): Constants {
         'height': `${VIEWPORT_HEIGHT}`,
     };
     return {
+        ASPECT_RATIO,
         SIZE_SCALAR,
         VIEWPORT_WIDTH,
         VIEWPORT_HEIGHT,
@@ -296,11 +298,29 @@ function closestGraphHandle(g: SnowflakeGraph, ev: MouseEvent): number {
     return closest;
 }
 
-function closestYChoice(g: SnowflakeGraph, p: Point): number {
-    const r = g.root.getBoundingClientRect();
-    const y = (p.y - r.y - g.constants.MARGIN_HEIGHT + g.constants.HANDLE_OUTER_SIZE / 2) / (r.height - 2 * g.constants.MARGIN_HEIGHT);
-    const i = Math.floor(y * yChoices.length);
+function viewportToSvgPoint(g: SnowflakeGraph, viewportPoint: Point): DOMPoint {
+    const svgPoint = g.root.createSVGPoint();
+    svgPoint.x = viewportPoint.x;
+    svgPoint.y = viewportPoint.y;
+    const ctm = g.root.getScreenCTM()?.inverse();
+    if (ctm === null) {
+        throw new Error('ctm is null');
+    }
+    return svgPoint.matrixTransform(ctm);
+}
+
+function closestYChoice(g: SnowflakeGraph, viewportPoint: Point): number {
+    const p = viewportToSvgPoint(g, viewportPoint);
+    const y = (p.y - g.constants.MARGIN_HEIGHT) / g.constants.GRAPHABLE_VIEWPORT_HEIGHT;
+    const i = Math.round(y * yChoices.length);
     return clamp(i, 0, yChoices.length - 1);
+
+
+    // const r = g.progress.getBoundingClientRect();
+    // r.width = g.root.getBoundingClientRect().width;
+    // const y = (p.y - r.y - g.constants.MARGIN_HEIGHT + g.constants.HANDLE_OUTER_SIZE / 2) / (r.height - 2 * g.constants.MARGIN_HEIGHT);
+    // const i = Math.floor(y * yChoices.length);
+    // return clamp(i, 0, yChoices.length - 1);
 }
 
 function syncToConstants(g: SnowflakeGraph, cs: Constants) {

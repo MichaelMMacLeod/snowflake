@@ -405,6 +405,7 @@ function makeConstants(SIZE_SCALAR, ASPECT_RATIO) {
         'height': `${VIEWPORT_HEIGHT}`,
     };
     return {
+        ASPECT_RATIO,
         SIZE_SCALAR,
         VIEWPORT_WIDTH,
         VIEWPORT_HEIGHT,
@@ -538,11 +539,27 @@ function closestGraphHandle(g, ev) {
     });
     return closest;
 }
-function closestYChoice(g, p) {
-    const r = g.root.getBoundingClientRect();
-    const y = (p.y - r.y - g.constants.MARGIN_HEIGHT + g.constants.HANDLE_OUTER_SIZE / 2) / (r.height - 2 * g.constants.MARGIN_HEIGHT);
-    const i = Math.floor(y * Constants_yChoices.length);
+function viewportToSvgPoint(g, viewportPoint) {
+    var _a;
+    const svgPoint = g.root.createSVGPoint();
+    svgPoint.x = viewportPoint.x;
+    svgPoint.y = viewportPoint.y;
+    const ctm = (_a = g.root.getScreenCTM()) === null || _a === void 0 ? void 0 : _a.inverse();
+    if (ctm === null) {
+        throw new Error('ctm is null');
+    }
+    return svgPoint.matrixTransform(ctm);
+}
+function closestYChoice(g, viewportPoint) {
+    const p = viewportToSvgPoint(g, viewportPoint);
+    const y = (p.y - g.constants.MARGIN_HEIGHT) / g.constants.GRAPHABLE_VIEWPORT_HEIGHT;
+    const i = Math.round(y * Constants_yChoices.length);
     return clamp(i, 0, Constants_yChoices.length - 1);
+    // const r = g.progress.getBoundingClientRect();
+    // r.width = g.root.getBoundingClientRect().width;
+    // const y = (p.y - r.y - g.constants.MARGIN_HEIGHT + g.constants.HANDLE_OUTER_SIZE / 2) / (r.height - 2 * g.constants.MARGIN_HEIGHT);
+    // const i = Math.floor(y * yChoices.length);
+    // return clamp(i, 0, yChoices.length - 1);
 }
 function syncToConstants(g, cs) {
     g.constants = cs;
