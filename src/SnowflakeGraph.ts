@@ -312,15 +312,8 @@ function viewportToSvgPoint(g: SnowflakeGraph, viewportPoint: Point): DOMPoint {
 function closestYChoice(g: SnowflakeGraph, viewportPoint: Point): number {
     const p = viewportToSvgPoint(g, viewportPoint);
     const y = (p.y - g.constants.MARGIN_HEIGHT) / g.constants.GRAPHABLE_VIEWPORT_HEIGHT;
-    const i = Math.round(y * yChoices.length);
+    const i = Math.round(y * (yChoices.length - 1));
     return clamp(i, 0, yChoices.length - 1);
-
-
-    // const r = g.progress.getBoundingClientRect();
-    // r.width = g.root.getBoundingClientRect().width;
-    // const y = (p.y - r.y - g.constants.MARGIN_HEIGHT + g.constants.HANDLE_OUTER_SIZE / 2) / (r.height - 2 * g.constants.MARGIN_HEIGHT);
-    // const i = Math.floor(y * yChoices.length);
-    // return clamp(i, 0, yChoices.length - 1);
 }
 
 function syncToConstants(g: SnowflakeGraph, cs: Constants) {
