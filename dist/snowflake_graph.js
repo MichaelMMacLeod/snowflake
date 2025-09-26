@@ -422,7 +422,7 @@ function makeConstants(SIZE_SCALAR, ASPECT_RATIO) {
         ROOT_STYLE,
         HANDLE_INSIDE_ATTRS,
         HANDLE_OUTSIDE_ATTRS,
-        LINE_ATTRS,
+        HANDLE_LINE_ATTRS: LINE_ATTRS,
         PROGRESS_ATTRS,
     };
 }
@@ -460,13 +460,13 @@ function addHandle(cs, g, x, y) {
     g.appendChild(result.g);
     return result;
 }
-function createLine(cs, g) {
-    const result = createSVGElement('polyline', cs.LINE_ATTRS);
+function createHandleLine(cs, g) {
+    const result = createSVGElement('polyline', cs.HANDLE_LINE_ATTRS);
     ;
     g.appendChild(result);
     return result;
 }
-function fitLineToHandles(line, handles) {
+function fitHandleLineToHandles(line, handles) {
     const points = handles.map(h => {
         const x = h.inside.getAttribute('cx');
         const y = h.inside.getAttribute('cy');
@@ -510,7 +510,7 @@ function syncToSnowflakeID(g) {
         setSVGAttributes(h.inside, { 'cx': x.toString(), 'cy': y.toString() });
         setSVGAttributes(h.outside, { 'cx': x.toString(), 'cy': y.toString() });
     });
-    fitLineToHandles(g.line, g.handles);
+    fitHandleLineToHandles(g.handleLine, g.handles);
 }
 function syncToPercentGrown(g, percentGrown) {
     fitProgressToGrowth(g.constants, g.progress, percentGrown);
@@ -577,7 +577,7 @@ function zero() {
         style,
         g,
         handles: [],
-        line: createLine(constants, g),
+        handleLine: createHandleLine(constants, g),
         progress: createProgress(constants, g),
         handleBeingDragged: Maybe_none(),
         handleMovedCallback: (snowflakeID) => { return; },
@@ -611,7 +611,7 @@ function zero() {
         addHandle(constants, g, 0, 0),
         addHandle(constants, g, 0, 0),
     ];
-    fitLineToHandles(result.line, result.handles);
+    fitHandleLineToHandles(result.handleLine, result.handles);
     syncToSnowflakeID(result);
     return result;
 }

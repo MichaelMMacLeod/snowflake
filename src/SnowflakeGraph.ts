@@ -26,7 +26,7 @@ type Constants = {
     ROOT_ATTRS: Attributes,
     HANDLE_INSIDE_ATTRS: Attributes,
     HANDLE_OUTSIDE_ATTRS: Attributes,
-    LINE_ATTRS: Attributes,
+    HANDLE_LINE_ATTRS: Attributes,
     PROGRESS_ATTRS: Attributes,
 };
 
@@ -149,7 +149,7 @@ function makeConstants(SIZE_SCALAR: number, ASPECT_RATIO: number): Constants {
         ROOT_STYLE,
         HANDLE_INSIDE_ATTRS,
         HANDLE_OUTSIDE_ATTRS,
-        LINE_ATTRS,
+        HANDLE_LINE_ATTRS: LINE_ATTRS,
         PROGRESS_ATTRS,
     };
 }
@@ -199,13 +199,13 @@ function addHandle(cs: Constants, g: SVGElement, x: number, y: number): GraphHan
     return result;
 }
 
-function createLine(cs: Constants, g: SVGElement): SVGElement {
-    const result = createSVGElement('polyline', cs.LINE_ATTRS);;
+function createHandleLine(cs: Constants, g: SVGElement): SVGElement {
+    const result = createSVGElement('polyline', cs.HANDLE_LINE_ATTRS);;
     g.appendChild(result);
     return result;
 }
 
-function fitLineToHandles(line: SVGElement, handles: Array<GraphHandle>): void {
+function fitHandleLineToHandles(line: SVGElement, handles: Array<GraphHandle>): void {
     const points = handles.map(h => {
         const x = h.inside.getAttribute('cx');
         const y = h.inside.getAttribute('cy');
@@ -221,7 +221,7 @@ export type SnowflakeGraph = {
     style: HTMLStyleElement,
     g: SVGElement,
     handles: Array<GraphHandle>,
-    line: SVGElement,
+    handleLine: SVGElement,
     progress: SVGElement,
     handleBeingDragged: Maybe<number>,
     handleMovedCallback: (snowflakeID: string) => void,
@@ -264,7 +264,7 @@ export function syncToSnowflakeID(g: SnowflakeGraph): void {
         setSVGAttributes(h.inside, { 'cx': x.toString(), 'cy': y.toString() });
         setSVGAttributes(h.outside, { 'cx': x.toString(), 'cy': y.toString() });
     });
-    fitLineToHandles(g.line, g.handles);
+    fitHandleLineToHandles(g.handleLine, g.handles);
 }
 
 export function syncToPercentGrown(g: SnowflakeGraph, percentGrown: number): void {
@@ -339,7 +339,7 @@ export function zero(): SnowflakeGraph {
         style,
         g,
         handles: [],
-        line: createLine(constants, g),
+        handleLine: createHandleLine(constants, g),
         progress: createProgress(constants, g),
         handleBeingDragged: none(),
         handleMovedCallback: (snowflakeID: string) => { return; },
@@ -373,7 +373,7 @@ export function zero(): SnowflakeGraph {
         addHandle(constants, g, 0, 0),
         addHandle(constants, g, 0, 0),
     ];
-    fitLineToHandles(result.line, result.handles);
+    fitHandleLineToHandles(result.handleLine, result.handles);
     syncToSnowflakeID(result);
     return result;
 }
