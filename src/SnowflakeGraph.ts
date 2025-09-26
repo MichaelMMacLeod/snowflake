@@ -26,6 +26,7 @@ type Constants = {
     ROOT_ATTRS: Attributes,
     HANDLE_INSIDE_ATTRS: Attributes,
     HANDLE_OUTSIDE_ATTRS: Attributes,
+    FACETING_BRANCHING_LINE_ATTRS: Attributes,
     HANDLE_LINE_ATTRS: Attributes,
     PROGRESS_ATTRS: Attributes,
 };
@@ -119,7 +120,19 @@ function makeConstants(SIZE_SCALAR: number, ASPECT_RATIO: number): Constants {
         'cy': '0',
     };
 
-    const LINE_ATTRS = {
+    const facetingBranchingLineY = `${MARGIN_HEIGHT + GRAPHABLE_VIEWPORT_HEIGHT / 2}`;
+    const FACETING_BRANCHING_LINE_ATTRS = {
+        'class': 'sf-graph-line',
+        'y1': facetingBranchingLineY,
+        'y2': facetingBranchingLineY,
+        'x1': `${MARGIN_WIDTH}`,
+        'x2': `${MARGIN_WIDTH + GRAPHABLE_VIEWPORT_WIDTH}`,
+        'stroke-width': `${LINE_WIDTH}`,
+        'stroke-dasharray': '5,5',
+        'fill': 'none',
+    };
+
+    const HANDLE_LINE_ATTRS = {
         'class': 'sf-graph-line',
         'stroke-width': `${LINE_WIDTH}`,
         'fill': 'none',
@@ -149,7 +162,8 @@ function makeConstants(SIZE_SCALAR: number, ASPECT_RATIO: number): Constants {
         ROOT_STYLE,
         HANDLE_INSIDE_ATTRS,
         HANDLE_OUTSIDE_ATTRS,
-        HANDLE_LINE_ATTRS: LINE_ATTRS,
+        FACETING_BRANCHING_LINE_ATTRS,
+        HANDLE_LINE_ATTRS,
         PROGRESS_ATTRS,
     };
 }
@@ -199,6 +213,12 @@ function addHandle(cs: Constants, g: SVGElement, x: number, y: number): GraphHan
     return result;
 }
 
+function createFacetingBranchingLine(cs: Constants, g: SVGElement): SVGElement {
+    const result = createSVGElement('line', cs.FACETING_BRANCHING_LINE_ATTRS);;
+    g.appendChild(result);
+    return result;
+}
+
 function createHandleLine(cs: Constants, g: SVGElement): SVGElement {
     const result = createSVGElement('polyline', cs.HANDLE_LINE_ATTRS);;
     g.appendChild(result);
@@ -222,6 +242,7 @@ export type SnowflakeGraph = {
     g: SVGElement,
     handles: Array<GraphHandle>,
     handleLine: SVGElement,
+    facetingBranchingLine: SVGElement,
     progress: SVGElement,
     handleBeingDragged: Maybe<number>,
     handleMovedCallback: (snowflakeID: string) => void,
@@ -332,6 +353,7 @@ export function zero(): SnowflakeGraph {
     style.textContent = constants.ROOT_STYLE;
     root.appendChild(style);
     const g = createSVGElement('g', { 'class': 'sf-graph' });
+    const facetingBranchingLine = createFacetingBranchingLine(constants, g);
     const result: SnowflakeGraph = {
         constants,
         snowflakeID: [0, 0],
@@ -339,6 +361,7 @@ export function zero(): SnowflakeGraph {
         style,
         g,
         handles: [],
+        facetingBranchingLine,
         handleLine: createHandleLine(constants, g),
         progress: createProgress(constants, g),
         handleBeingDragged: none(),
