@@ -1,3 +1,4 @@
 snowflake.js
 node_modules/
 .devshells/
+dist/
