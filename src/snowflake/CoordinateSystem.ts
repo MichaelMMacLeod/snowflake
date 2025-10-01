@@ -1,5 +1,5 @@
 import { Graphic } from "./Graphic";
-import { Point } from "./Point";
+import { Point } from "../common/Point";
 
 // Coordinate system(s):
 //

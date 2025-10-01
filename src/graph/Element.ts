@@ -1,13 +1,9 @@
-import { parseConfigAndDisplayErrors, parseSnowflakeID, snowflakeIDString, sync } from "./Config";
-import { GraphState } from "./SnowflakeGraphState";
-import { Maybe, none, some } from "./Maybe";
-import * as Maybes from "./Maybe";
-import * as SnowflakeGraphs from "./SnowflakeGraph";
-import { SnowflakeGraph } from "./SnowflakeGraph";
-import * as GraphStates from "./SnowflakeGraphState";
-import { NonEmptyArray, ok } from "./Utils";
-import { Config, configParser, configSynchronizer, UnparsedConfig } from "./SnowflakeGraphConfig";
-import * as GraphConfigs from "./SnowflakeGraphConfig";
+import { parseConfigAndDisplayErrors, sync } from "../common/Config";
+import { GraphState } from "./State";
+import { none, some } from "../common/Maybe";
+import * as GraphStates from "./State";
+import { Config, configParser, configSynchronizer, UnparsedConfig } from "./Config";
+import * as GraphConfigs from "./Config";
 
 export default class SnowflakeGraphElement extends HTMLElement {
     #shadow: ShadowRoot;

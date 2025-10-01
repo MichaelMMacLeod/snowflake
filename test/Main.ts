@@ -1,5 +1,5 @@
-import * as Points from "../src/Point";
-import { Point } from "../src/Point";
+import * as Points from "../src/common/Point";
+import { Point } from "../src/common/Point";
 
 function sum(a: number, b: number): number {
     const p1: Point = { x: a, y: 0 };

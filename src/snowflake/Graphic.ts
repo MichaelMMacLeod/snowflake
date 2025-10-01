@@ -1,4 +1,4 @@
-import { Maybe, none, some } from "./Maybe";
+import { Maybe, none, some } from "../common/Maybe";
 
 export type Graphic = {
     sizePX: number,

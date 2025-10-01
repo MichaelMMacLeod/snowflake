@@ -1,5 +1,5 @@
-import { rem, Array6 } from "./Utils";
-import { oneSixthCircle } from "./Constants";
+import { rem, Array6 } from "../common/Utils";
+import { oneSixthCircle } from "../common/Constants";
 
 export type Direction = 0 | 1 | 2 | 3 | 4 | 5;
 export const DIRS: 6 = 6;

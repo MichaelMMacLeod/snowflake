@@ -1,10 +1,10 @@
-import { parseConfigAndDisplayErrors, randomSnowflakeIDString, sync } from "./Config";
-import { none, some } from "./Maybe";
-import * as Maybes from "./Maybe";
-import { initializeGraphic, State } from "./SnowflakeState";
-import * as States from "./SnowflakeState";
-import { Config, configParser, configSynchronizer, UnparsedConfig } from "./SnowflakeConfig";
-import * as Configs from "./SnowflakeConfig";
+import { parseConfigAndDisplayErrors, randomSnowflakeIDString, sync } from "../common/Config";
+import { none, some } from "../common/Maybe";
+import * as Maybes from "../common/Maybe";
+import { initializeGraphic, State } from "./State";
+import * as States from "./State";
+import { Config, configParser, configSynchronizer, UnparsedConfig } from "./Config";
+import * as Configs from "./Config";
 
 export default class SnowflakeElement extends HTMLElement {
     #state: State;

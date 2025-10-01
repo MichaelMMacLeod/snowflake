@@ -1,9 +1,8 @@
-import { mapSome, Maybe, none, some } from "./Maybe";
-import { SnowflakeGraph, syncToPercentGrown, syncToSnowflakeID } from "./SnowflakeGraph";
-import * as SnowflakeGraphs from "./SnowflakeGraph";
-import { NonEmptyArray } from "./Utils";
-import * as Maybes from "./Maybe";
-import { Point } from "./Point";
+import { mapSome, Maybe, none, some } from "../common/Maybe";
+import { SnowflakeGraph, syncToPercentGrown, syncToSnowflakeID } from "./Graph";
+import * as SnowflakeGraphs from "./Graph";
+import { NonEmptyArray } from "../common/Utils";
+import * as Maybes from "../common/Maybe";
 
 export type GraphState = {
     graph: Maybe<SnowflakeGraph>

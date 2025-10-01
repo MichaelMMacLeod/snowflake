@@ -2,8 +2,8 @@ import * as Eithers from "./Either";
 import { Either, left, right } from "./Either";
 import { Maybe, none, some } from "./Maybe";
 import * as Maybes from "./Maybe";
-import { scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX, State } from "./SnowflakeState";
-import * as States from "./SnowflakeState";
+import { scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX, State } from "../snowflake/State";
+import * as States from "../snowflake/State";
 import { NonEmptyArray, okOrElse, randomIntInclusive } from "./Utils";
 
 export function isBoolean(value: any): value is boolean {

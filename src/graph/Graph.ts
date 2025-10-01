@@ -1,10 +1,8 @@
-import { parseSnowflakeID, snowflakeIDString } from "./Config";
-import { yChoices } from "./Constants";
-import { clamp, NonEmptyArray, ok } from "./Utils";
-import * as Maybes from "./Maybe";
-import { mapSome, Maybe, none, some } from "./Maybe";
-import { Point } from "./Point";
-import * as Points from "./Point";
+import { snowflakeIDString } from "../common/Config";
+import { yChoices } from "../common/Constants";
+import { clamp, NonEmptyArray } from "../common/Utils";
+import { mapSome, Maybe, none, some } from "../common/Maybe";
+import { Point } from "../common/Point";
 
 type Attributes = { [key: string]: string };
 

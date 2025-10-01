@@ -5,7 +5,7 @@ import * as Branches from "./Branch";
 import { Graphic } from "./Graphic";
 import { Direction, DIRS } from "./Direction";
 import * as Directions from "./Direction";
-import { Array6, makeArray6, rem, SideCacheArray, sideCacheConstructor } from "./Utils";
+import { Array6, makeArray6, rem, SideCacheArray, sideCacheConstructor } from "../common/Utils";
 import * as Sides from "./Side";
 
 // Description of the Overlap Detection Algorithm

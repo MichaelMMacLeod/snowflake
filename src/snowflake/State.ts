@@ -4,10 +4,10 @@ import { addBranchesToGrowingFaces, addFacesToGrowingBranches, Snowflake } from 
 import * as Snowflakes from "./Snowflake";
 import * as Branches from "./Branch";
 import * as Faces from "./Face";
-import { fracPart, GrowthType, interpretGrowth, NonEmptyArray } from "./Utils";
-import * as Eithers from "./Either";
-import { isSome, mapSome, Maybe, none } from "./Maybe";
-import * as Maybes from "./Maybe";
+import { fracPart, GrowthType, interpretGrowth, NonEmptyArray } from "../common/Utils";
+import * as Eithers from "../common/Either";
+import { isSome, mapSome, Maybe, none } from "../common/Maybe";
+import * as Maybes from "../common/Maybe";
 
 export type State = {
     growthInput: NonEmptyArray<number>,

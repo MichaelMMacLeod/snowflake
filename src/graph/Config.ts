@@ -1,9 +1,10 @@
-import { ConfigParser, ConfigSynchronizer, parseBool, parseConfigAndDisplayErrors, parseFunction0, parseFunction1, parseNat, parseNonnegativeFloat, parsePositiveFloat, parseSnowflakeID, randomSnowflakeIDString } from "./Config";
-import { Either } from "./Either";
-import { scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX } from "./SnowflakeState";
-import { arraysEqual, NonEmptyArray } from "./Utils";
-import * as Maybes from "./Maybe";
-import { GraphState, setAspectRatio, setPercentGrown, setSnowflakeID } from "./SnowflakeGraphState";
+import {
+    ConfigParser, ConfigSynchronizer, parseConfigAndDisplayErrors, parseFunction1,
+    parseNonnegativeFloat, parsePositiveFloat, parseSnowflakeID, randomSnowflakeIDString
+} from "../common/Config";
+import { arraysEqual, NonEmptyArray } from "../common/Utils";
+import * as Maybes from "../common/Maybe";
+import { GraphState, setAspectRatio, setPercentGrown, setSnowflakeID } from "./State";
 
 export type UnparsedConfig = {
     percentGrown: number,

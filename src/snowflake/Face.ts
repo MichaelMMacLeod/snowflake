@@ -1,11 +1,11 @@
-import * as Points from "./Point";
-import { midpointTN, Point } from "./Point";
+import * as Points from "../common/Point";
+import { midpointTN, Point } from "../common/Point";
 import { Direction } from "./Direction";
 import * as Directions from "./Direction";
 import { Graphic } from "./Graphic";
 import { outsideVisibleArea, viewspaceX, viewspaceY } from "./CoordinateSystem";
-import { faceSizeGrowthScalar } from "./Constants";
-import { Array6, makeArray6, rem } from "./Utils";
+import { faceSizeGrowthScalar } from "../common/Constants";
+import { Array6, makeArray6, rem } from "../common/Utils";
 
 export type Face = {
     center: Point,

@@ -1,8 +1,8 @@
-import { ConfigParser, ConfigSynchronizer, parseBool, parseConfigAndDisplayErrors, parseFunction0, parseFunction1, parseNat, parseSnowflakeID, randomSnowflakeIDString } from "./Config";
-import { Either } from "./Either";
-import { scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX, State } from "./SnowflakeState";
-import { NonEmptyArray } from "./Utils";
-import * as Maybes from "./Maybe";
+import { ConfigParser, ConfigSynchronizer, parseBool, parseConfigAndDisplayErrors, parseFunction0, parseFunction1, parseNat, parseSnowflakeID, randomSnowflakeIDString } from "../common/Config";
+import { Either } from "../common/Either";
+import { scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX, State } from "./State";
+import { NonEmptyArray } from "../common/Utils";
+import * as Maybes from "../common/Maybe";
 
 export type UnparsedConfig = {
     snowflakeID: string,

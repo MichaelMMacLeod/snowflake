@@ -1,12 +1,12 @@
-import * as Points from "./Point";
-import { midpointTN, Point } from "./Point";
+import * as Points from "../common/Point";
+import { midpointTN, Point } from "../common/Point";
 import { Direction } from "./Direction";
 import * as Directions from "./Direction";
 import { Graphic } from "./Graphic";
 import { outsideVisibleArea, viewspaceX, viewspaceY, worldToViewTransform } from "./CoordinateSystem";
 import * as Faces from "./Face";
-import { branchLengthGrowthScalar, branchSizeGrowthScalar } from "./Constants";
-import { rem } from "./Utils";
+import { branchLengthGrowthScalar, branchSizeGrowthScalar } from "../common/Constants";
+import { rem } from "../common/Utils";
 
 export type Branch = {
     start: Point,

@@ -1,7 +1,7 @@
 import { Face } from "./Face";
-import * as Points from "./Point";
+import * as Points from "../common/Point";
 import * as Side2Ds from "./Side2D";
-import { Array6, rem, SideCacheArray } from "./Utils";
+import { Array6, rem, SideCacheArray } from "../common/Utils";
 import * as Directions from "./Direction";
 import { Direction } from "./Direction";
 import { Branch } from "./Branch";
