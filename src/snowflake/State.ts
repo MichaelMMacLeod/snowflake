@@ -4,8 +4,7 @@ import { addBranchesToGrowingFaces, addFacesToGrowingBranches, Snowflake } from 
 import * as Snowflakes from "./Snowflake";
 import * as Branches from "./Branch";
 import * as Faces from "./Face";
-import { fracPart, GrowthType, interpretGrowth, NonEmptyArray } from "../common/Utils";
-import * as Eithers from "../common/Either";
+import { fracPart, GrowthType, interpretGrowth, NonEmptyArray, clamp } from "../common/Utils";
 import { isSome, mapSome, Maybe, none } from "../common/Maybe";
 import * as Maybes from "../common/Maybe";
 
@@ -192,14 +191,15 @@ export function update(state: State): void {
         });
     }
 
-    for (let i = 0; i < requiredUpdates; ++i) {
-        doUpdate();
+    for (let i = 0; i < requiredUpdates && state.updateCount < state.maxUpdates; ++i) {
         state.updateCount += 1;
+        doUpdate();
     }
 
     state.updatedCallback();
 
     if (state.updateCount >= state.maxUpdates) {
+        state.updateCount = state.maxUpdates;
         state.finishedGrowingCallback();
         state.growing = false;
     }
