@@ -4,8 +4,8 @@ const TerserPlugin = require('terser-webpack-plugin');
 module.exports = {
     mode: 'production',
     entry: {
-        snowflake: './src/snowflake/Element.ts',
-        snowflake_graph: './src/graph/Element.ts',
+        sf_snowflake: './src/snowflake/Element.ts',
+        sf_graph: './src/graph/Element.ts',
     },
     module: {
         rules: [

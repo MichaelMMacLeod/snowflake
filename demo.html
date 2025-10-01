@@ -21,46 +21,46 @@
         --SF-color-foreground: #000000;
       }
     }
-
-    /* snowflake-graph-element {
-      margin-left: 10em;
-    } */
   </style>
 </head>
 
 <body>
-  <script src="dist/snowflake.js"></script>
-  <script src="dist/snowflake_graph.js"></script>
+  <script src="dist/sf_snowflake.js"></script>
+  <script src="dist/sf_graph.js"></script>
   <script>
-    customElements.define('snowflake-element', snowflake.default);
-    customElements.define('snowflake-graph-element', snowflake_graph.default);
-    window.snowflake = document.createElement('snowflake-element');
-    window.graph = document.createElement('snowflake-graph-element');
+    customElements.define('sf-snowflake', sf_snowflake.default);
+    customElements.define('sf-graph', sf_graph.default);
+    let snowflake = document.createElement('sf-snowflake');
+    let graph = document.createElement('sf-graph');
     document.body.appendChild(graph);
     document.body.appendChild(snowflake);
-    const snowflakeID = '17827239998';
-    window.graphConfig = {
-      snowflakeID,
+    const defaultSnowflakeID = '17827239998';
+    let config = {
+      graph: {},
+      snowflake: {},
+    };
+    config.graph = {
+      snowflakeID: defaultSnowflakeID,
       aspectRatio: 3,
       percentGrown: 0,
       handleMovedCallback: snowflakeID => {
-        config.snowflakeID = snowflakeID;
-        snowflake.configure(config);
+        config.snowflake.snowflakeID = snowflakeID;
+        snowflake.configure(config.snowflake);
       },
     };
-    window.config = {
-      snowflakeID,
+    config.snowflake = {
+      snowflakeID: defaultSnowflakeID,
       upsCap: 100000,
       targetGrowthTimeMS: 0,
       finishedGrowingCallback: () => console.log('done growing'),
       updatedCallback: () => {
-        graphConfig.snowflakeID = config.snowflakeID;
-        graphConfig.percentGrown = snowflake.percentGrown();
-        graph.configure(graphConfig);
+        config.graph.snowflakeID = config.snowflake.snowflakeID;
+        config.graph.percentGrown = snowflake.percentGrown();
+        graph.configure(config.graph);
       },
     };
-    graph.configure(graphConfig);
-    snowflake.configure(config);
+    graph.configure(config.graph);
+    snowflake.configure(config.snowflake);
   </script>
 </body>
 
