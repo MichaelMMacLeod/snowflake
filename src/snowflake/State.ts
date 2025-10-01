@@ -43,6 +43,7 @@ export type State = {
 
     playing: boolean,
     finishedGrowingCallback: () => void,
+    needsReset: boolean,
     resetCallback: () => void,
     installSnowflakeCanvasCallback: (canvas: HTMLCanvasElement) => void,
     installSnowflakeCanvasFailureCallback: () => void,
@@ -53,15 +54,7 @@ export type State = {
 };
 
 export function reset(state: State): void {
-    Snowflakes.zeroM(state.snowflake);
-    state.currentGrowthType = undefined;
-    state.growing = true;
-    state.updateBank = 0;
-    state.updateCount = 0;
-    state.currentMS = performance.now();
-    state.resetStartTime = performance.now();
-    mapSome(state.graphic, g => Graphics.clear(g));
-    state.resetCallback();
+    state.needsReset = true;
     scheduleUpdate(state);
 }
 
@@ -86,7 +79,7 @@ export function initializeGraphic(state: State, snowflakeCanvasSizePX: number): 
 export function scheduleUpdate(state: State): void {
     if (state.hasScheduledUpdate) {
         return;
-    } else if (state.growing && state.playing) {
+    } else if (state.growing && state.playing || state.needsReset) {
         state.hasScheduledUpdate = true;
         setTimeout(state.updateOnNextFrame, state.idealMSBetweenUpdates);
     } else {
@@ -118,6 +111,7 @@ export function zero(): State {
         resetStartTime: performance.now(),
         playing: false,
         finishedGrowingCallback: () => { return; },
+        needsReset: false,
         resetCallback: () => { return; },
         installSnowflakeCanvasCallback: _ => { return; },
         installSnowflakeCanvasFailureCallback: () => { return; },
@@ -141,6 +135,19 @@ export function percentGrown(state: State): number {
 }
 
 export function update(state: State): void {
+    if (state.needsReset) {
+        state.needsReset = false;
+        Snowflakes.zeroM(state.snowflake);
+        state.currentGrowthType = undefined;
+        state.growing = true;
+        state.updateBank = 0;
+        state.updateCount = 0;
+        mapSome(state.graphic, g => Graphics.clear(g));
+        state.currentMS = performance.now();
+        state.resetStartTime = performance.now();
+        state.resetCallback();
+    }
+
     const snowflake = state.snowflake;
 
     const lastMS = state.currentMS;
@@ -198,7 +205,9 @@ export function update(state: State): void {
 
     state.updatedCallback();
 
+    console.log('updated');
     if (state.updateCount >= state.maxUpdates) {
+        console.log('done');
         state.updateCount = state.maxUpdates;
         state.finishedGrowingCallback();
         state.growing = false;

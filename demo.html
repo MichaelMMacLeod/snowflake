@@ -83,21 +83,22 @@
         configureSnowflake();
       },
     };
+    function syncGraphToSnowflake() {
+      config.graph.snowflakeID = config.snowflake.snowflakeID;
+        config.graph.percentGrown = snowflake.percentGrown();
+        configureGraph();
+    }
     config.snowflake = {
       playing: true,
       snowflakeID: defaultSnowflakeID,
       upsCap: 1000000000,
       targetGrowthTimeMS: 1250,
-      finishedGrowingCallback: () => console.log('done growing'),
+      finishedGrowingCallback: () => {},
       updatedCallback: () => {
-        config.graph.snowflakeID = config.snowflake.snowflakeID;
-        config.graph.percentGrown = snowflake.percentGrown();
-        configureGraph();
+        syncGraphToSnowflake();
       },
       resetCallback: () => {
-        config.graph.snowflakeID = config.snowflake.snowflakeID;
-        config.graph.percentGrown = snowflake.percentGrown();
-        configureGraph();
+        syncGraphToSnowflake();
       }
     };
     configureGraph();
