@@ -67,13 +67,22 @@
     const graph = document.createElement('sf-graph');
     document.getElementById('graphContainer').appendChild(graph);
     document.body.appendChild(snowflake);
-    const defaultSnowflakeID = '17827239998';
     const config = {
       graph: {},
       snowflake: {},
     };
     function configureGraph() { graph.configure(config.graph); }
     function configureSnowflake() { snowflake.configure(config.snowflake); }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const defaultSnowflakeID = (() => {
+      const result = urlParams.get('id');
+      if (result === null || !snowflake.isValidSnowflakeId(result)) {
+        return '17827239998'
+      }
+      return result;
+    })();
+
     config.graph = {
       snowflakeID: defaultSnowflakeID,
       aspectRatio: 3,
@@ -81,19 +90,22 @@
       handleMovedCallback: snowflakeID => {
         config.snowflake.snowflakeID = snowflakeID;
         configureSnowflake();
+        urlParams.set('id', snowflakeID);
+        window.history.replaceState({}, '', '?' + urlParams.toString())
       },
     };
+
     function syncGraphToSnowflake() {
       config.graph.snowflakeID = config.snowflake.snowflakeID;
-        config.graph.percentGrown = snowflake.percentGrown();
-        configureGraph();
+      config.graph.percentGrown = snowflake.percentGrown();
+      configureGraph();
     }
     config.snowflake = {
       playing: true,
       snowflakeID: defaultSnowflakeID,
       upsCap: 1000000000,
       targetGrowthTimeMS: 1250,
-      finishedGrowingCallback: () => {},
+      finishedGrowingCallback: () => { },
       updatedCallback: () => {
         syncGraphToSnowflake();
       },

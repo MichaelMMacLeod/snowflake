@@ -205,9 +205,7 @@ export function update(state: State): void {
 
     state.updatedCallback();
 
-    console.log('updated');
     if (state.updateCount >= state.maxUpdates) {
-        console.log('done');
         state.updateCount = state.maxUpdates;
         state.finishedGrowingCallback();
         state.growing = false;

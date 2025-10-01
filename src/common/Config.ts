@@ -43,8 +43,8 @@ export function parseSnowflakeID(value: any): Either<string, NonEmptyArray<numbe
         const parsedDigit = digit - 1;
         result.push(parsedDigit);
     }
-    if (result.length === 0) {
-        return left('integer or string containing at least one nonzero digit');
+    if (result.length < 2) {
+        return left('integer or string containing at least two nonzero digits');
     }
     return right(result as NonEmptyArray<number>);
 }

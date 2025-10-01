@@ -1,7 +1,8 @@
-import { parseConfigAndDisplayErrors, randomSnowflakeIDString, sync } from "../common/Config";
+import { parseConfigAndDisplayErrors, parseSnowflakeID, randomSnowflakeIDString, sync } from "../common/Config";
 import { none, some } from "../common/Maybe";
 import * as Maybes from "../common/Maybe";
 import { initializeGraphic, State } from "./State";
+import * as Eithers from "../common/Either";
 import * as States from "./State";
 import { Config, configParser, configSynchronizer, UnparsedConfig } from "./Config";
 import * as Configs from "./Config";
@@ -48,6 +49,14 @@ export default class SnowflakeElement extends HTMLElement {
 
     reset(): void {
         States.reset(this.#state);
+    }
+
+    isValidSnowflakeId(id: string): boolean {
+        return Eithers.map(
+            parseSnowflakeID(id),
+            () => false,
+            () => true
+        );
     }
 
     randomSnowflakeId(): string {
