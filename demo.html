@@ -51,7 +51,7 @@
     window.config = {
       snowflakeID,
       upsCap: 100000,
-      targetGrowthTimeMS: 1000,
+      targetGrowthTimeMS: 0,
       finishedGrowingCallback: () => console.log('done growing'),
       updatedCallback: () => {
         graphConfig.snowflakeID = config.snowflakeID;

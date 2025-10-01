@@ -370,6 +370,10 @@ export function zero(): SnowflakeGraph {
     function updateHandlePosition(h: number, ev: MouseEvent) {
         const p = { x: ev.clientX, y: ev.clientY };
         const yChoice = closestYChoice(result, p);
+        let oldYChoice = result.snowflakeID[h];
+        if (oldYChoice === yChoice) {
+            return;
+        }
         result.snowflakeID[h] = yChoice;
         syncToSnowflakeID(result);
         result.handleMovedCallback(snowflakeIDString(result.snowflakeID));
