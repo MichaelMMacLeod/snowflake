@@ -291,7 +291,7 @@ export function syncToPercentGrown(g: SnowflakeGraph, percentGrown: number): voi
 }
 
 function graphHandleCenter(g: SVGElement): Point {
-    const r = g.getBoundingClientRect();
+    const r = (g as SVGGraphicsElement).getBBox();
     return {
         x: r.x + r.width * 0.5,
         y: r.y + r.height * 0.5,
@@ -299,12 +299,11 @@ function graphHandleCenter(g: SVGElement): Point {
 }
 
 function distanceToGraphHandle(g: SVGElement, p: Point): number {
-    // return distance(graphHandleCenter(g), p);
     return Math.abs(graphHandleCenter(g).x - p.x);
 }
 
 function closestGraphHandle(g: SnowflakeGraph, ev: MouseEvent): number {
-    const p = { x: ev.offsetX, y: ev.offsetY }
+    const p = viewportToSvgPoint(g, { x: ev.clientX, y: ev.clientY });
     let closest = 0;
     let closestDistance = Infinity;
     g.handles.forEach((h, i) => {
