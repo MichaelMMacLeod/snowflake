@@ -2,6 +2,7 @@ import { snowflakeIDString } from "../common/Config";
 import { yChoices } from "../common/Constants";
 import { clamp, NonEmptyArray } from "../common/Utils";
 import { mapSome, Maybe, none, some } from "../common/Maybe";
+import * as Maybes from "../common/Maybe";
 import { Point } from "../common/Point";
 
 type Attributes = { [key: string]: string };
@@ -84,7 +85,7 @@ function makeConstants(SIZE_SCALAR: number, ASPECT_RATIO: number): Constants {
       transform-origin: center;
     }
     
-    .sf-graph-handle-outside:hover {
+    .sf-graph-handle-outside-hover {
       scale: ${HANDLE_OUTER_HOVER_SCALE};
     }
     
@@ -243,6 +244,7 @@ export type SnowflakeGraph = {
     facetingBranchingLine: SVGElement,
     progress: SVGElement,
     handleBeingDragged: Maybe<number>,
+    hoveredHandle: Maybe<number>,
     handleMovedCallback: (snowflakeID: string) => void,
 };
 
@@ -338,13 +340,22 @@ function syncToConstants(g: SnowflakeGraph, cs: Constants) {
     g.constants = cs;
     g.style.textContent = cs.ROOT_STYLE;
     setSVGAttributes(g.root, cs.ROOT_ATTRS);
+    setSVGAttributes(g.facetingBranchingLine, cs.FACETING_BRANCHING_LINE_ATTRS);
     syncToSnowflakeID(g);
+}
+
+function mouseEventIsInsideElement(ev: MouseEvent, e: Element): boolean {
+    const r = e.getBoundingClientRect();
+    const x = ev.clientX;
+    const y = ev.clientY;
+    return x >= r.left && x <= r.right
+        && y >= r.top && y <= r.bottom;
 }
 
 export function zero(): SnowflakeGraph {
     const root = document.createElementNS(SVG_NS, 'svg');
     const constants = makeConstants(0.5, 3);
-    
+
     root.replaceChildren(); // remove all of root's children.
     const style = document.createElement('style');
     style.textContent = constants.ROOT_STYLE;
@@ -362,6 +373,7 @@ export function zero(): SnowflakeGraph {
         handleLine: createHandleLine(constants, g),
         progress: createProgress(constants, g),
         handleBeingDragged: none(),
+        hoveredHandle: none(),
         handleMovedCallback: (snowflakeID: string) => { return; },
     };
     function updateHandlePosition(h: number, ev: MouseEvent) {
@@ -384,9 +396,43 @@ export function zero(): SnowflakeGraph {
         result.handleBeingDragged = none();
     }
     function handleMouseMove(ev: MouseEvent): void {
-        mapSome(result.handleBeingDragged, h => {
-            updateHandlePosition(h, ev);
-        });
+        const hoverClass = 'sf-graph-handle-outside-hover';
+        function removeHoverClass(handleIdx: number): void {
+            result.handles[handleIdx].outside.classList.remove(hoverClass);
+        }
+        function addHoverClass(handleIdx: number): void {
+            result.handles[handleIdx].outside.classList.add(hoverClass);
+        }
+        Maybes.map(
+            result.handleBeingDragged,
+            () => {
+                if (mouseEventIsInsideElement(ev, result.g)) {
+                    const handleIdx = closestGraphHandle(result, ev);
+                    Maybes.map(
+                        result.hoveredHandle,
+                        () => {
+                            result.hoveredHandle = some(handleIdx)
+                        },
+                        h => {
+                            if (h !== handleIdx) {
+                                removeHoverClass(h);
+                                result.hoveredHandle = some(handleIdx);
+                            }
+                        }
+                    );
+                    addHoverClass(handleIdx);
+                } else {
+                    Maybes.mapSome(
+                        result.hoveredHandle,
+                        h => {
+                            removeHoverClass(h);
+                            result.hoveredHandle = none();
+                        }
+                    );
+                }
+            },
+            h => updateHandlePosition(h, ev)
+        );
     }
     root.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mouseup', handleMouseUp);
