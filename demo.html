@@ -9,8 +9,22 @@
       --SF-color-foreground: #ffffff;
     }
 
+    @media (prefers-color-scheme: light) {
+      :root {
+        --SF-color-background: #ffffff;
+        --SF-color-foreground: #111111;
+      }
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --SF-color-background: #111111;
+        --SF-color-foreground: #ffffff;
+      }
+    }
+
     html {
-      color-scheme: dark;
+      color-scheme: light dark;
       font-family: 'Notto Sans', sans-serif;
     }
 
@@ -70,6 +84,11 @@
     <div id="snowflakeContainer"></div>
   </div>
   <script>
+    const darkModeQueryList = window.matchMedia('(prefers-color-scheme: dark)');
+    darkModeQueryList.addEventListener('change', e => {
+      console.log('toggled');
+    });
+
     customElements.define('sf-snowflake', sf_snowflake.default);
     customElements.define('sf-graph', sf_graph.default);
     const snowflake = document.createElement('sf-snowflake');

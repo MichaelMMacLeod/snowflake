@@ -32,32 +32,12 @@ export function mapArray6<T, U>(array: Array6<T>, callbackfn: (value: T, index: 
 
 export type NonEmptyArray<T> = { 0: T } & Array<T>;
 
-export type RGBA = {
-  r: number,
-  g: number,
-  b: number,
-  a: number,
-};
-
-export function convertRGBAToString(rgba: RGBA): string {
-  const { r, g, b, a } = rgba;
-  return `rgba(${r}, ${g}, ${b}, ${a})`;
-}
-
 export function randomIntInclusive(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
 export type SideCacheArray = Float64Array;
 export const sideCacheConstructor: (length: number) => SideCacheArray = length => new Float64Array(length);
-// export type SideCacheArray = Array<number>;
-// export const sideCacheConstructor: (length: number) => SideCacheArray = length => {
-//   let result = [];
-//   for (let i = 0; i < length; ++i) {
-//     result[i] = 0.1*i;
-//   }
-//   return result;
-// };
 
 export type GrowthType = 'branching' | 'faceting';
 export type Growth = { scale: number, growthType: GrowthType };

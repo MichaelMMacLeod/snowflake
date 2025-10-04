@@ -2,9 +2,8 @@ import * as Eithers from "./Either";
 import { Either, left, right } from "./Either";
 import { Maybe, none, some } from "./Maybe";
 import * as Maybes from "./Maybe";
-import { scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX, State } from "../snowflake/State";
-import * as States from "../snowflake/State";
 import { NonEmptyArray, okOrElse, randomIntInclusive } from "./Utils";
+import { RGBA, ColorScheme } from "./Color";
 
 export function isBoolean(value: any): value is boolean {
     return typeof value === 'boolean';
@@ -12,6 +11,10 @@ export function isBoolean(value: any): value is boolean {
 
 export function isFunction(value: any): boolean {
     return typeof value === 'function';
+}
+
+export function isNumber(value: any): value is number {
+    return typeof value === 'number';
 }
 
 export function isFunctionN(value: any, argCount: number): boolean {
@@ -24,6 +27,87 @@ export function isFunction0(value: any): value is () => any {
 
 export function isFunction1(value: any): value is (a: any) => any {
     return isFunctionN(value, 1);
+}
+
+export function parseRGBComponent(value: any): Either<string, number> {
+    if (Number.isInteger(value) && value >= 0 && value <= 255) {
+        return right(value);
+    }
+    return left('an integer in the range [0, 255]');
+}
+
+export function parseAlphaComponent(value: any): Either<string, number> {
+    if (isNumber(value) && value >= 0 && value <= 1) {
+        return right(value);
+    }
+    return left('a float in the range [0, 1]')
+}
+
+export function parseRGBA(value: any): Either<string, RGBA> {
+    const resultTemplate: { [key: string]: Either<string, number> } = {
+        r: left("object containing the key 'r'"),
+        g: left("object containing the key 'g'"),
+        b: left("object containing the key 'b'"),
+        a: left("object containing the key 'a'"),
+    };
+    for (const [k, v] of Object.entries(value)) {
+        const resultValue = resultTemplate[k];
+        if (resultValue === undefined) {
+            return left(`object not containing the key '${k}'`);
+        }
+        const c = (() => {
+            if (k === 'a') {
+                return parseAlphaComponent(v);
+            }
+            return parseRGBComponent(v);
+        })();
+        const maybeError = Eithers.map(
+            c,
+            e => some(`object with the key '${k}' holding ${e}`),
+            v => {
+                (resultTemplate as any)[k] = right(v);
+                return none();
+            }
+        );
+        if (Maybes.isSome(maybeError)) {
+            return left(Maybes.unwrapOr(maybeError, () => 'unreachable'));
+        }
+    }
+    return Eithers.chain(resultTemplate.r, r =>
+        Eithers.chain(resultTemplate.g, g =>
+            Eithers.chain(resultTemplate.b, b =>
+                Eithers.chain(resultTemplate.a, a => right({ r, g, b, a }))
+            )
+        )
+    );
+}
+
+export function parseColorScheme(value: any): Either<string, ColorScheme> {
+    const resultTemplate: { [key: string]: Either<string, RGBA> } = {
+        background: left("object containing the key 'background'"),
+        foreground: left("object containing the key 'foreground'"),
+    };
+    for (const [k, v] of Object.entries(value)) {
+        const resultValue = resultTemplate[k];
+        if (resultValue === undefined) {
+            return left(`object not containing the key '${k}'`);
+        }
+        const c = parseRGBA(v);
+        const maybeError = Eithers.map(
+            c,
+            e => some(`object with the key '${k}' holding ${e}`),
+            v => {
+                (resultTemplate as any)[k] = right(v);
+                return none();
+            }
+        );
+        if (Maybes.isSome(maybeError)) {
+            return left(Maybes.unwrapOr(maybeError, () => 'unreachable'));
+        }
+    }
+    return Eithers.chain(resultTemplate.background, background =>
+        Eithers.chain(resultTemplate.foreground, foreground => right({ background, foreground }))
+    );
 }
 
 export function parseSnowflakeID(value: any): Either<string, NonEmptyArray<number>> {
@@ -79,8 +163,42 @@ export function parsePositiveFloat(value: any): Either<string, number> {
     return right(value);
 }
 
+export function maybemap2<T, U>(
+    m: Maybe<T>,
+    onNone: () => U,
+    onSome: (value: T) => U
+): U {
+    switch (m.v) {
+        case 0:
+            return onNone();
+        case 1:
+            return onSome(m.d);
+    }
+}
+
+export function okOrElse2<T, E>(m: Maybe<T>, onNone: () => E): Either<E, T> {
+    return maybemap2(
+        m,
+        () => left(onNone()),
+        v => right(v),
+    );
+}
+
+// export function none2<T>(): Maybe<T> {
+//     return { v: 0 };
+// }
+
+export function then2<T>(b: boolean, onTrue: () => T): Maybe<T> {
+    if (b) {
+        return { v: 1, d: onTrue() };
+    }
+    // return { v: 0 };
+    return none();
+}
+
 function makeParser<T>(predicate: (value: any) => value is T, expected: string): (value: any) => Either<string, T> {
-    return v => okOrElse(Maybes.then(predicate(v), () => v), () => expected)
+    // return v => okOrElse(Maybes.then(predicate(v), () => v), () => expected);
+    return v => okOrElse2(then2(predicate(v), () => v), () => expected);
 }
 
 export const parseBool = makeParser(isBoolean, 'boolean');

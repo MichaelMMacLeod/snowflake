@@ -7,6 +7,7 @@ import * as Faces from "./Face";
 import { fracPart, GrowthType, interpretGrowth, NonEmptyArray, clamp } from "../common/Utils";
 import { isSome, mapSome, Maybe, none } from "../common/Maybe";
 import * as Maybes from "../common/Maybe";
+import { ColorSchemes } from "../common/Color";
 
 export type State = {
     growthInput: NonEmptyArray<number>,
@@ -16,6 +17,8 @@ export type State = {
     idealMSBetweenUpdates: number,
     growing: boolean,
     hasScheduledUpdate: boolean,
+
+    // colorSchemes: ColorSchemes,
 
     // Running total number of updates since last reset.
     updateCount: number,

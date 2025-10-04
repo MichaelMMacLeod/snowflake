@@ -41,12 +41,12 @@ export function mapSome<T, U>(
     }
 }
 
-export function then<T>(b: boolean, onTrue: () => T): Maybe<T> {
-    if (b) {
-        return some(onTrue());
-    }
-    return none();
-}
+// export function then<T>(b: boolean, onTrue: () => T): Maybe<T> {
+//     if (b) {
+//         return some(onTrue());
+//     }
+//     return none();
+// }
 
 export function unwrapOr<T>(m: Maybe<T>, onNone: () => T): T {
     return map(m, onNone, v => v);
