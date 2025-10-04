@@ -76,7 +76,7 @@
           Reset
         </button>
         <div id="speedContainer">
-          <input id="speed" type="range" name="speed" min="0" max="4" value="2" step="1" list="markers" />
+          <input id="speed" type="range" name="speed" min="0" max="4" value="1" step="1" />
           <label id="speedLabel" for="speed">Speed</label>
         </div>
       </div>
@@ -126,11 +126,13 @@
 
     const darkModeQueryList = window.matchMedia('(prefers-color-scheme: dark)');
 
+    const defaultTargetGrowthTimeMS = 10000;
+
     config.snowflake = {
       playing: true,
       snowflakeID: defaultSnowflakeID,
       upsCap: 1000000000,
-      targetGrowthTimeMS: 1250,
+      targetGrowthTimeMS: defaultTargetGrowthTimeMS,
       isLightTheme: !darkModeQueryList.matches,
       finishedGrowingCallback: () => { },
       updatedCallback: () => {
@@ -149,10 +151,10 @@
       value = Math.round(value);
       value = (() => {
         switch (value) {
-          case 0: return 10000;
-          case 1: return 5000;
-          case 2: return 1250;
-          case 3: return 156;
+          case 0: return 20000;
+          case 1: return defaultTargetGrowthTimeMS;
+          case 2: return 2500;
+          case 3: return 313;
           case 4: return 0;
           default: return 0;
         }
