@@ -4,10 +4,12 @@ import { addBranchesToGrowingFaces, addFacesToGrowingBranches, Snowflake } from 
 import * as Snowflakes from "./Snowflake";
 import * as Branches from "./Branch";
 import * as Faces from "./Face";
-import { fracPart, GrowthType, interpretGrowth, NonEmptyArray, clamp } from "../common/Utils";
+import { fracPart, GrowthType, interpretGrowth, NonEmptyArray } from "../common/Utils";
 import { isSome, mapSome, Maybe, none } from "../common/Maybe";
 import * as Maybes from "../common/Maybe";
-import { ColorSchemes } from "../common/Color";
+import * as RGBA from "../common/color/Color";
+import * as ColorThemes from "../common/color/Theme";
+import { ColorTheme } from "../common/color/Theme";
 
 export type State = {
     growthInput: NonEmptyArray<number>,
@@ -18,7 +20,8 @@ export type State = {
     growing: boolean,
     hasScheduledUpdate: boolean,
 
-    // colorSchemes: ColorSchemes,
+    colorTheme: ColorTheme,
+    isLightTheme: boolean,
 
     // Running total number of updates since last reset.
     updateCount: number,
@@ -55,6 +58,13 @@ export type State = {
     updateOnNextFrame: () => void,
     doUpdate: () => void,
 };
+
+function currentThemeForegroundRGBAString(state: State): string {
+    if (state.isLightTheme) {
+        return RGBA.toString(state.colorTheme.light.foreground);
+    }
+    return RGBA.toString(state.colorTheme.dark.foreground);
+}
 
 export function reset(state: State): void {
     state.needsReset = true;
@@ -119,6 +129,8 @@ export function zero(): State {
         installSnowflakeCanvasCallback: _ => { return; },
         installSnowflakeCanvasFailureCallback: () => { return; },
         hasScheduledUpdate: false,
+        colorTheme: ColorThemes.zero(),
+        isLightTheme: true,
         updatedCallback: () => { return; },
         updateOnNextFrame: () => { requestAnimationFrame(result.doUpdate); },
         doUpdate: () => {
@@ -188,7 +200,8 @@ export function update(state: State): void {
         }
 
         mapSome(state.graphic, g => {
-            if (Snowflakes.draw(g, snowflake)) {
+            const foregroundColor = currentThemeForegroundRGBAString(state);
+            if (Snowflakes.draw(g, snowflake, foregroundColor)) {
                 state.updateCount = state.maxUpdates;
                 state.updateBank = 0;
                 let v = window as any;

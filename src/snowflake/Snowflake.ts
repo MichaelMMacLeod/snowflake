@@ -244,9 +244,9 @@ export function forEachGrowingBranch(snowflake: Snowflake, f: (branch: Branch, i
   }
 }
 
-export function draw(graphic: Graphic, snowflake: Snowflake): boolean {
+export function draw(graphic: Graphic, snowflake: Snowflake, foregroundColor: string): boolean {
   let anyPartOutside = false;
-  graphic.ctx.strokeStyle = `rgba(255, 255, 255, 0.08)`;
+  graphic.ctx.strokeStyle = foregroundColor;
   graphic.ctx.beginPath();
   forEachGrowingFace(snowflake, (f, _) => anyPartOutside ||= Faces.draw(graphic, f));
   forEachGrowingBranch(snowflake, (b, _) => anyPartOutside ||= Branches.draw(graphic, b));

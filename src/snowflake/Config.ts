@@ -1,8 +1,9 @@
-import { ConfigParser, ConfigSynchronizer, parseBool, parseConfigAndDisplayErrors, parseFunction0, parseFunction1, parseNat, parseSnowflakeID, randomSnowflakeIDString } from "../common/Config";
-import { Either } from "../common/Either";
+import { ConfigParser, ConfigSynchronizer, parseBool, parseColorTheme, parseConfigAndDisplayErrors, parseFunction0, parseFunction1, parseNat, parseSnowflakeID, randomSnowflakeIDString } from "../common/Config";
 import { scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX, State } from "./State";
 import { arraysEqual, NonEmptyArray } from "../common/Utils";
 import * as Maybes from "../common/Maybe";
+import * as ColorThemes from "../common/color/Theme";
+import { ColorTheme } from "../common/color/Theme";
 
 export type UnparsedConfig = {
     snowflakeID: string,
@@ -11,6 +12,8 @@ export type UnparsedConfig = {
     upsCap: number,
     maxUpdates: number,
     playing: boolean,
+    colorTheme: ColorTheme,
+    isLightTheme: boolean,
     finishedGrowingCallback: () => void,
     resetCallback: () => void,
     installSnowflakeCanvasCallback: (canvas: HTMLCanvasElement) => void,
@@ -25,6 +28,8 @@ export type Config = {
     upsCap: number,
     maxUpdates: number,
     playing: boolean,
+    colorTheme: ColorTheme,
+    isLightTheme: boolean,
     finishedGrowingCallback: () => void,
     resetCallback: () => void,
     installSnowflakeCanvasCallback: (canvas: HTMLCanvasElement) => void,
@@ -39,6 +44,8 @@ export const configParser: ConfigParser<UnparsedConfig, Config> = {
     upsCap: parseNat,
     maxUpdates: parseNat,
     playing: parseBool,
+    colorTheme: parseColorTheme,
+    isLightTheme: parseBool,
     finishedGrowingCallback: parseFunction0,
     resetCallback: parseFunction0,
     installSnowflakeCanvasCallback: parseFunction1,
@@ -56,6 +63,8 @@ export function zero(): Config {
             upsCap: 60,
             maxUpdates: 500,
             playing: true,
+            colorTheme: ColorThemes.zero(),
+            isLightTheme: true,
             finishedGrowingCallback: () => { return; },
             resetCallback: () => { return; },
             installSnowflakeCanvasCallback: (canvas: HTMLCanvasElement) => document.body.appendChild(canvas),
@@ -122,6 +131,38 @@ export const configSynchronizer: ConfigSynchronizer<State, Config> = {
             scheduleUpdate(s);
         }
         return false;
+    },
+    colorTheme: (_c, s, newValue, oldValue) => {
+        return Maybes.map(
+            oldValue,
+            () => {
+                s.colorTheme = newValue;
+                return true;
+            },
+            oldValue => {
+                if (ColorThemes.equals(newValue, oldValue)) {
+                    return false;
+                }
+                s.colorTheme = newValue;
+                return true;
+            }
+        );
+    },
+    isLightTheme: (_c, s, newValue, oldValue) => {
+        return Maybes.map(
+            oldValue,
+            () => {
+                s.isLightTheme = newValue;
+                return true;
+            },
+            oldValue => {
+                if (newValue === oldValue) {
+                    return false;
+                }
+                s.isLightTheme = newValue;
+                return true;
+            }
+        )
     },
     finishedGrowingCallback: (_c, s, newValue, _oldValue) => {
         s.finishedGrowingCallback = newValue;

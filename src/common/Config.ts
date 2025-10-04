@@ -1,9 +1,11 @@
+import { RGBA } from "./color/Color";
+import { ColorScheme } from "./color/Scheme";
+import { ColorTheme } from "./color/Theme";
 import * as Eithers from "./Either";
 import { Either, left, right } from "./Either";
 import { Maybe, none, some } from "./Maybe";
 import * as Maybes from "./Maybe";
 import { NonEmptyArray, okOrElse, randomIntInclusive } from "./Utils";
-import { RGBA, ColorScheme } from "./Color";
 
 export function isBoolean(value: any): value is boolean {
     return typeof value === 'boolean';
@@ -43,72 +45,59 @@ export function parseAlphaComponent(value: any): Either<string, number> {
     return left('a float in the range [0, 1]')
 }
 
-export function parseRGBA(value: any): Either<string, RGBA> {
-    const resultTemplate: { [key: string]: Either<string, number> } = {
-        r: left("object containing the key 'r'"),
-        g: left("object containing the key 'g'"),
-        b: left("object containing the key 'b'"),
-        a: left("object containing the key 'a'"),
+type Parser<T> = (value: any) => Either<string, T>
+
+type ObjectTemplate<R> = { [K in keyof R]: Parser<R[K]> }
+
+function makeObjectParser<R>(template: ObjectTemplate<R>): (value: any) => Either<string, R> {
+    return value => {
+        const result = {};
+        for (const [k, _] of Object.entries(template)) {
+            if (value[k] === undefined) {
+                return left(`'object containing key '${k}'`)
+            }
+        }
+        for (const [k, v] of Object.entries(value)) {
+            const valueParser = (template as any)[k];
+            if (valueParser === undefined) {
+                return left(`object not containing key '${k}'`);
+            }
+            const value = valueParser(v);
+            const maybeError = Eithers.map(
+                value,
+                e => some(`object with key '${k}' holding ${e}`),
+                v => {
+                    (result as any)[k] = v;
+                    return none();
+                }
+            );
+            if (Maybes.isSome(maybeError)) {
+                return left(Maybes.unwrapOr(maybeError, () => 'unreachable'));
+            }
+        }
+        return right(result as any);
     };
-    for (const [k, v] of Object.entries(value)) {
-        const resultValue = resultTemplate[k];
-        if (resultValue === undefined) {
-            return left(`object not containing the key '${k}'`);
-        }
-        const c = (() => {
-            if (k === 'a') {
-                return parseAlphaComponent(v);
-            }
-            return parseRGBComponent(v);
-        })();
-        const maybeError = Eithers.map(
-            c,
-            e => some(`object with the key '${k}' holding ${e}`),
-            v => {
-                (resultTemplate as any)[k] = right(v);
-                return none();
-            }
-        );
-        if (Maybes.isSome(maybeError)) {
-            return left(Maybes.unwrapOr(maybeError, () => 'unreachable'));
-        }
-    }
-    return Eithers.chain(resultTemplate.r, r =>
-        Eithers.chain(resultTemplate.g, g =>
-            Eithers.chain(resultTemplate.b, b =>
-                Eithers.chain(resultTemplate.a, a => right({ r, g, b, a }))
-            )
-        )
-    );
 }
 
-export function parseColorScheme(value: any): Either<string, ColorScheme> {
-    const resultTemplate: { [key: string]: Either<string, RGBA> } = {
-        background: left("object containing the key 'background'"),
-        foreground: left("object containing the key 'foreground'"),
-    };
-    for (const [k, v] of Object.entries(value)) {
-        const resultValue = resultTemplate[k];
-        if (resultValue === undefined) {
-            return left(`object not containing the key '${k}'`);
-        }
-        const c = parseRGBA(v);
-        const maybeError = Eithers.map(
-            c,
-            e => some(`object with the key '${k}' holding ${e}`),
-            v => {
-                (resultTemplate as any)[k] = right(v);
-                return none();
-            }
-        );
-        if (Maybes.isSome(maybeError)) {
-            return left(Maybes.unwrapOr(maybeError, () => 'unreachable'));
-        }
-    }
-    return Eithers.chain(resultTemplate.background, background =>
-        Eithers.chain(resultTemplate.foreground, foreground => right({ background, foreground }))
-    );
-}
+export const parseRGBA: Parser<RGBA> =
+    makeObjectParser({
+        r: parseRGBComponent,
+        g: parseRGBComponent,
+        b: parseRGBComponent,
+        a: parseAlphaComponent,
+    });
+
+export const parseColorScheme: Parser<ColorScheme> =
+    makeObjectParser({
+        background: parseRGBA,
+        foreground: parseRGBA,
+    });
+
+export const parseColorTheme: Parser<ColorTheme> =
+    makeObjectParser({
+        light: parseColorScheme,
+        dark: parseColorScheme,
+    });
 
 export function parseSnowflakeID(value: any): Either<string, NonEmptyArray<number>> {
     if (value.toString === undefined) {

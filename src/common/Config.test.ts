@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
-import { parseColorScheme, parseRGBA } from './Config';
+import { parseColorScheme, parseColorTheme, parseRGBA } from './Config';
 import { left, right } from './Either';
+import { RGBA } from './color/Color';
 
 function parseRGBACorrectTest(color: any): () => void {
     return () => expect(parseRGBA(color)).toStrictEqual(right(color));
@@ -17,9 +18,9 @@ function badColorComponentTest(badComponent: any): () => void {
             (c as any)[k] = badComponent;
             const msg = (() => {
                 if (k === 'a') {
-                    return `object with the key '${k}' holding a float in the range [0, 1]`;
+                    return `object with key '${k}' holding a float in the range [0, 1]`;
                 }
-                return `object with the key '${k}' holding an integer in the range [0, 255]`;
+                return `object with key '${k}' holding an integer in the range [0, 255]`;
             })();
             expect(parseRGBA(c)).toStrictEqual(left(msg));
             (c as any)[k] = 0;
@@ -39,4 +40,23 @@ function parseColorSchemeCorrectTest(scheme: any): () => void {
 test('parseColorScheme correct 1', parseColorSchemeCorrectTest({
     background: { r: 0, g: 0, b: 0, a: 1 },
     foreground: { r: 255, g: 255, b: 255, a: 1 },
+}));
+
+
+function parseColorThemeCorrectTest(scheme: any): () => void {
+    return () => expect(parseColorTheme(scheme)).toStrictEqual(right(scheme));
+}
+
+const black: RGBA = { r: 0, g: 0, b: 0, a: 1};
+const white: RGBA = { r: 255, g: 255, b: 255, a: 1};
+
+test('parseColorTheme correct 1', parseColorThemeCorrectTest({
+    light: {
+        foreground: black,
+        background: white,
+    },
+    dark: {
+        foreground: white,
+        background: black,
+    }
 }));

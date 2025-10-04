@@ -84,11 +84,6 @@
     <div id="snowflakeContainer"></div>
   </div>
   <script>
-    const darkModeQueryList = window.matchMedia('(prefers-color-scheme: dark)');
-    darkModeQueryList.addEventListener('change', e => {
-      console.log('toggled');
-    });
-
     customElements.define('sf-snowflake', sf_snowflake.default);
     customElements.define('sf-graph', sf_graph.default);
     const snowflake = document.createElement('sf-snowflake');
@@ -128,11 +123,15 @@
       config.graph.percentGrown = snowflake.percentGrown();
       configureGraph();
     }
+
+    const darkModeQueryList = window.matchMedia('(prefers-color-scheme: dark)');
+
     config.snowflake = {
       playing: true,
       snowflakeID: defaultSnowflakeID,
       upsCap: 1000000000,
       targetGrowthTimeMS: 1250,
+      isLightTheme: !darkModeQueryList.matches,
       finishedGrowingCallback: () => { },
       updatedCallback: () => {
         syncGraphToSnowflake();
@@ -176,6 +175,11 @@
     const resetButton = document.getElementById('resetButton');
     resetButton.addEventListener('click', _ => {
       snowflake.reset();
+    });
+
+    darkModeQueryList.addEventListener('change', e => {
+      config.snowflake.isLightTheme = !config.snowflake.isLightTheme;
+      configureSnowflake();
     });
   </script>
 </body>
