@@ -66,6 +66,8 @@ function currentThemeForegroundRGBAString(state: State): string {
 
 export function reset(state: State): void {
     state.needsReset = true;
+    state.currentMS = performance.now();
+    state.resetStartTime = performance.now();
     scheduleUpdate(state);
 }
 
