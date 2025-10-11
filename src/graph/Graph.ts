@@ -83,9 +83,21 @@ function makeConstants(SIZE_SCALAR: number, ASPECT_RATIO: number): Constants {
       transition: scale 0.1s;
       transform-origin: center;
     }
+
+    .sf-graph-handle-outside:focus:not(:focus-visisble) {
+      outline: none;
+    }
     
     .sf-graph-handle-outside-hover {
       scale: ${HANDLE_OUTER_HOVER_SCALE};
+    }
+
+    .sf-graph-handle-outside:focus-visible {
+      scale: ${HANDLE_OUTER_HOVER_SCALE};
+    }
+
+    .sf-graph-handle-outside:focus:not(:focus-visible) {
+      outline: none;
     }
     
     .sf-graph-line {
@@ -116,6 +128,7 @@ function makeConstants(SIZE_SCALAR: number, ASPECT_RATIO: number): Constants {
         'stroke-width': `${LINE_WIDTH}`,
         'cx': '0',
         'cy': '0',
+        'tabindex': '0',
     };
 
     const facetingBranchingLineY = `${MARGIN_HEIGHT + GRAPHABLE_VIEWPORT_HEIGHT / 2}`;
