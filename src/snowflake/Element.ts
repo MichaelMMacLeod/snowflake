@@ -23,23 +23,16 @@ export default class SnowflakeElement extends HTMLElement {
     connectedCallback() {
         Maybes.map(
             initializeGraphic(this.#state, this.#config.snowflakeCanvasSizePX),
-            () => { throw new Error("couldn't get canvas 2d context") },
+            () => { throw new Error("couldn't get canvas 2d context"); },
             g => {
                 this.#shadow.appendChild(g.canvas);
             },
-
         );
-        console.log('connectedCallback');
     }
 
-    disconnectedCallback() {
-        console.log('disconnectedCallback');
+    disconnectedCallback() {}
 
-    }
-
-    adoptedCallback() {
-        console.log('adoptedCallback');
-    }
+    adoptedCallback() {}
 
     configure(unparsedConfig: UnparsedConfig): void {
         const config = parseConfigAndDisplayErrors(configParser, unparsedConfig);
@@ -65,5 +58,12 @@ export default class SnowflakeElement extends HTMLElement {
 
     percentGrown(): number {
         return States.percentGrown(this.#state);
+    }
+
+    canvas(): HTMLCanvasElement {
+        return Maybes.unwrapOr(
+            this.#state.graphic,
+            () => { throw new Error('element not yet inserted into document') },
+        ).canvas;
     }
 }

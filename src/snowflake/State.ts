@@ -51,8 +51,6 @@ export type State = {
     finishedGrowingCallback: () => void,
     needsReset: boolean,
     resetCallback: () => void,
-    installSnowflakeCanvasCallback: (canvas: HTMLCanvasElement) => void,
-    installSnowflakeCanvasFailureCallback: () => void,
     updatedCallback: () => void,
 
     updateOnNextFrame: () => void,
@@ -126,8 +124,6 @@ export function zero(): State {
         finishedGrowingCallback: () => { return; },
         needsReset: false,
         resetCallback: () => { return; },
-        installSnowflakeCanvasCallback: _ => { return; },
-        installSnowflakeCanvasFailureCallback: () => { return; },
         hasScheduledUpdate: false,
         colorTheme: ColorThemes.zero(),
         isLightTheme: true,

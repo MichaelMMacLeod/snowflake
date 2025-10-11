@@ -1,4 +1,15 @@
-import { ConfigParser, ConfigSynchronizer, parseBool, parseColorTheme, parseConfigAndDisplayErrors, parseFunction0, parseFunction1, parseNat, parseSnowflakeID, randomSnowflakeIDString } from "../common/Config";
+import {
+    ConfigParser,
+    ConfigSynchronizer,
+    parseBool,
+    parseColorTheme,
+    parseConfigAndDisplayErrors,
+    parseFunction0,
+    parseFunction1,
+    parseNat,
+    parseSnowflakeID,
+    randomSnowflakeIDString
+} from "../common/Config";
 import { scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX, State } from "./State";
 import { arraysEqual, NonEmptyArray } from "../common/Utils";
 import * as Maybes from "../common/Maybe";
@@ -16,8 +27,6 @@ export type UnparsedConfig = {
     isLightTheme: boolean,
     finishedGrowingCallback: () => void,
     resetCallback: () => void,
-    installSnowflakeCanvasCallback: (canvas: HTMLCanvasElement) => void,
-    installSnowflakeCanvasFailureCallback: () => void,
     updatedCallback: () => void,
 };
 
@@ -32,8 +41,6 @@ export type Config = {
     isLightTheme: boolean,
     finishedGrowingCallback: () => void,
     resetCallback: () => void,
-    installSnowflakeCanvasCallback: (canvas: HTMLCanvasElement) => void,
-    installSnowflakeCanvasFailureCallback: () => void,
     updatedCallback: () => void,
 };
 
@@ -48,8 +55,6 @@ export const configParser: ConfigParser<UnparsedConfig, Config> = {
     isLightTheme: parseBool,
     finishedGrowingCallback: parseFunction0,
     resetCallback: parseFunction0,
-    installSnowflakeCanvasCallback: parseFunction1,
-    installSnowflakeCanvasFailureCallback: parseFunction0,
     updatedCallback: parseFunction0,
 }
 
@@ -67,8 +72,6 @@ export function zero(): Config {
             isLightTheme: true,
             finishedGrowingCallback: () => { return; },
             resetCallback: () => { return; },
-            installSnowflakeCanvasCallback: (canvas: HTMLCanvasElement) => document.body.appendChild(canvas),
-            installSnowflakeCanvasFailureCallback: () => { throw new Error('error installing snowflake canvas'); },
             updatedCallback: () => { return; },
         },
     );
@@ -170,14 +173,6 @@ export const configSynchronizer: ConfigSynchronizer<State, Config> = {
     },
     resetCallback: (_c, s, newValue, _oldValue) => {
         s.resetCallback = newValue;
-        return false;
-    },
-    installSnowflakeCanvasCallback: (_c, s, newValue, _oldValue) => {
-        s.installSnowflakeCanvasCallback = newValue;
-        return false;
-    },
-    installSnowflakeCanvasFailureCallback: (_c, s, newValue, _oldValue) => {
-        s.installSnowflakeCanvasFailureCallback = newValue;
         return false;
     },
     updatedCallback: (_c, s, newValue, _oldValue) => {
