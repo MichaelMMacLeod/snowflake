@@ -49,7 +49,6 @@ function makeConstants(SIZE_SCALAR: number, ASPECT_RATIO: number): Constants {
         'viewBox': `0 0 ${VIEWPORT_WIDTH} ${VIEWPORT_HEIGHT}`,
         'xmlns': `${SVG_NS}`,
         'width': '100%',
-        'height': 'auto',
     };
 
     const ROOT_STYLE = `
