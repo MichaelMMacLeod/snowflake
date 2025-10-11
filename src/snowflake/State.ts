@@ -68,7 +68,11 @@ export function reset(state: State): void {
     state.needsReset = true;
     state.currentMS = performance.now();
     state.resetStartTime = performance.now();
-    scheduleUpdate(state);
+    if (state.playing) {
+        scheduleUpdate(state);
+    } else {
+        doReset(state);
+    }
 }
 
 export function setSnowflakeCanvasSizePX(state: State, snowflakeCanvasSizePX: number): boolean {
@@ -147,18 +151,22 @@ export function percentGrown(state: State): number {
     return state.updateCount / state.maxUpdates;
 }
 
+function doReset(state: State): void {
+    state.needsReset = false;
+    Snowflakes.zeroM(state.snowflake);
+    state.currentGrowthType = undefined;
+    state.growing = true;
+    state.updateBank = 0;
+    state.updateCount = 0;
+    mapSome(state.graphic, g => Graphics.clear(g));
+    state.resetCallback();
+}
+
 export function update(state: State): void {
     const snowflake = state.snowflake;
 
     if (state.needsReset) {
-        state.needsReset = false;
-        Snowflakes.zeroM(state.snowflake);
-        state.currentGrowthType = undefined;
-        state.growing = true;
-        state.updateBank = 0;
-        state.updateCount = 0;
-        mapSome(state.graphic, g => Graphics.clear(g));
-        state.resetCallback();
+        doReset(state);
     }
 
     const lastMS = state.currentMS;
