@@ -216,8 +216,22 @@ function setHandleLocation(handle: GraphHandle, x: number, y: number): void {
     setSVGAttributes(handle.outside, attrs);
 }
 
-function addHandle(cs: Constants, g: SVGElement, x: number, y: number): GraphHandle {
+function addHandle(cs: Constants, g: SVGElement, x: number, y: number, sfg: SnowflakeGraph, nthHandle: number): GraphHandle {
     const result = handleZero(cs);
+    result.outside.addEventListener('keydown', e => {
+        switch (e.key) {
+            case 'ArrowUp':
+                moveHandleUpwards(sfg, nthHandle);
+                e.preventDefault();
+                break;
+            case 'ArrowDown':
+                moveHandleDownwards(sfg, nthHandle);
+                e.preventDefault();
+                break;
+            default:
+                break;
+        }
+    });
     setHandleLocation(result, x, y);
     g.appendChild(result.g);
     g.appendChild(result.g);
@@ -274,10 +288,23 @@ function fitProgressToGrowth(cs: Constants, progress: SVGElement, percentGrown: 
     });
 }
 
+function moveHandleUpwards(sfg: SnowflakeGraph, h: number): void {
+    sfg.snowflakeID[h] = Math.max(0, sfg.snowflakeID[h] - 1);
+    sfg.handleMovedCallback(snowflakeIDString(sfg.snowflakeID));
+    syncToSnowflakeID(sfg);
+}
+
+function moveHandleDownwards(sfg: SnowflakeGraph, h: number): void {
+    sfg.snowflakeID[h] = Math.min(8, sfg.snowflakeID[h] + 1);
+    sfg.handleMovedCallback(snowflakeIDString(sfg.snowflakeID));
+    syncToSnowflakeID(sfg);
+}
+
 export function syncToSnowflakeID(g: SnowflakeGraph): void {
     const id = g.snowflakeID;
     while (g.handles.length < id.length) {
-        g.handles.push(addHandle(g.constants, g.g, 0, 0));
+        const nthHandle = g.handles.length;
+        g.handles.push(addHandle(g.constants, g.g, 0, 0, g, nthHandle));
     }
     while (g.handles.length > id.length) {
         const h = g.handles.pop();
@@ -452,8 +479,8 @@ export function zero(): SnowflakeGraph {
     result.root.appendChild(result.g);
     setSVGAttributes(result.root, constants.ROOT_ATTRS);
     result.handles = [
-        addHandle(constants, g, 0, 0),
-        addHandle(constants, g, 0, 0),
+        addHandle(constants, g, 0, 0, result, 0),
+        addHandle(constants, g, 0, 0, result, 1),
     ];
     fitHandleLineToHandles(result.handleLine, result.handles);
     syncToSnowflakeID(result);
