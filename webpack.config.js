@@ -34,7 +34,7 @@ module.exports = {
                         // allocated/deallocated. If we turn this off, no more allocations occur.
                         reduce_funcs: false,
                     },
-                    mangle: false,
+                    mangle: true,
                 },
             }),
         ],
