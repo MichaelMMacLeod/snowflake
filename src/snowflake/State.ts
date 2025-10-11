@@ -146,6 +146,8 @@ export function percentGrown(state: State): number {
 }
 
 export function update(state: State): void {
+    const snowflake = state.snowflake;
+
     if (state.needsReset) {
         state.needsReset = false;
         Snowflakes.zeroM(state.snowflake);
@@ -154,12 +156,8 @@ export function update(state: State): void {
         state.updateBank = 0;
         state.updateCount = 0;
         mapSome(state.graphic, g => Graphics.clear(g));
-        state.currentMS = performance.now();
-        state.resetStartTime = performance.now();
         state.resetCallback();
     }
-
-    const snowflake = state.snowflake;
 
     const lastMS = state.currentMS;
     state.currentMS = performance.now();
@@ -200,19 +198,24 @@ export function update(state: State): void {
             if (Snowflakes.draw(g, snowflake, foregroundColor)) {
                 state.updateCount = state.maxUpdates;
                 state.updateBank = 0;
-                let v = window as any;
-                if (v.count === undefined) {
-                    v.count = 0;
-                }
-                v.count += 1;
-                console.log(`too large count = ${v.count}, ${state.growthInput}`);
             }
         });
     }
 
+    const msPer60FPSFrame = 1000 / 60;
+    const msBudget = msPer60FPSFrame * 0.9; // Allow for 10% free time so we don't skip frames.
+    let currentMS = performance.now();
+    let elapsedMS = 0;
     for (let i = 0; i < requiredUpdates && state.updateCount < state.maxUpdates; ++i) {
         state.updateCount += 1;
         doUpdate();
+        const newMS = performance.now();
+        elapsedMS += newMS - currentMS;
+        currentMS = newMS;
+        if (elapsedMS > msBudget) {
+            state.updateBank += requiredUpdates - i;
+            break;
+        }
     }
 
     state.updatedCallback();
