@@ -54,10 +54,18 @@
       width: 4em;
     }
 
+    .controlCheckbox {
+      margin-left: 1em;
+    }
+
     #snowflakeAndGraphContainer {
       display: flex;
       flex-direction: column;
       align-items: center;
+    }
+
+    #snowflakeContainer {
+      height: calc(800px * sqrt(2));
     }
   </style>
 </head>
@@ -75,6 +83,8 @@
         <button type="button" id="resetButton" class="controlButton">
           Reset
         </button>
+        <input type="checkbox" id="spinCheckbox" name="spin" class="controlCheckbox" checked />
+        <label for="spin">Spin</label>
         <div id="speedContainer">
           <input id="speed" type="range" name="speed" min="0" max="4" value="1" step="1" autocomplete="off" />
           <label id="speedLabel" for="speed">Speed</label>
@@ -96,6 +106,19 @@
     };
     function configureGraph() { graph.configure(config.graph); }
     function configureSnowflake() { snowflake.configure(config.snowflake); }
+
+    snowflake.canvas().style.position = 'relative';
+    snowflake.canvas().style.zIndex = -1;
+    const spinAnimation = snowflake.canvas().animate(
+      [
+        { transform: 'rotate(0deg)' },
+        { transform: 'rotate(360deg)' },
+      ],
+      {
+        duration: 1000 * 20,
+        iterations: Infinity,
+      }
+    );
 
     const urlParams = new URLSearchParams(window.location.search);
     const defaultSnowflakeID = (() => {
@@ -163,13 +186,26 @@
       configureSnowflake();
     });
 
+    const spinCheckbox = document.getElementById('spinCheckbox');
+    spinCheckbox.addEventListener('change', e => {
+      if (e.target.checked && config.snowflake.playing) {
+        spinAnimation.play();
+      } else {
+        spinAnimation.cancel();
+      }
+    });
+
     const togglePlayingButton = document.getElementById('togglePlayingButton');
     togglePlayingButton.addEventListener('click', _ => {
       config.snowflake.playing = !config.snowflake.playing;
       if (config.snowflake.playing) {
         togglePlayingButton.textContent = 'Pause';
+        if (spinCheckbox.checked) {
+          spinAnimation.play();
+        }
       } else {
         togglePlayingButton.textContent = 'Play';
+        spinAnimation.pause();
       }
       configureSnowflake();
     });
