@@ -217,6 +217,24 @@ function setHandleLocation(handle: GraphHandle, x: number, y: number): void {
     setSVGAttributes(handle.outside, attrs);
 }
 
+function moveHandleUpwards(sfg: SnowflakeGraph, h: number): void {
+    sfg.snowflakeID[h] = Math.max(0, sfg.snowflakeID[h] - 1);
+    sfg.handleMovedCallback(snowflakeIDString(sfg.snowflakeID));
+    syncToSnowflakeID(sfg);
+}
+
+function moveHandleDownwards(sfg: SnowflakeGraph, h: number): void {
+    sfg.snowflakeID[h] = Math.min(8, sfg.snowflakeID[h] + 1);
+    sfg.handleMovedCallback(snowflakeIDString(sfg.snowflakeID));
+    syncToSnowflakeID(sfg);
+}
+
+function moveHandleToNth(sfg: SnowflakeGraph, h: number, nth: number): void {
+    sfg.snowflakeID[h] = Math.max(0, Math.min(8, Math.floor(nth)));
+    sfg.handleMovedCallback(snowflakeIDString(sfg.snowflakeID));
+    syncToSnowflakeID(sfg);
+}
+
 function addHandle(cs: Constants, g: SVGElement, x: number, y: number, sfg: SnowflakeGraph, nthHandle: number): GraphHandle {
     const result = handleZero(cs);
     result.outside.addEventListener('keydown', e => {
@@ -230,6 +248,12 @@ function addHandle(cs: Constants, g: SVGElement, x: number, y: number, sfg: Snow
                 e.preventDefault();
                 break;
             default:
+                const index = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+                    .findIndex((v, i) => v === e.key);
+                if (index !== -1) {
+                    moveHandleToNth(sfg, nthHandle, index);
+                    e.preventDefault();
+                }
                 break;
         }
     });
@@ -287,18 +311,6 @@ function fitProgressToGrowth(cs: Constants, progress: SVGElement, percentGrown: 
         'width': width.toString(),
         'height': cs.VIEWPORT_HEIGHT.toString(),
     });
-}
-
-function moveHandleUpwards(sfg: SnowflakeGraph, h: number): void {
-    sfg.snowflakeID[h] = Math.max(0, sfg.snowflakeID[h] - 1);
-    sfg.handleMovedCallback(snowflakeIDString(sfg.snowflakeID));
-    syncToSnowflakeID(sfg);
-}
-
-function moveHandleDownwards(sfg: SnowflakeGraph, h: number): void {
-    sfg.snowflakeID[h] = Math.min(8, sfg.snowflakeID[h] + 1);
-    sfg.handleMovedCallback(snowflakeIDString(sfg.snowflakeID));
-    syncToSnowflakeID(sfg);
 }
 
 export function syncToSnowflakeID(g: SnowflakeGraph): void {
