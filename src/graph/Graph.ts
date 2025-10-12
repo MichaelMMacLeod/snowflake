@@ -77,11 +77,17 @@ function makeConstants(SIZE_SCALAR: number, ASPECT_RATIO: number): Constants {
     .sf-graph-handle-outside {
       stroke: var(--SFG-color-foreground);
     }
-    
+
     .sf-graph-handle-outside {
       scale: 1;
       transition: scale 0.1s;
       transform-origin: center;
+    }
+    
+    @media (prefers-reduced-motion: reduce) {
+      .sf-graph-handle-outside {
+        transition: scale 0s;
+      }
     }
 
     .sf-graph-handle-outside:focus:not(:focus-visisble) {
