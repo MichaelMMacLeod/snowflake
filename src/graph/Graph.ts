@@ -106,7 +106,7 @@ function makeConstants(SIZE_SCALAR: number, ASPECT_RATIO: number): Constants {
     
     .sf-graph-progress {
       fill: var(--SFG-color-foreground);
-      fill-opacity: 0.1;
+      fill-opacity: 0.075;
     }
     
     .sf-graph {
@@ -155,6 +155,7 @@ function makeConstants(SIZE_SCALAR: number, ASPECT_RATIO: number): Constants {
         'y': '0',
         'height': `${VIEWPORT_HEIGHT}`,
     };
+
     return {
         ASPECT_RATIO,
         SIZE_SCALAR,
