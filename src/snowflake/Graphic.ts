@@ -20,7 +20,6 @@ export function make(sizePX: number): Maybe<Graphic> {
     ctx.canvas.height = sizePX;
     canvas.style.width = `${sizePX}px`;
     canvas.style.height = `${sizePX}px`;
-    canvas.style.filter = 'drop-shadow(0px 0px 8px var(--SF-color-foreground))';
     canvas.className = 'sf-canvas';
     return some({ sizePX, canvas, ctx });
 }

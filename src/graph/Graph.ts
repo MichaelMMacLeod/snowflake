@@ -114,10 +114,6 @@ function makeConstants(SIZE_SCALAR: number, ASPECT_RATIO: number): Constants {
       fill: var(--SFG-color-foreground);
       fill-opacity: 0.075;
     }
-    
-    .sf-graph {
-      filter: drop-shadow(0 0 ${10 * SIZE_SCALAR}px var(--SFG-color-foreground));
-    }
     `;
 
     const HANDLE_INSIDE_ATTRS = {
