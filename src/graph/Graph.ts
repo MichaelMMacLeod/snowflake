@@ -32,7 +32,7 @@ type Constants = {
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-function makeConstants(SIZE_SCALAR: number, ASPECT_RATIO: number): Constants {
+function makeConstants(SIZE_SCALAR: number, ASPECT_RATIO: number, isLightTheme: boolean): Constants {
     const VIEWPORT_HEIGHT = 200;
     const VIEWPORT_WIDTH = ASPECT_RATIO * VIEWPORT_HEIGHT;
     const HANDLE_OUTER_HOVER_SCALE = 1.5;
@@ -51,70 +51,63 @@ function makeConstants(SIZE_SCALAR: number, ASPECT_RATIO: number): Constants {
         'width': '100%',
     };
 
+    const { background, foreground } = (() => {
+        if (isLightTheme) {
+            return {
+                background: '#ffffff',
+                foreground: '#000000',
+            };
+        }
+        return {
+            background: '#000000',
+            foreground: '#ffffff',
+        };
+    })();
+
     const ROOT_STYLE = `
-    @media (prefers-color-scheme: dark) {
-      svg * {
-        --SFG-color-background: #111111;
-        --SFG-color-foreground: #ffffff;
-      }
-    }
-    
-    @media (prefers-color-scheme: light) {
-      svg * {
-        --SFG-color-background: #ffffff;
-        --SFG-color-foreground: #000000;
-      }
-    }
-    
-    svg * {
-      transform-box: fill-box;
-    }
-    
-    .sf-graph-handle-inside {
-      fill: var(--SFG-color-foreground);
-    }
-    
-    .sf-graph-handle-outside {
-      stroke: var(--SFG-color-foreground);
-    }
-
-    .sf-graph-handle-outside {
-      scale: 1;
-      transition: scale 0.1s;
-      transform-origin: center;
-    }
-    
-    @media (prefers-reduced-motion: reduce) {
-      .sf-graph-handle-outside {
-        transition: scale 0s;
-      }
-    }
-
-    .sf-graph-handle-outside:focus:not(:focus-visisble) {
-      outline: none;
-    }
-    
-    .sf-graph-handle-outside-hover {
-      scale: ${HANDLE_OUTER_HOVER_SCALE};
-    }
-
-    .sf-graph-handle-outside:focus-visible {
-      scale: ${HANDLE_OUTER_HOVER_SCALE};
-    }
-
-    .sf-graph-handle-outside:focus:not(:focus-visible) {
-      outline: none;
-    }
-    
-    .sf-graph-line {
-      stroke: var(--SFG-color-foreground);
-    }
-    
-    .sf-graph-progress {
-      fill: var(--SFG-color-foreground);
-      fill-opacity: 0.075;
-    }
-    `;
+svg * {
+  --SFG-color-background: ${background};
+  --SFG-color-foreground: ${foreground};
+}
+svg * {
+  transform-box: fill-box;
+}
+.sf-graph-handle-inside {
+  fill: var(--SFG-color-foreground);
+}
+.sf-graph-handle-outside {
+  stroke: var(--SFG-color-foreground);
+}
+.sf-graph-handle-outside {
+  scale: 1;
+  transition: scale 0.1s;
+  transform-origin: center;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sf-graph-handle-outside {
+    transition: scale 0s;
+  }
+}
+.sf-graph-handle-outside:focus:not(:focus-visisble) {
+  outline: none;
+}
+.sf-graph-handle-outside-hover {
+  scale: ${HANDLE_OUTER_HOVER_SCALE};
+}
+.sf-graph-handle-outside:focus-visible {
+  scale: ${HANDLE_OUTER_HOVER_SCALE};
+}
+.sf-graph-handle-outside:focus:not(:focus-visible) {
+  outline: none;
+}
+.sf-graph-line {
+  stroke: var(--SFG-color-foreground);
+}
+.sf-graph-progress {
+  fill: var(--SFG-color-foreground);
+  fill-opacity: 0.075;
+}
+`;
 
     const HANDLE_INSIDE_ATTRS = {
         'class': 'sf-graph-handle-inside',
@@ -408,7 +401,7 @@ function mouseEventIsInsideElement(ev: MouseEvent, e: Element): boolean {
 
 export function zero(): SnowflakeGraph {
     const root = document.createElementNS(SVG_NS, 'svg');
-    const constants = makeConstants(0.5, 3);
+    const constants = makeConstants(0.5, 3, false);
 
     root.replaceChildren(); // remove all of root's children.
     const style = document.createElement('style');
@@ -502,7 +495,7 @@ export function zero(): SnowflakeGraph {
     return result;
 }
 
-export function setAspectRatio(g: SnowflakeGraph, aspectRatio: number): void {
-    const constants = makeConstants(0.5, aspectRatio);
+export function setConstants(g: SnowflakeGraph, aspectRatio: number, isLightTheme: boolean): void {
+    const constants = makeConstants(0.5, aspectRatio, isLightTheme);
     syncToConstants(g, constants);
 }

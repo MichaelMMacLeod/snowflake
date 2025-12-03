@@ -8,6 +8,7 @@ export type GraphState = {
     graph: Maybe<SnowflakeGraph>
     percentGrown: number,
     aspectRatio: number,
+    isLightTheme: boolean,
 };
 
 export function zero(): GraphState {
@@ -15,6 +16,7 @@ export function zero(): GraphState {
         graph: none(),
         percentGrown: 0,
         aspectRatio: 3,
+        isLightTheme: true,
     };
 }
 
@@ -45,5 +47,10 @@ export function setSnowflakeID(state: GraphState, snowflakeID: NonEmptyArray<num
 
 export function setAspectRatio(state: GraphState, aspectRatio: number): void {
     state.aspectRatio = aspectRatio;
-    mapSome(state.graph, g => SnowflakeGraphs.setAspectRatio(g, state.aspectRatio));
+    mapSome(state.graph, g => SnowflakeGraphs.setConstants(g, state.aspectRatio, state.isLightTheme));
+}
+
+export function setIsLightTheme(state: GraphState, isLightTheme: boolean): void {
+    state.isLightTheme = isLightTheme;
+    mapSome(state.graph, g => SnowflakeGraphs.setConstants(g, state.aspectRatio, state.isLightTheme));
 }
