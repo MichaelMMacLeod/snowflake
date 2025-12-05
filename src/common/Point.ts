@@ -1,5 +1,5 @@
-import { Direction } from "../snowflake/Direction";
-import * as Directions from "../snowflake/Direction";
+import { Direction } from "../snowflake/Direction.js";
+import * as Directions from "../snowflake/Direction.js";
 
 export type Point = { x: number, y: number };
 

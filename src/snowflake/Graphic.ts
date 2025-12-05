@@ -1,4 +1,4 @@
-import { Maybe, none, some } from "../common/Maybe";
+import { Maybe, none, some } from "maybe-either/Maybe";
 
 export type Graphic = {
     sizePX: number,
@@ -10,7 +10,7 @@ export const make = (sizePX: number): Maybe<Graphic> => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (ctx === null) {
-        return none();
+        return none;
     }
     // Setting ctx.canvas.(width|height) changes the number of pixels we
     // can render to. Changing canvas.style.(width|height) changes the

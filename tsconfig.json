@@ -7,9 +7,9 @@
             "es2016",
             "dom"
         ],
-        "module": "es6",
+        "module": "NodeNext",
         "target": "es6",
-        "moduleResolution": "node",
+        "moduleResolution": "nodenext",
         "outDir": "dist",
         "sourceMap": true,
         "declaration": true,

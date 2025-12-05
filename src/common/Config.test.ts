@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
-import { parseColorScheme, parseColorTheme, parseRGBA } from './Config';
-import { left, right } from './Either';
-import { RGBA } from './color/Color';
+import { parseColorScheme, parseColorTheme, parseRGBA } from './Config.js';
+import { left, right } from 'maybe-either/Either';
+import { RGBA } from './color/Color.js';
 
 function parseRGBACorrectTest(color: any): () => void {
     return () => expect(parseRGBA(color)).toStrictEqual(right(color));

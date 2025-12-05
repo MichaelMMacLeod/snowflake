@@ -1,11 +1,10 @@
-import * as Points from "../common/Point";
-import { midpointTN, Point } from "../common/Point";
-import { Direction } from "./Direction";
-import * as Directions from "./Direction";
-import { Graphic } from "./Graphic";
-import { outsideVisibleArea, viewspaceX, viewspaceY } from "./CoordinateSystem";
-import { faceSizeGrowthScalar } from "../common/Constants";
-import { Array6, makeArray6, rem } from "../common/Utils";
+import * as Points from "../common/Point.js";
+import { midpointTN, Point } from "../common/Point.js";
+import { Direction } from "./Direction.js";
+import * as Directions from "./Direction.js";
+import { Graphic } from "./Graphic.js";
+import { outsideVisibleArea, viewspaceX, viewspaceY } from "./CoordinateSystem.js";
+import { faceSizeGrowthScalar } from "../common/Constants.js";
 
 export type Face = {
     center: Point,

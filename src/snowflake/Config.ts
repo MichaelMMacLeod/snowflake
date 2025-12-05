@@ -8,13 +8,13 @@ import {
     parseNat,
     parseSnowflakeID,
     randomSnowflakeIDString
-} from "../common/Config";
-import { scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX, State } from "./State";
-import * as States from './State';
-import { arraysEqual, NonEmptyArray, SnowflakeID } from "../common/Utils";
-import * as Maybes from "../common/Maybe";
-import * as ColorThemes from "../common/color/Theme";
-import { ColorTheme } from "../common/color/Theme";
+} from "../common/Config.js";
+import { scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX, State } from "./State.js";
+import * as States from './State.js';
+import { arraysEqual, NonEmptyArray, SnowflakeID } from "../common/Utils.js";
+import * as Maybes from "maybe-either/Maybe";
+import * as ColorThemes from "../common/color/Theme.js";
+import { ColorTheme } from "../common/color/Theme.js";
 
 export type UnparsedConfig = Partial<{
     snowflakeID: SnowflakeID,

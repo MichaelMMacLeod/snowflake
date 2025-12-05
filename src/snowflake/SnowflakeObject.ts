@@ -1,12 +1,12 @@
-import { Face } from "./Face";
-import * as Faces from "./Face";
-import { Branch } from "./Branch";
-import * as Branches from "./Branch";
-import { Graphic } from "./Graphic";
-import { Direction, DIRS } from "./Direction";
-import * as Directions from "./Direction";
-import { Array6, makeArray6, rem, SideCacheArray, sideCacheConstructor } from "../common/Utils";
-import * as Sides from "./Side";
+import { Face } from "./Face.js";
+import * as Faces from "./Face.js";
+import { Branch } from "./Branch.js";
+import * as Branches from "./Branch.js";
+import { Graphic } from "./Graphic.js";
+import { Direction, DIRS } from "./Direction.js";
+import * as Directions from "./Direction.js";
+import { Array6, makeArray6, rem, SideCacheArray, sideCacheConstructor } from "../common/Utils.js";
+import * as Sides from "./Side.js";
 
 // Description of the Overlap Detection Algorithm
 //

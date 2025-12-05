@@ -1,10 +1,10 @@
 import {
     ConfigParser, ConfigSynchronizer, parseBool, parseConfigAndDisplayErrors, parseFunction1,
     parseNonnegativeFloat, parsePositiveFloat, parseSnowflakeID, randomSnowflakeIDString
-} from "../common/Config";
-import { arraysEqual, NonEmptyArray, SnowflakeID } from "../common/Utils";
-import * as Maybes from "../common/Maybe";
-import { GraphState, setAspectRatio, setIsLightTheme, setPercentGrown, setSnowflakeID } from "./State";
+} from "../common/Config.js";
+import { arraysEqual, NonEmptyArray, SnowflakeID } from "../common/Utils.js";
+import * as Maybes from "maybe-either/Maybe";
+import { GraphState, setAspectRatio, setIsLightTheme, setPercentGrown, setSnowflakeID } from "./State.js";
 
 export type UnparsedConfig = Partial<{
     percentGrown: number,

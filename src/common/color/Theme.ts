@@ -1,5 +1,5 @@
-import { ColorScheme } from "./Scheme";
-import * as Schemes from "./Scheme";
+import { ColorScheme } from "./Scheme.js";
+import * as Schemes from "./Scheme.js";
 
 export type ColorTheme = {
     dark: ColorScheme,

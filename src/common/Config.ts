@@ -1,11 +1,12 @@
-import { RGBA } from "./color/Color";
-import { ColorScheme } from "./color/Scheme";
-import { ColorTheme } from "./color/Theme";
-import * as Eithers from "./Either";
-import { Either, left, right } from "./Either";
-import { Maybe, none, some } from "./Maybe";
-import * as Maybes from "./Maybe";
-import { NonEmptyArray, okOrElse, randomIntInclusive, SnowflakeID } from "./Utils";
+import { RGBA } from "./color/Color.js";
+import { ColorScheme } from "./color/Scheme.js";
+import { ColorTheme } from "./color/Theme.js";
+import * as Eithers from "maybe-either/Either";
+import { Either, left, right } from "maybe-either/Either";
+import { Maybe, none, okOrElse, some } from "maybe-either/Maybe";
+import * as Maybes from "maybe-either/Maybe";
+import { NonEmptyArray, randomIntInclusive, SnowflakeID } from "./Utils.js";
+import { thenDo } from "maybe-either/Boolean";
 
 export function isBoolean(value: any): value is boolean {
     return typeof value === 'boolean';
@@ -63,12 +64,12 @@ function makeObjectParser<R>(template: ObjectTemplate<R>): (value: any) => Eithe
                 return left(`object not containing key '${k}'`);
             }
             const value = valueParser(v);
-            const maybeError = Eithers.map(
+            const maybeError: Maybe<string> = Eithers.map(
                 value,
                 e => some(`object with key '${k}' holding ${e}`),
-                v => {
+                (v): Maybe<string> => {
                     (result as any)[k] = v;
-                    return none();
+                    return none;
                 }
             );
             if (Maybes.isSome(maybeError)) {
@@ -152,42 +153,9 @@ export function parsePositiveFloat(value: any): Either<string, number> {
     return right(value);
 }
 
-export function maybemap2<T, U>(
-    m: Maybe<T>,
-    onNone: () => U,
-    onSome: (value: T) => U
-): U {
-    switch (m.v) {
-        case 0:
-            return onNone();
-        case 1:
-            return onSome(m.d);
-    }
-}
-
-export function okOrElse2<T, E>(m: Maybe<T>, onNone: () => E): Either<E, T> {
-    return maybemap2(
-        m,
-        () => left(onNone()),
-        v => right(v),
-    );
-}
-
-// export function none2<T>(): Maybe<T> {
-//     return { v: 0 };
-// }
-
-export function then2<T>(b: boolean, onTrue: () => T): Maybe<T> {
-    if (b) {
-        return { v: 1, d: onTrue() };
-    }
-    // return { v: 0 };
-    return none();
-}
-
 function makeParser<T>(predicate: (value: any) => value is T, expected: string): (value: any) => Either<string, T> {
     // return v => okOrElse(Maybes.then(predicate(v), () => v), () => expected);
-    return v => okOrElse2(then2(predicate(v), () => v), () => expected);
+    return v => okOrElse(thenDo(predicate(v), () => v), () => expected);
 }
 
 export const parseBool = makeParser(isBoolean, 'boolean');

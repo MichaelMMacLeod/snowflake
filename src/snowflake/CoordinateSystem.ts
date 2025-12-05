@@ -1,5 +1,4 @@
-import { Graphic } from "./Graphic";
-import { Point } from "../common/Point";
+import { Graphic } from "./Graphic.js";
 
 // Coordinate system(s):
 //

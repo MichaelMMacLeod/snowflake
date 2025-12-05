@@ -1,9 +1,9 @@
-import { parseConfigAndDisplayErrors, sync } from "../common/Config";
-import { GraphState } from "./State";
-import { none, some } from "../common/Maybe";
-import * as GraphStates from "./State";
-import { Config, configParser, configSynchronizer, UnparsedConfig } from "./Config";
-import * as GraphConfigs from "./Config";
+import { parseConfigAndDisplayErrors, sync } from "../common/Config.js";
+import { GraphState } from "./State.js";
+import { none, some } from "maybe-either/Maybe";
+import * as GraphStates from "./State.js";
+import { Config, configParser, configSynchronizer, UnparsedConfig } from "./Config.js";
+import * as GraphConfigs from "./Config.js";
 
 export default class SnowflakeGraphElement extends HTMLElement {
     #shadow: ShadowRoot;
@@ -19,7 +19,7 @@ export default class SnowflakeGraphElement extends HTMLElement {
             configSynchronizer,
             this.#state,
             () => { return; },
-            none(),
+            none,
             this.#config,
         )
     }

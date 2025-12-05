@@ -1,15 +1,15 @@
-import { Graphic } from "./Graphic";
-import * as Graphics from "./Graphic";
-import { addBranchesToGrowingFaces, addFacesToGrowingBranches, Snowflake } from "./SnowflakeObject";
-import * as Snowflakes from "./SnowflakeObject";
-import * as Branches from "./Branch";
-import * as Faces from "./Face";
-import { fracPart, GrowthType, interpretGrowth, NonEmptyArray } from "../common/Utils";
-import { isSome, mapSome, Maybe, none } from "../common/Maybe";
-import * as Maybes from "../common/Maybe";
-import * as RGBA from "../common/color/Color";
-import * as ColorThemes from "../common/color/Theme";
-import { ColorTheme } from "../common/color/Theme";
+import { Graphic } from "./Graphic.js";
+import * as Graphics from "./Graphic.js";
+import { addBranchesToGrowingFaces, addFacesToGrowingBranches, Snowflake } from "./SnowflakeObject.js";
+import * as Snowflakes from "./SnowflakeObject.js";
+import * as Branches from "./Branch.js";
+import * as Faces from "./Face.js";
+import { fracPart, GrowthType, interpretGrowth, NonEmptyArray } from "../common/Utils.js";
+import { isSome, mapSome, Maybe, none } from "maybe-either/Maybe";
+import * as Maybes from "maybe-either/Maybe";
+import * as RGBA from "../common/color/Color.js";
+import * as ColorThemes from "../common/color/Theme.js";
+import { ColorTheme } from "../common/color/Theme.js";
 
 export const _growthInput = 0;
 export const _graphic = 1;
@@ -134,7 +134,7 @@ export const zero = (): State => {
     const doNothing = () => { return; };
 
     const growthInput: NonEmptyArray<number> = [0];
-    const graphic: Maybe<Graphic> = none();
+    const graphic: Maybe<Graphic> = none;
     const snowflake = Snowflakes.zero();
     const currentGrowthType = undefined;
     const idealMSBetweenUpdates = 0;

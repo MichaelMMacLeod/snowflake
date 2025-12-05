@@ -1,8 +1,7 @@
-import { yChoices } from "./Constants";
-import { Either, left, right } from "./Either";
-import * as Eithers from "./Either";
-import { Maybe, none, some } from "./Maybe";
-import * as Maybes from "./Maybe";
+import { yChoices } from "./Constants.js";
+import { Either, left, right } from "maybe-either/Either";
+import * as Eithers from "maybe-either/Either";
+import { Maybe, none, some } from "maybe-either/Maybe";
 
 export function rem(x: number, m: number): number {
   return ((x % m) + m) % m;
@@ -53,22 +52,6 @@ export function interpretGrowth(growthInput: Array<number>, time: number): Growt
     scale: /*timeScalar **/ Math.abs(signedScale),
     growthType: signedScale > 0.0 ? 'branching' : 'faceting',
   };
-}
-
-export function okOrElse<T, E>(m: Maybe<T>, onNone: () => E): Either<E, T> {
-  return Maybes.map(
-    m,
-    () => left(onNone()),
-    v => right(v),
-  );
-}
-
-export function ok<L, R>(e: Either<L, R>): Maybe<R> {
-  return Eithers.map(
-    e,
-    () => none(),
-    r => some(r),
-  );
 }
 
 export function arraysEqual<T>(a1: Array<T>, a2: Array<T>, eqT: (t1: T, t2: T) => boolean): boolean {

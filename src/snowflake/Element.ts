@@ -1,12 +1,12 @@
-import { parseConfigAndDisplayErrors, parseSnowflakeID, randomSnowflakeIDString, sync } from "../common/Config";
-import { none, some } from "../common/Maybe";
-import * as Maybes from "../common/Maybe";
-import { initializeGraphic, State } from "./State";
-import * as Eithers from "../common/Either";
-import * as States from "./State";
-import { Config, configParser, configSynchronizer, UnparsedConfig } from "./Config";
-import * as Configs from "./Config";
-import { SnowflakeID } from "../common/Utils";
+import { parseConfigAndDisplayErrors, parseSnowflakeID, randomSnowflakeIDString, sync } from "../common/Config.js";
+import { none, some } from "maybe-either/Maybe";
+import * as Maybes from "maybe-either/Maybe";
+import { initializeGraphic, State } from "./State.js";
+import * as Eithers from "maybe-either/Either";
+import * as States from "./State.js";
+import { Config, configParser, configSynchronizer, UnparsedConfig } from "./Config.js";
+import * as Configs from "./Config.js";
+import { SnowflakeID } from "../common/Utils.js";
 
 export default class SnowflakeElement extends HTMLElement {
     #state: State;
@@ -18,7 +18,7 @@ export default class SnowflakeElement extends HTMLElement {
         this.#shadow = this.attachShadow({ mode: 'open' });
         this.#state = States.zero();
         this.#config = Configs.zero();
-        sync(configSynchronizer, this.#state, () => States.reset(this.#state), none(), this.#config);
+        sync(configSynchronizer, this.#state, () => States.reset(this.#state), none, this.#config);
     }
 
     connectedCallback() {

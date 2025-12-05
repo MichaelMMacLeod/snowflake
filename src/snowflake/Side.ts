@@ -1,10 +1,10 @@
-import { Face } from "./Face";
-import * as Points from "../common/Point";
-import * as Side2Ds from "./Side2D";
-import { Array6, rem, SideCacheArray } from "../common/Utils";
-import * as Directions from "./Direction";
-import { Direction } from "./Direction";
-import { Branch } from "./Branch";
+import { Face } from "./Face.js";
+import * as Points from "../common/Point.js";
+import * as Side2Ds from "./Side2D.js";
+import { Array6, rem, SideCacheArray } from "../common/Utils.js";
+import * as Directions from "./Direction.js";
+import { Direction } from "./Direction.js";
+import { Branch } from "./Branch.js";
 
 export const normalizeSide2DFaceM = (
   resultLeft: SideCacheArray,

@@ -1,8 +1,8 @@
-import { mapSome, Maybe, none, some } from "../common/Maybe";
-import { SnowflakeGraph, syncToPercentGrown, syncToSnowflakeID } from "./Graph";
-import * as SnowflakeGraphs from "./Graph";
-import { NonEmptyArray } from "../common/Utils";
-import * as Maybes from "../common/Maybe";
+import { mapSome, Maybe, none, some } from "maybe-either/Maybe";
+import { SnowflakeGraph, syncToPercentGrown, syncToSnowflakeID } from "./Graph.js";
+import * as SnowflakeGraphs from "./Graph.js";
+import { NonEmptyArray } from "../common/Utils.js";
+import * as Maybes from "maybe-either/Maybe";
 
 export type GraphState = {
     graph: Maybe<SnowflakeGraph>
@@ -13,7 +13,7 @@ export type GraphState = {
 
 export const zero = (): GraphState => {
     return {
-        graph: none(),
+        graph: none,
         percentGrown: 0,
         aspectRatio: 3,
         isLightTheme: true,

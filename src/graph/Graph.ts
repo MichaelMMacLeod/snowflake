@@ -1,9 +1,9 @@
-import { snowflakeIDString } from "../common/Config";
-import { yChoices } from "../common/Constants";
-import { clamp, NonEmptyArray, SnowflakeID } from "../common/Utils";
-import { mapSome, Maybe, none, some } from "../common/Maybe";
-import * as Maybes from "../common/Maybe";
-import { Point } from "../common/Point";
+import { snowflakeIDString } from "../common/Config.js";
+import { yChoices } from "../common/Constants.js";
+import { clamp, NonEmptyArray, SnowflakeID } from "../common/Utils.js";
+import { Maybe, none, some } from "maybe-either/Maybe";
+import * as Maybes from "maybe-either/Maybe";
+import { Point } from "../common/Point.js";
 
 type Attributes = { [key: string]: string };
 
@@ -419,8 +419,8 @@ export const zero = (): SnowflakeGraph => {
         facetingBranchingLine,
         handleLine: createHandleLine(constants, g),
         progress: createProgress(constants, g),
-        handleBeingDragged: none(),
-        hoveredHandle: none(),
+        handleBeingDragged: none,
+        hoveredHandle: none,
         handleMovedCallback: (snowflakeID: string) => { return; },
     };
     const updateHandlePosition = (h: number, ev: MouseEvent) => {
@@ -440,7 +440,7 @@ export const zero = (): SnowflakeGraph => {
         updateHandlePosition(h, ev);
     }
     const handleMouseUp = (ev: MouseEvent): void => {
-        result.handleBeingDragged = none();
+        result.handleBeingDragged = none;
     }
     const handleMouseMove = (ev: MouseEvent): void => {
         const hoverClass = 'sf-graph-handle-outside-hover';
@@ -473,7 +473,7 @@ export const zero = (): SnowflakeGraph => {
                         result.hoveredHandle,
                         h => {
                             removeHoverClass(h);
-                            result.hoveredHandle = none();
+                            result.hoveredHandle = none;
                         }
                     );
                 }

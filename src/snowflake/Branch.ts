@@ -1,12 +1,12 @@
-import * as Points from "../common/Point";
-import { midpointTN, Point } from "../common/Point";
-import { Direction } from "./Direction";
-import * as Directions from "./Direction";
-import { Graphic } from "./Graphic";
-import { outsideVisibleArea, viewspaceX, viewspaceY } from "./CoordinateSystem";
-import * as Faces from "./Face";
-import { branchLengthGrowthScalar, branchSizeGrowthScalar } from "../common/Constants";
-import { rem } from "../common/Utils";
+import * as Points from "../common/Point.js";
+import { midpointTN, Point } from "../common/Point.js";
+import { Direction } from "./Direction.js";
+import * as Directions from "./Direction.js";
+import { Graphic } from "./Graphic.js";
+import { outsideVisibleArea, viewspaceX, viewspaceY } from "./CoordinateSystem.js";
+import * as Faces from "./Face.js";
+import { branchLengthGrowthScalar, branchSizeGrowthScalar } from "../common/Constants.js";
+import { rem } from "../common/Utils.js";
 
 export type Branch = {
     start: Point,

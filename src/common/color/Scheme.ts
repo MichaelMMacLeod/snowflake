@@ -1,5 +1,5 @@
-import { black, RGBA, white } from "./Color";
-import * as Color from "./Color";
+import { black, RGBA, white } from "./Color.js";
+import * as Color from "./Color.js";
 
 export type ColorScheme = {
     background: RGBA,

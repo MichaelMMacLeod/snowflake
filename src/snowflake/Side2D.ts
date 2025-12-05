@@ -1,8 +1,8 @@
-import { Face } from "./Face";
-import * as Faces from "./Face";
-import { Branch } from "./Branch";
-import * as Branches from "./Branch";
-import * as Directions from "./Direction";
+import { Face } from "./Face.js";
+import * as Faces from "./Face.js";
+import { Branch } from "./Branch.js";
+import * as Branches from "./Branch.js";
+import * as Directions from "./Direction.js";
 
 // The functions in this file return coordinates of endpoints of lines in a part.
 // The nth side of a part is defined in the following way:
