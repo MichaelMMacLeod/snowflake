@@ -3,7 +3,7 @@ import { parseColorScheme, parseColorTheme, parseRGBA } from './Config.js';
 import { left, right } from 'maybe-either/Either';
 import { RGBA } from './color/Color.js';
 
-function parseRGBACorrectTest(color: any): () => void {
+const parseRGBACorrectTest = (color: any): () => void => {
     return () => expect(parseRGBA(color)).toStrictEqual(right(color));
 }
 
@@ -11,7 +11,7 @@ test('parseRGBA correct 1', parseRGBACorrectTest({ r: 1, g: 2, b: 3, a: 0.4 }));
 test('parseRGBA correct 2', parseRGBACorrectTest({ r: 255, g: 255, b: 255, a: 1 }));
 test('parseRGBA correct 3', parseRGBACorrectTest({ r: 0, g: 0, b: 0, a: 0 }));
 
-function badColorComponentTest(badComponent: any): () => void {
+const badColorComponentTest = (badComponent: any): () => void => {
     return () => {
         const c = { r: 0, g: 0, b: 0, a: 0 };
         for (const [k, _] of Object.entries(c)) {
@@ -33,7 +33,7 @@ test('parseRGBA NaN', badColorComponentTest(NaN));
 test('parseRGBA string', badColorComponentTest('0'));
 test('parseRGBA false', badColorComponentTest(false));
 
-function parseColorSchemeCorrectTest(scheme: any): () => void {
+const parseColorSchemeCorrectTest = (scheme: any): () => void => {
     return () => expect(parseColorScheme(scheme)).toStrictEqual(right(scheme));
 }
 
@@ -43,7 +43,7 @@ test('parseColorScheme correct 1', parseColorSchemeCorrectTest({
 }));
 
 
-function parseColorThemeCorrectTest(scheme: any): () => void {
+const parseColorThemeCorrectTest = (scheme: any): () => void => {
     return () => expect(parseColorTheme(scheme)).toStrictEqual(right(scheme));
 }
 

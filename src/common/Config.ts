@@ -8,38 +8,38 @@ import * as Maybes from "maybe-either/Maybe";
 import { NonEmptyArray, randomIntInclusive, SnowflakeID } from "./Utils.js";
 import { thenDo } from "maybe-either/Boolean";
 
-export function isBoolean(value: any): value is boolean {
+export const isBoolean = (value: any): value is boolean => {
     return typeof value === 'boolean';
 }
 
-export function isFunction(value: any): boolean {
+export const isFunction = (value: any): boolean => {
     return typeof value === 'function';
 }
 
-export function isNumber(value: any): value is number {
+export const isNumber = (value: any): value is number => {
     return typeof value === 'number';
 }
 
-export function isFunctionN(value: any, argCount: number): boolean {
+export const isFunctionN = (value: any, argCount: number): boolean => {
     return isFunction(value) && value.length === argCount;
 }
 
-export function isFunction0(value: any): value is () => any {
+export const isFunction0 = (value: any): value is () => any => {
     return isFunctionN(value, 0);
 }
 
-export function isFunction1(value: any): value is (a: any) => any {
+export const isFunction1 = (value: any): value is (a: any) => any => {
     return isFunctionN(value, 1);
 }
 
-export function parseRGBComponent(value: any): Either<string, number> {
+export const parseRGBComponent = (value: any): Either<string, number> => {
     if (Number.isInteger(value) && value >= 0 && value <= 255) {
         return right(value);
     }
     return left('an integer in the range [0, 255]');
 }
 
-export function parseAlphaComponent(value: any): Either<string, number> {
+export const parseAlphaComponent = (value: any): Either<string, number> => {
     if (isNumber(value) && value >= 0 && value <= 1) {
         return right(value);
     }
@@ -50,7 +50,7 @@ type Parser<T> = (value: any) => Either<string, T>
 
 type ObjectTemplate<R> = { [K in keyof R]: Parser<R[K]> }
 
-function makeObjectParser<R>(template: ObjectTemplate<R>): (value: any) => Either<string, R> {
+const makeObjectParser = <R>(template: ObjectTemplate<R>): ((value: any) => Either<string, R>) => {
     return value => {
         const result = {};
         for (const [k, _] of Object.entries(template)) {
@@ -100,7 +100,7 @@ export const parseColorTheme: Parser<ColorTheme> =
         dark: parseColorScheme,
     });
 
-export function parseSnowflakeID(value: any): Either<string, NonEmptyArray<number>> {
+export const parseSnowflakeID = (value: any): Either<string, NonEmptyArray<number>> => {
     if (value.toString === undefined) {
         return left('integer or string containing digits [1-9]');
     }
@@ -123,7 +123,7 @@ export function parseSnowflakeID(value: any): Either<string, NonEmptyArray<numbe
     return right(result as NonEmptyArray<number>);
 }
 
-export function parseNat(value: any): Either<string, number> {
+export const parseNat = (value: any): Either<string, number> => {
     if (!Number.isSafeInteger(value)) {
         return left('integer');
     }
@@ -133,7 +133,7 @@ export function parseNat(value: any): Either<string, number> {
     return right(value);
 }
 
-export function parseNonnegativeFloat(value: any): Either<string, number> {
+export const parseNonnegativeFloat = (value: any): Either<string, number> => {
     if (!Number.isFinite(value)) {
         return left('finite, non-NaN float');
     }
@@ -143,7 +143,7 @@ export function parseNonnegativeFloat(value: any): Either<string, number> {
     return right(value);
 }
 
-export function parsePositiveFloat(value: any): Either<string, number> {
+export const parsePositiveFloat = (value: any): Either<string, number> => {
     if (!Number.isFinite(value)) {
         return left('finite, non-NaN float');
     }
@@ -153,7 +153,7 @@ export function parsePositiveFloat(value: any): Either<string, number> {
     return right(value);
 }
 
-function makeParser<T>(predicate: (value: any) => value is T, expected: string): (value: any) => Either<string, T> {
+const makeParser = <T>(predicate: (value: any) => value is T, expected: string): (value: any) => Either<string, T> => {
     // return v => okOrElse(Maybes.then(predicate(v), () => v), () => expected);
     return v => okOrElse(thenDo(predicate(v), () => v), () => expected);
 }
@@ -164,7 +164,7 @@ export const parseFunction1 = makeParser(isFunction1, 'function requiring one ar
 
 export type ParserFailure = { expected: string, actual: any };
 
-export function isObject(value: any): value is Object {
+export const isObject = (value: any): value is Object => {
     return typeof value === 'object' && !Array.isArray(value) && value !== null;
 }
 
@@ -173,10 +173,10 @@ export type ConfigParser<UnparsedConfig, Config> = {
     [K in keyof UnparsedConfig]: (value: any) => K extends keyof Config ? Either<string, Config[K]> : never
 }
 
-export function parseConfig<UnparsedConfig, Config>(
+export const parseConfig = <UnparsedConfig, Config>(
     u: UnparsedConfig,
     configParser: ConfigParser<UnparsedConfig, Config>,
-): Either<Array<ParserFailure>, Config> {
+): Either<Array<ParserFailure>, Config> => {
     const errors: Array<ParserFailure> = [];
     const parser = configParser;
     const result = {};
@@ -206,18 +206,18 @@ export function parseConfig<UnparsedConfig, Config>(
     return right(result as Config);
 }
 
-export function parseErrorString(e: ParserFailure): string {
+export const parseErrorString = (e: ParserFailure): string => {
     return `expected ${e.expected}, received ${e.actual}`;
 }
 
-export function parseErrorsString(e: Array<ParserFailure>): string {
+export const parseErrorsString = (e: Array<ParserFailure>): string => {
     return 'errors detected when validating config\n' + e.map(parseErrorString).join('\n');
 }
 
-export function parseConfigAndDisplayErrors<UnparsedConfig, Config>(
+export const parseConfigAndDisplayErrors = <UnparsedConfig, Config>(
     configParser: ConfigParser<UnparsedConfig, Config>,
     u: UnparsedConfig,
-): Config {
+): Config => {
     return Eithers.map(
         parseConfig(u, configParser),
         errors => { throw new Error(parseErrorsString(errors)) },
@@ -225,11 +225,11 @@ export function parseConfigAndDisplayErrors<UnparsedConfig, Config>(
     );
 }
 
-export function snowflakeIDString(id: NonEmptyArray<number>): SnowflakeID {
+export const snowflakeIDString = (id: NonEmptyArray<number>): SnowflakeID => {
     return id.map(n => n + 1).join('') as SnowflakeID;
 }
 
-export function randomSnowflakeId(): NonEmptyArray<number> {
+export const randomSnowflakeId = (): NonEmptyArray<number> => {
     const id: NonEmptyArray<number> = [randomIntInclusive(0, 3)];
     for (let i = 1; i < 16; i++) {
         id.push(randomIntInclusive(0, 8));
@@ -241,7 +241,7 @@ export function randomSnowflakeId(): NonEmptyArray<number> {
     );
 }
 
-export function randomSnowflakeIDString(): SnowflakeID {
+export const randomSnowflakeIDString = (): SnowflakeID => {
     return snowflakeIDString(randomSnowflakeId());
 }
 
@@ -249,13 +249,13 @@ export type ConfigSynchronizer<State, Config> = {
     [K in keyof Config]: (c: Config, s: State, newValue: Config[K], oldValue: Maybe<Config[K]>) => boolean
 };
 
-export function sync<Config extends Object, State>(
+export const sync = <Config extends Object, State>(
     configSynchronizer: ConfigSynchronizer<State, Config>,
     state: State,
     resetState: () => void,
     oldConfig: Maybe<Config>,
     newConfig: Config,
-): void {
+): void => {
     const cs: any = configSynchronizer;
     let needsReset = false;
     for (let [k, v] of Object.entries(newConfig)) {

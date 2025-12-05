@@ -6,15 +6,15 @@ export type ColorScheme = {
     foreground: RGBA,
 }
 
-export function equals(cs1: ColorScheme, cs2: ColorScheme): boolean {
+export const equals = (cs1: ColorScheme, cs2: ColorScheme): boolean => {
     return Color.equals(cs1.background, cs2.background)
         && Color.equals(cs1.foreground, cs2.foreground);
 }
 
-export function zeroLight(): ColorScheme {
+export const zeroLight = (): ColorScheme => {
     return { background: white(), foreground: black() };
 }
 
-export function zeroDark(): ColorScheme {
+export const zeroDark = (): ColorScheme => {
     return { background: black(), foreground: white() };
 }

@@ -4,37 +4,37 @@ import { none, okOrElse, some } from "maybe-either/Maybe";
 import * as Maybes from "maybe-either/Maybe";
 import { randomIntInclusive } from "./Utils.js";
 import { thenDo } from "maybe-either/Boolean";
-export function isBoolean(value) {
+export const isBoolean = (value) => {
     return typeof value === 'boolean';
-}
-export function isFunction(value) {
+};
+export const isFunction = (value) => {
     return typeof value === 'function';
-}
-export function isNumber(value) {
+};
+export const isNumber = (value) => {
     return typeof value === 'number';
-}
-export function isFunctionN(value, argCount) {
+};
+export const isFunctionN = (value, argCount) => {
     return isFunction(value) && value.length === argCount;
-}
-export function isFunction0(value) {
+};
+export const isFunction0 = (value) => {
     return isFunctionN(value, 0);
-}
-export function isFunction1(value) {
+};
+export const isFunction1 = (value) => {
     return isFunctionN(value, 1);
-}
-export function parseRGBComponent(value) {
+};
+export const parseRGBComponent = (value) => {
     if (Number.isInteger(value) && value >= 0 && value <= 255) {
         return right(value);
     }
     return left('an integer in the range [0, 255]');
-}
-export function parseAlphaComponent(value) {
+};
+export const parseAlphaComponent = (value) => {
     if (isNumber(value) && value >= 0 && value <= 1) {
         return right(value);
     }
     return left('a float in the range [0, 1]');
-}
-function makeObjectParser(template) {
+};
+const makeObjectParser = (template) => {
     return value => {
         const result = {};
         for (const [k, _] of Object.entries(template)) {
@@ -58,7 +58,7 @@ function makeObjectParser(template) {
         }
         return right(result);
     };
-}
+};
 export const parseRGBA = makeObjectParser({
     r: parseRGBComponent,
     g: parseRGBComponent,
@@ -73,7 +73,7 @@ export const parseColorTheme = makeObjectParser({
     light: parseColorScheme,
     dark: parseColorScheme,
 });
-export function parseSnowflakeID(value) {
+export const parseSnowflakeID = (value) => {
     if (value.toString === undefined) {
         return left('integer or string containing digits [1-9]');
     }
@@ -94,8 +94,8 @@ export function parseSnowflakeID(value) {
         return left('integer or string containing at least two nonzero digits');
     }
     return right(result);
-}
-export function parseNat(value) {
+};
+export const parseNat = (value) => {
     if (!Number.isSafeInteger(value)) {
         return left('integer');
     }
@@ -103,8 +103,8 @@ export function parseNat(value) {
         return left('nonnegative integer');
     }
     return right(value);
-}
-export function parseNonnegativeFloat(value) {
+};
+export const parseNonnegativeFloat = (value) => {
     if (!Number.isFinite(value)) {
         return left('finite, non-NaN float');
     }
@@ -112,8 +112,8 @@ export function parseNonnegativeFloat(value) {
         return left('non-negative float');
     }
     return right(value);
-}
-export function parsePositiveFloat(value) {
+};
+export const parsePositiveFloat = (value) => {
     if (!Number.isFinite(value)) {
         return left('finite, non-NaN float');
     }
@@ -121,18 +121,18 @@ export function parsePositiveFloat(value) {
         return left('positive float');
     }
     return right(value);
-}
-function makeParser(predicate, expected) {
+};
+const makeParser = (predicate, expected) => {
     // return v => okOrElse(Maybes.then(predicate(v), () => v), () => expected);
     return v => okOrElse(thenDo(predicate(v), () => v), () => expected);
-}
+};
 export const parseBool = makeParser(isBoolean, 'boolean');
 export const parseFunction0 = makeParser(isFunction0, 'function requiring no arguments');
 export const parseFunction1 = makeParser(isFunction1, 'function requiring one argument');
-export function isObject(value) {
+export const isObject = (value) => {
     return typeof value === 'object' && !Array.isArray(value) && value !== null;
-}
-export function parseConfig(u, configParser) {
+};
+export const parseConfig = (u, configParser) => {
     const errors = [];
     const parser = configParser;
     const result = {};
@@ -157,30 +157,30 @@ export function parseConfig(u, configParser) {
         return left(errors);
     }
     return right(result);
-}
-export function parseErrorString(e) {
+};
+export const parseErrorString = (e) => {
     return `expected ${e.expected}, received ${e.actual}`;
-}
-export function parseErrorsString(e) {
+};
+export const parseErrorsString = (e) => {
     return 'errors detected when validating config\n' + e.map(parseErrorString).join('\n');
-}
-export function parseConfigAndDisplayErrors(configParser, u) {
+};
+export const parseConfigAndDisplayErrors = (configParser, u) => {
     return Eithers.map(parseConfig(u, configParser), errors => { throw new Error(parseErrorsString(errors)); }, config => config);
-}
-export function snowflakeIDString(id) {
+};
+export const snowflakeIDString = (id) => {
     return id.map(n => n + 1).join('');
-}
-export function randomSnowflakeId() {
+};
+export const randomSnowflakeId = () => {
     const id = [randomIntInclusive(0, 3)];
     for (let i = 1; i < 16; i++) {
         id.push(randomIntInclusive(0, 8));
     }
     return Eithers.map(parseSnowflakeID(snowflakeIDString(id)), _err => { throw new Error(`randomSnowflakeId returned invalid ID: '${id}'`); }, _id => id);
-}
-export function randomSnowflakeIDString() {
+};
+export const randomSnowflakeIDString = () => {
     return snowflakeIDString(randomSnowflakeId());
-}
-export function sync(configSynchronizer, state, resetState, oldConfig, newConfig) {
+};
+export const sync = (configSynchronizer, state, resetState, oldConfig, newConfig) => {
     const cs = configSynchronizer;
     let needsReset = false;
     for (let [k, v] of Object.entries(newConfig)) {
@@ -190,5 +190,5 @@ export function sync(configSynchronizer, state, resetState, oldConfig, newConfig
     if (needsReset) {
         resetState();
     }
-}
+};
 //# sourceMappingURL=Config.js.map
