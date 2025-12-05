@@ -1,7 +1,7 @@
 import { Graphic } from "./Graphic";
 import * as Graphics from "./Graphic";
-import { addBranchesToGrowingFaces, addFacesToGrowingBranches, Snowflake } from "./Snowflake";
-import * as Snowflakes from "./Snowflake";
+import { addBranchesToGrowingFaces, addFacesToGrowingBranches, Snowflake } from "./SnowflakeObject";
+import * as Snowflakes from "./SnowflakeObject";
 import * as Branches from "./Branch";
 import * as Faces from "./Face";
 import { fracPart, GrowthType, interpretGrowth, NonEmptyArray } from "../common/Utils";
