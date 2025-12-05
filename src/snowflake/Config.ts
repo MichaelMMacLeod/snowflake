@@ -11,13 +11,13 @@ import {
     randomSnowflakeIDString
 } from "../common/Config";
 import { scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX, State } from "./State";
-import { arraysEqual, NonEmptyArray } from "../common/Utils";
+import { arraysEqual, NonEmptyArray, SnowflakeID } from "../common/Utils";
 import * as Maybes from "../common/Maybe";
 import * as ColorThemes from "../common/color/Theme";
 import { ColorTheme } from "../common/color/Theme";
 
-export type UnparsedConfig = {
-    snowflakeID: string,
+export type UnparsedConfig = Partial<{
+    snowflakeID: SnowflakeID,
     snowflakeCanvasSizePX: number,
     targetGrowthTimeMS: number,
     upsCap: number,
@@ -28,7 +28,7 @@ export type UnparsedConfig = {
     finishedGrowingCallback: () => void,
     resetCallback: () => void,
     updatedCallback: () => void,
-};
+}>;
 
 export type Config = {
     snowflakeID: NonEmptyArray<number>,

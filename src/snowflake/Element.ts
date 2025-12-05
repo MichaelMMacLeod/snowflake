@@ -6,6 +6,7 @@ import * as Eithers from "../common/Either";
 import * as States from "./State";
 import { Config, configParser, configSynchronizer, UnparsedConfig } from "./Config";
 import * as Configs from "./Config";
+import { SnowflakeID } from "../common/Utils";
 
 export default class SnowflakeElement extends HTMLElement {
     #state: State;
@@ -44,7 +45,7 @@ export default class SnowflakeElement extends HTMLElement {
         States.reset(this.#state);
     }
 
-    isValidSnowflakeId(id: string): boolean {
+    isValidSnowflakeId(id: string): id is SnowflakeID {
         return Eithers.map(
             parseSnowflakeID(id),
             () => false,
@@ -52,7 +53,7 @@ export default class SnowflakeElement extends HTMLElement {
         );
     }
 
-    randomSnowflakeId(): string {
+    randomSnowflakeId(): SnowflakeID {
         return randomSnowflakeIDString();
     }
 

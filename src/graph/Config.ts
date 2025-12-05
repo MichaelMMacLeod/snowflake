@@ -2,24 +2,24 @@ import {
     ConfigParser, ConfigSynchronizer, parseBool, parseConfigAndDisplayErrors, parseFunction1,
     parseNonnegativeFloat, parsePositiveFloat, parseSnowflakeID, randomSnowflakeIDString
 } from "../common/Config";
-import { arraysEqual, NonEmptyArray } from "../common/Utils";
+import { arraysEqual, NonEmptyArray, SnowflakeID } from "../common/Utils";
 import * as Maybes from "../common/Maybe";
 import { GraphState, setAspectRatio, setIsLightTheme, setPercentGrown, setSnowflakeID } from "./State";
 
-export type UnparsedConfig = {
+export type UnparsedConfig = Partial<{
     percentGrown: number,
     snowflakeID: string,
     aspectRatio: number,
     isLightTheme: boolean,
-    handleMovedCallback: (snowflakeID: string) => void,
-};
+    handleMovedCallback: (snowflakeID: SnowflakeID) => void,
+}>;
 
 export type Config = {
     percentGrown: number,
     snowflakeID: NonEmptyArray<number>,
     aspectRatio: number,
     isLightTheme: boolean,
-    handleMovedCallback: (snowflakeID: string) => void,
+    handleMovedCallback: (snowflakeID: SnowflakeID) => void,
 };
 
 export const configParser: ConfigParser<UnparsedConfig, Config> = {

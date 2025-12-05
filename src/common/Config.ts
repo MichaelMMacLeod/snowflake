@@ -5,7 +5,7 @@ import * as Eithers from "./Either";
 import { Either, left, right } from "./Either";
 import { Maybe, none, some } from "./Maybe";
 import * as Maybes from "./Maybe";
-import { NonEmptyArray, okOrElse, randomIntInclusive } from "./Utils";
+import { NonEmptyArray, okOrElse, randomIntInclusive, SnowflakeID } from "./Utils";
 
 export function isBoolean(value: any): value is boolean {
     return typeof value === 'boolean';
@@ -257,8 +257,8 @@ export function parseConfigAndDisplayErrors<UnparsedConfig, Config>(
     );
 }
 
-export function snowflakeIDString(id: NonEmptyArray<number>): string {
-    return id.map(n => n + 1).join('');
+export function snowflakeIDString(id: NonEmptyArray<number>): SnowflakeID {
+    return id.map(n => n + 1).join('') as SnowflakeID;
 }
 
 export function randomSnowflakeId(): NonEmptyArray<number> {
@@ -273,7 +273,7 @@ export function randomSnowflakeId(): NonEmptyArray<number> {
     );
 }
 
-export function randomSnowflakeIDString(): string {
+export function randomSnowflakeIDString(): SnowflakeID {
     return snowflakeIDString(randomSnowflakeId());
 }
 

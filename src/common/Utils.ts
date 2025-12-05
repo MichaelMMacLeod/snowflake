@@ -75,3 +75,6 @@ export function arraysEqual<T>(a1: Array<T>, a2: Array<T>, eqT: (t1: T, t2: T) =
   return a1.length === a2.length
     && a1.every((v, i) => eqT(v, a2[i]));
 }
+
+declare const snowflakeIDTag: unique symbol;
+export type SnowflakeID = string & { readonly [snowflakeIDTag]: 'SnowflakeID' };

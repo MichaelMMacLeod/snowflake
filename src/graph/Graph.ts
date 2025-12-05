@@ -1,6 +1,6 @@
 import { snowflakeIDString } from "../common/Config";
 import { yChoices } from "../common/Constants";
-import { clamp, NonEmptyArray } from "../common/Utils";
+import { clamp, NonEmptyArray, SnowflakeID } from "../common/Utils";
 import { mapSome, Maybe, none, some } from "../common/Maybe";
 import * as Maybes from "../common/Maybe";
 import { Point } from "../common/Point";
@@ -291,7 +291,7 @@ export type SnowflakeGraph = {
     progress: SVGElement,
     handleBeingDragged: Maybe<number>,
     hoveredHandle: Maybe<number>,
-    handleMovedCallback: (snowflakeID: string) => void,
+    handleMovedCallback: (snowflakeID: SnowflakeID) => void,
 };
 
 function createProgress(cs: Constants, g: SVGElement): SVGElement {
