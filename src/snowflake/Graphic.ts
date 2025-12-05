@@ -19,8 +19,8 @@ export const make = (sizePX: number): Maybe<Graphic> => {
     // can render to. Changing canvas.style.(width|height) changes the
     // size of the displayed canvas. So if the 'style' version is larger,
     // we will get a blurry canvas.
-    ctx.canvas.width = sizePX;
-    ctx.canvas.height = sizePX;
+    canvas.width = sizePX;
+    canvas.height = sizePX;
     canvas.style.width = `${sizePX}px`;
     canvas.style.height = `${sizePX}px`;
     canvas.className = 'sf-canvas';
@@ -28,6 +28,6 @@ export const make = (sizePX: number): Maybe<Graphic> => {
 }
 
 export const clear = (g: Graphic): void => {
-    const c = g[_graphic_ctx].canvas;
+    const c = g[_graphic_canvas];
     g[_graphic_ctx].clearRect(0, 0, c.width, c.height);
 }

@@ -12,15 +12,15 @@ export const make = (sizePX) => {
     // can render to. Changing canvas.style.(width|height) changes the
     // size of the displayed canvas. So if the 'style' version is larger,
     // we will get a blurry canvas.
-    ctx.canvas.width = sizePX;
-    ctx.canvas.height = sizePX;
+    canvas.width = sizePX;
+    canvas.height = sizePX;
     canvas.style.width = `${sizePX}px`;
     canvas.style.height = `${sizePX}px`;
     canvas.className = 'sf-canvas';
     return some([sizePX, canvas, ctx]);
 };
 export const clear = (g) => {
-    const c = g[_graphic_ctx].canvas;
+    const c = g[_graphic_canvas];
     g[_graphic_ctx].clearRect(0, 0, c.width, c.height);
 };
 //# sourceMappingURL=Graphic.js.map
