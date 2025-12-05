@@ -3,17 +3,16 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "test": "vitest"
+    "test": "vitest",
+    "build": "tsc"
   },
+  "main": "dist/lib.js",
+  "types": "dist/lib.d.ts",
   "author": "",
   "license": "MIT",
   "description": "",
   "devDependencies": {
-    "terser-webpack-plugin": "^5.3.11",
-    "ts-loader": "^9.5.1",
     "typescript": "^5.6.3",
-    "vitest": "^3.2.4",
-    "webpack": "^5.96.1",
-    "webpack-cli": "^5.1.4"
+    "vitest": "^3.2.4"
   }
 }

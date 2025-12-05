@@ -3,10 +3,15 @@
         "strict": true,
         "alwaysStrict": true,
         "noImplicitAny": true,
-        "lib": ["es2016", "dom"],
+        "lib": [
+            "es2016",
+            "dom"
+        ],
         "module": "es6",
         "target": "es6",
         "moduleResolution": "node",
-        "outDir": "./dist",
+        "outDir": "dist",
+        "sourceMap": true,
+        "declaration": true,
     },
 }
