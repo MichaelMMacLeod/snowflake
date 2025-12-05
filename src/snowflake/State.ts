@@ -75,14 +75,14 @@ export type State = {
     [_doUpdate]: () => void,
 };
 
-function currentThemeForegroundRGBAString(state: State): string {
+const currentThemeForegroundRGBAString = (state: State): string => {
     if (state[_isLightTheme]) {
         return RGBA.toString(state[_colorTheme].light.foreground);
     }
     return RGBA.toString(state[_colorTheme].dark.foreground);
 }
 
-export function reset(state: State): void {
+export const reset = (state: State): void => {
     state[_needsReset] = true;
     state[_currentMS] = performance.now();
     state[_resetStartTime] = performance.now();
@@ -93,7 +93,7 @@ export function reset(state: State): void {
     }
 }
 
-export function setSnowflakeCanvasSizePX(state: State, snowflakeCanvasSizePX: number): boolean {
+export const setSnowflakeCanvasSizePX = (state: State, snowflakeCanvasSizePX: number): boolean => {
     mapSome(state[_graphic], g => {
         g.sizePX = snowflakeCanvasSizePX;
         g.ctx.canvas.width = snowflakeCanvasSizePX;
@@ -104,14 +104,14 @@ export function setSnowflakeCanvasSizePX(state: State, snowflakeCanvasSizePX: nu
     return isSome(state[_graphic]);
 }
 
-export function initializeGraphic(state: State, snowflakeCanvasSizePX: number): Maybe<Graphic> {
+export const initializeGraphic = (state: State, snowflakeCanvasSizePX: number): Maybe<Graphic> => {
     return Maybes.orElse(state[_graphic], () => {
         state[_graphic] = Graphics.make(snowflakeCanvasSizePX);
         return state[_graphic];
     });
 }
 
-export function scheduleUpdate(state: State): void {
+export const scheduleUpdate = (state: State): void => {
     if (state[_hasScheduledUpdate]) {
         return;
     } else if (state[_growing] && state[_playing] || state[_needsReset]) {
@@ -122,11 +122,11 @@ export function scheduleUpdate(state: State): void {
     }
 }
 
-export function setIdealMSBetweenUpdates(state: State, targetGrowthTimeMS: number, upsCap: number): void {
+export const setIdealMSBetweenUpdates = (state: State, targetGrowthTimeMS: number, upsCap: number): void => {
     state[_idealMSBetweenUpdates] = Math.max(1000 / upsCap, targetGrowthTimeMS / state[_maxUpdates]);
 }
 
-export function zero(): State {
+export const zero = (): State => {
     // These defaults are overwritten in Controller which synchronizes
     // this state with the default Config. It's the values in the 
     // default Config that matter.
@@ -191,11 +191,11 @@ export function zero(): State {
     return result;
 }
 
-export function percentGrown(state: State): number {
+export const percentGrown = (state: State): number => {
     return state[_updateCount] / state[_maxUpdates];
 }
 
-function doReset(state: State): void {
+const doReset = (state: State): void => {
     state[_needsReset] = false;
     Snowflakes.zeroM(state[_snowflake]);
     state[_currentGrowthType] = undefined;
@@ -206,7 +206,7 @@ function doReset(state: State): void {
     state[_resetCallback]();
 }
 
-export function update(state: State): void {
+export const update = (state: State): void => {
     const snowflake = state[_snowflake];
 
     if (state[_needsReset]) {

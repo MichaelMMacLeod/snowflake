@@ -6,7 +6,7 @@ export type Graphic = {
     ctx: CanvasRenderingContext2D,
 };
 
-export function make(sizePX: number): Maybe<Graphic> {
+export const make = (sizePX: number): Maybe<Graphic> => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (ctx === null) {
@@ -24,6 +24,6 @@ export function make(sizePX: number): Maybe<Graphic> {
     return some({ sizePX, canvas, ctx });
 }
 
-export function clear(graphic: Graphic): void {
+export const clear = (graphic: Graphic): void => {
     graphic.ctx.clearRect(0, 0, graphic.ctx.canvas.width, graphic.ctx.canvas.height);
 }

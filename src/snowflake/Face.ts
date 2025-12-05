@@ -18,7 +18,7 @@ export type Face = {
 
 const SIZE_ZERO = 0.0025;
 
-export function zero(): Face {
+export const zero = (): Face => {
     return {
         center: Points.zero(),
         size: SIZE_ZERO,
@@ -29,7 +29,7 @@ export function zero(): Face {
     }
 };
 
-export function zeroM(face: Face): void {
+export const zeroM = (face: Face): void => {
     Points.zeroM(face.center);
     face.size = SIZE_ZERO;
     face.isFirstFace = true;
@@ -38,35 +38,35 @@ export function zeroM(face: Face): void {
     face.growing = true;
 }
 
-export function manualPointNX(centerX: number, size: number, absoluteDirection: number): number {
+export const manualPointNX = (centerX: number, size: number, absoluteDirection: number): number => {
     return centerX + size * Directions.cosines[absoluteDirection];
 }
 
-export function manualPointNY(centerY: number, size: number, absoluteDirection: number): number {
+export const manualPointNY = (centerY: number, size: number, absoluteDirection: number): number => {
     return centerY + size * Directions.sines[absoluteDirection];
 }
 
-export function pointNX(face: Face, absoluteDirection: number): number {
+export const pointNX = (face: Face, absoluteDirection: number): number => {
     return manualPointNX(face.center.x, face.size, absoluteDirection);
 }
 
-export function pointNY(face: Face, absoluteDirection: number): number {
+export const pointNY = (face: Face, absoluteDirection: number): number => {
     return manualPointNY(face.center.y, face.size, absoluteDirection);
 }
 
-export function setPointN(result: Point, face: Face, i: number) {
+export const setPointN = (result: Point, face: Face, i: number) => {
     const d = (face.direction + i) % Directions.values.length;
     result.x = face.center.x + face.size * Directions.cosines[d];
     result.y = face.center.y + face.size * Directions.sines[d];
 }
 
-export function setPointNManually(result: Point, direction: Direction, center: Point, size: number, i: number) {
+export const setPointNManually = (result: Point, direction: Direction, center: Point, size: number, i: number) => {
     const d = (direction + i) % Directions.values.length;
     result.x = center.x + size * Directions.cosines[d];
     result.y = center.y + size * Directions.sines[d];
 }
 
-export function draw(graphic: Graphic, face: Face): boolean {
+export const draw = (graphic: Graphic, face: Face): boolean => {
     const d = face.direction;
     const p0x = viewspaceX(graphic, pointNX(face, (d + 0) % 6));
     const p0y = viewspaceY(graphic, pointNY(face, (d + 0) % 6));
@@ -147,7 +147,7 @@ export function draw(graphic: Graphic, face: Face): boolean {
     return false;
 }
 
-export function enlarge(face: Face, scale: number): void {
+export const enlarge = (face: Face, scale: number): void => {
     face.size += scale * faceSizeGrowthScalar * face.growthScale;
     if (!face.isFirstFace) {
         const dx = scale * faceSizeGrowthScalar * Math.cos(Directions.values[face.direction]) * face.growthScale;

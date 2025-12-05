@@ -3,7 +3,7 @@ import { midpointTN, Point } from "../common/Point";
 import { Direction } from "./Direction";
 import * as Directions from "./Direction";
 import { Graphic } from "./Graphic";
-import { outsideVisibleArea, viewspaceX, viewspaceY, worldToViewTransform } from "./CoordinateSystem";
+import { outsideVisibleArea, viewspaceX, viewspaceY } from "./CoordinateSystem";
 import * as Faces from "./Face";
 import { branchLengthGrowthScalar, branchSizeGrowthScalar } from "../common/Constants";
 import { rem } from "../common/Utils";
@@ -17,7 +17,7 @@ export type Branch = {
     growing: boolean,
 }
 
-export function zero(): Branch {
+export const zero = (): Branch => {
     return {
         start: Points.zero(),
         size: 0,
@@ -28,15 +28,15 @@ export function zero(): Branch {
     };
 }
 
-export function endCenterX(branch: Branch): number {
+export const endCenterX = (branch: Branch): number => {
     return branch.start.x + branch.length * Directions.cosines[branch.direction];
 }
 
-export function endCenterY(branch: Branch): number {
+export const endCenterY = (branch: Branch): number => {
     return branch.start.y + branch.length * Directions.sines[branch.direction];
 }
 
-export function pointNX(branch: Branch, absoluteDirection: number): number {
+export const pointNX = (branch: Branch, absoluteDirection: number): number => {
     const d = rem(absoluteDirection - branch.direction, Directions.values.length);
     if (d === 5 || d === 0 || d === 1) {
         return Faces.manualPointNX(endCenterX(branch), branch.size, absoluteDirection);
@@ -44,7 +44,7 @@ export function pointNX(branch: Branch, absoluteDirection: number): number {
     return Faces.manualPointNX(branch.start.x, branch.size, absoluteDirection);
 }
 
-export function pointNY(branch: Branch, absoluteDirection: number): number {
+export const pointNY = (branch: Branch, absoluteDirection: number): number => {
     const d = rem(absoluteDirection - branch.direction, Directions.values.length);
     if (d === 5 || d === 0 || d === 1) {
         return Faces.manualPointNY(endCenterY(branch), branch.size, absoluteDirection);
@@ -52,7 +52,7 @@ export function pointNY(branch: Branch, absoluteDirection: number): number {
     return Faces.manualPointNY(branch.start.y, branch.size, absoluteDirection);
 }
 
-export function draw(graphic: Graphic, branch: Branch): boolean {
+export const draw = (graphic: Graphic, branch: Branch): boolean => {
     const d = branch.direction;
     const p0x = viewspaceX(graphic, pointNX(branch, (d + 0) % 6));
     const p0y = viewspaceY(graphic, pointNY(branch, (d + 0) % 6));
@@ -100,7 +100,7 @@ export function draw(graphic: Graphic, branch: Branch): boolean {
     return false;
 }
 
-export function enlarge(branch: Branch, scale: number): void {
+export const enlarge = (branch: Branch, scale: number): void => {
     // const lengthScalar = -1.5 * scale + 1.5;
     // const sizeScalar = 1.5 * scale;
     branch.size += branchSizeGrowthScalar * branch.growthScale;

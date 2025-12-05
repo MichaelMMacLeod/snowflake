@@ -25,16 +25,6 @@ import { Point } from "../common/Point";
 // are in world space. View space is used to draw the snowflake on
 // the View and these coordinates are never saved anywhere.
 
-export function worldToViewTransform(graphic: Graphic, p: Point): Point {
-    const w = graphic.sizePX;
-    const h = graphic.sizePX;
-    const r: Point = {
-        x: p.x * w * 0.5 + w * 0.5,
-        y: p.y * -h * 0.5 + h * 0.5,
-    };
-    return r;
-}
-
 // The 'viewspace(X|Y)' functions transform worldspace points to viewspace
 // points using the following affine transformation matrix, where 'p' is
 // the worldspace point, and 'r' is the resulting viewspace point.
@@ -42,16 +32,16 @@ export function worldToViewTransform(graphic: Graphic, p: Point): Point {
 // |r.y| = |0   -h/2  h/2| * |p.y|
 // | 1 |   |0     0    1 |   | 1 |
 
-export function viewspaceX(graphic: Graphic, worldX: number): number {
+export const viewspaceX = (graphic: Graphic, worldX: number): number => {
     const w = graphic.sizePX;
     return worldX * w * 0.5 + w * 0.5;
 }
 
-export function viewspaceY(graphic: Graphic, worldY: number): number {
+export const viewspaceY = (graphic: Graphic, worldY: number): number => {
     const h = graphic.sizePX;
     return worldY * -h * 0.5 + h * 0.5;
 }
 
-export function outsideVisibleArea(graphic: Graphic, viewN: number): boolean {
+export const outsideVisibleArea = (graphic: Graphic, viewN: number): boolean => {
     return viewN < 0 || viewN > graphic.sizePX;
 }

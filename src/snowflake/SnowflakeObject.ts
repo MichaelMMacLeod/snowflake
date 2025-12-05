@@ -19,7 +19,7 @@ import * as Sides from "./Side";
 //
 // Determining if two horizontal line segments overlap each other is simple,
 // and is what 'killPartIfCoveredInOneDirection' (specifically, Sides.overlaps())
-// does. This function takes a part and its horizontal side and does a linear 
+// does. This const takes a part and its horizontal side and does a linear 
 // search through the horizontal sides of every other part, using Sides.overlaps()
 // to check if the sides of the given part are below any other sides. It kills
 // the part if its side is below any other side.
@@ -75,7 +75,7 @@ import * as Sides from "./Side";
 // 6. 'reduce_funcs' in Webpack's TerserPlugin is disabled. This option, when
 //    enabled, transforms code like this:
 //
-//    | export function normalizeSide2DFaceM(
+//    | function normalizeSide2DFaceM(
 //    |   resultLeft: SideCacheArray,
 //    |   resultRight: SideCacheArray,
 //    |   resultHeight: SideCacheArray,
@@ -158,7 +158,7 @@ export type Snowflake = {
   numInitialGrownBranches: number,
 };
 
-export function addFaceM(
+export const addFaceM = (
   snowflake: Snowflake,
   centerX: number,
   centerY: number,
@@ -167,7 +167,7 @@ export function addFaceM(
   direction: Direction,
   growthScale: number,
   growing: boolean
-): boolean {
+): boolean => {
   if (snowflake.numFaces < MAX_FACES) {
     const f = snowflake.faces[snowflake.numFaces];
     f.center.x = centerX;
@@ -183,7 +183,7 @@ export function addFaceM(
   return true;
 }
 
-export function addBranchM(
+export const addBranchM = (
   snowflake: Snowflake,
   startX: number,
   startY: number,
@@ -192,7 +192,7 @@ export function addBranchM(
   direction: Direction,
   growthScale: number,
   growing: boolean,
-): boolean {
+): boolean => {
   if (snowflake.numBranches < MAX_BRANCHES) {
     const b = snowflake.branches[snowflake.numBranches];
     b.start.x = startX;
@@ -208,13 +208,13 @@ export function addBranchM(
   return true;
 }
 
-export function forEachFace(snowflake: Snowflake, f: (face: Face, index: number) => void): void {
+export const forEachFace = (snowflake: Snowflake, f: (face: Face, index: number) => void): void => {
   for (let i = 0; i < snowflake.numFaces; ++i) {
     f(snowflake.faces[i], i);
   }
 }
 
-export function forEachBranch(snowflake: Snowflake, f: (branch: Branch, index: number) => void): void {
+export const forEachBranch = (snowflake: Snowflake, f: (branch: Branch, index: number) => void): void => {
   for (let i = 0; i < snowflake.numBranches; ++i) {
     f(snowflake.branches[i], i);
   }
@@ -222,7 +222,7 @@ export function forEachBranch(snowflake: Snowflake, f: (branch: Branch, index: n
 
 const oneZeroArray: [1, 0] = [1, 0];
 
-export function forEachGrowingFace(snowflake: Snowflake, f: (face: Face, index: number) => void): void {
+export const forEachGrowingFace = (snowflake: Snowflake, f: (face: Face, index: number) => void): void => {
   for (let i = snowflake.numInitialGrownFaces; i < snowflake.numFaces; ++i) {
     const face = snowflake.faces[i];
     if (!face.growing) {
@@ -233,7 +233,7 @@ export function forEachGrowingFace(snowflake: Snowflake, f: (face: Face, index: 
   }
 }
 
-export function forEachGrowingBranch(snowflake: Snowflake, f: (branch: Branch, index: number) => void): void {
+export const forEachGrowingBranch = (snowflake: Snowflake, f: (branch: Branch, index: number) => void): void => {
   for (let i = snowflake.numInitialGrownBranches; i < snowflake.numBranches; ++i) {
     const branch = snowflake.branches[i];
     if (!branch.growing) {
@@ -244,7 +244,7 @@ export function forEachGrowingBranch(snowflake: Snowflake, f: (branch: Branch, i
   }
 }
 
-export function draw(graphic: Graphic, snowflake: Snowflake, foregroundColor: string): boolean {
+export const draw = (graphic: Graphic, snowflake: Snowflake, foregroundColor: string): boolean => {
   let anyPartOutside = false;
   graphic.ctx.strokeStyle = foregroundColor;
   graphic.ctx.beginPath();
@@ -254,7 +254,7 @@ export function draw(graphic: Graphic, snowflake: Snowflake, foregroundColor: st
   return anyPartOutside;
 }
 
-function zeroParts<P>(maxParts: number, zeroPart: () => P): Array<P> {
+const zeroParts = <P>(maxParts: number, zeroPart: () => P): Array<P> => {
   const result = [];
   for (let i = 0; i < maxParts; ++i) {
     result[i] = zeroPart();
@@ -262,11 +262,11 @@ function zeroParts<P>(maxParts: number, zeroPart: () => P): Array<P> {
   return result;
 }
 
-function sideCacheZeroFunc(length: number): () => SideCacheArray {
+const sideCacheZeroFunc = (length: number): () => SideCacheArray => {
   return () => sideCacheConstructor(length);
 }
 
-export function zero(): Snowflake {
+export const zero = (): Snowflake => {
   const mkFaceCache = sideCacheZeroFunc(MAX_FACES);
   const mkBranchCache = sideCacheZeroFunc(MAX_BRANCHES);
   const sideCaches: SideCache = [
@@ -290,7 +290,7 @@ export function zero(): Snowflake {
   }
 }
 
-export function zeroM(s: Snowflake): void {
+export const zeroM = (s: Snowflake): void => {
   s.numFaces = 1;
   Faces.zeroM(s.faces[0])
   s.numBranches = 0;
@@ -300,7 +300,7 @@ export function zeroM(s: Snowflake): void {
 
 const branchSplittingGrowthScales = [0.5, 0.9, 0.5];
 
-function addBranchesToFace(snowflake: Snowflake, face: Face): void {
+const addBranchesToFace = (snowflake: Snowflake, face: Face): void => {
   const initialFraction = 0.01;
   const sizeOfNewBranches = face.size * initialFraction;
 
@@ -345,14 +345,14 @@ function addBranchesToFace(snowflake: Snowflake, face: Face): void {
   }
 }
 
-export function addBranchesToGrowingFaces(snowflake: Snowflake): void {
+export const addBranchesToGrowingFaces = (snowflake: Snowflake): void => {
   forEachGrowingFace(snowflake, (face, _) => {
     addBranchesToFace(snowflake, face);
     face.growing = false;
   })
 }
 
-function addFaceToBranch(snowflake: Snowflake, branch: Branch): void {
+const addFaceToBranch = (snowflake: Snowflake, branch: Branch): void => {
   addFaceM(
     snowflake,
     Branches.endCenterX(branch),
@@ -365,14 +365,14 @@ function addFaceToBranch(snowflake: Snowflake, branch: Branch): void {
   );
 }
 
-export function addFacesToGrowingBranches(snowflake: Snowflake): void {
+export const addFacesToGrowingBranches = (snowflake: Snowflake): void => {
   forEachGrowingBranch(snowflake, (branch, _) => {
     addFaceToBranch(snowflake, branch);
     branch.growing = false;
   });
 }
 
-export function cacheNormalizedSides(snowflake: Snowflake) {
+export const cacheNormalizedSides = (snowflake: Snowflake) => {
   forEachGrowingFace(snowflake, (f, fi) => {
     Sides.normalizeFaceRelativeSide2DsM(
       snowflake.sideCaches[FACE_LEFT_CACHE],
@@ -399,7 +399,7 @@ type Killable = {
   growing: boolean,
 };
 
-export function killPartIfCoveredInOneDirection(
+export const killPartIfCoveredInOneDirection = (
   part: Killable,
   partIndex: number,
   sideLeftCache: SideCacheArray,
@@ -410,7 +410,7 @@ export function killPartIfCoveredInOneDirection(
   otherHeightSideCache: SideCacheArray,
   numOtherSides: number,
   otherCacheContainsPart: boolean,
-): void {
+): void => {
   const sl = sideLeftCache[partIndex];
   const sr = sideRightCache[partIndex];
   for (let oi = 0; oi < numOtherSides && part.growing; ++oi) {
@@ -427,7 +427,7 @@ export function killPartIfCoveredInOneDirection(
   }
 }
 
-export function killPartIfCoveredInOneOfTwoDirections(
+export const killPartIfCoveredInOneOfTwoDirections = (
   caches: SideCache,
   numFaces: number,
   numBranches: number,
@@ -436,7 +436,7 @@ export function killPartIfCoveredInOneOfTwoDirections(
   part: Killable,
   partIndex: number,
   partIsFace: boolean,
-): void {
+): void => {
   const partCache = partIsFace ? 0 : 3;
   const plc = caches[partCache];
   const prc = caches[partCache + 1];
@@ -463,14 +463,14 @@ export function killPartIfCoveredInOneOfTwoDirections(
   }
 }
 
-export function killPartIfCovered(
+export const killPartIfCovered = (
   part: Killable,
   partIndex: number,
   caches: SideCache,
   numFaces: number,
   numBranches: number,
   partIsFace: boolean,
-): void {
+): void => {
   const d = part.direction;
   const leftDirection = d;
   const rightDirection = rem(d - 1, Directions.values.length) as Direction;
@@ -486,7 +486,7 @@ export function killPartIfCovered(
   );
 }
 
-export function killCoveredFaces(snowflake: Snowflake): void {
+export const killCoveredFaces = (snowflake: Snowflake): void => {
   forEachGrowingFace(snowflake, (f, fi) => {
     killPartIfCovered(
       f,
@@ -499,7 +499,7 @@ export function killCoveredFaces(snowflake: Snowflake): void {
   });
 }
 
-export function killCoveredBranches(snowflake: Snowflake): void {
+export const killCoveredBranches = (snowflake: Snowflake): void => {
   forEachGrowingBranch(snowflake, (b, bi) => {
     killPartIfCovered(
       b,

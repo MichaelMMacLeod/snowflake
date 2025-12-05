@@ -19,34 +19,34 @@ import * as Directions from "./Direction";
 //
 // These functions do not take into consideration the 'direction' of the parts.
 
-export function faceSideNLeftX(face: Face, absoluteSideIndex: number): number {
+export const faceSideNLeftX = (face: Face, absoluteSideIndex: number): number => {
     return Faces.pointNX(face, (absoluteSideIndex + 1) % Directions.values.length);
 }
 
-export function faceSideNLeftY(face: Face, absoluteSideIndex: number): number {
+export const faceSideNLeftY = (face: Face, absoluteSideIndex: number): number => {
     return Faces.pointNY(face, (absoluteSideIndex + 1) % Directions.values.length);
 }
 
-export function faceSideNRightX(face: Face, absoluteSideIndex: number): number {
+export const faceSideNRightX = (face: Face, absoluteSideIndex: number): number => {
     return Faces.pointNX(face, absoluteSideIndex);
 }
 
-export function faceSideNRightY(face: Face, absoluteSideIndex: number): number {
+export const faceSideNRightY = (face: Face, absoluteSideIndex: number): number => {
     return Faces.pointNY(face, absoluteSideIndex);
 }
 
-export function branchSideNLeftX(branch: Branch, absoluteSideIndex: number): number {
+export const branchSideNLeftX = (branch: Branch, absoluteSideIndex: number): number => {
     return Branches.pointNX(branch, (absoluteSideIndex + 1) % Directions.values.length);
 }
 
-export function branchSideNLeftY(branch: Branch, absoluteSideIndex: number): number {
+export const branchSideNLeftY = (branch: Branch, absoluteSideIndex: number): number => {
     return Branches.pointNY(branch, (absoluteSideIndex + 1) % Directions.values.length);
 }
 
-export function branchSideNRightX(branch: Branch, absoluteSideIndex: number): number {
+export const branchSideNRightX = (branch: Branch, absoluteSideIndex: number): number => {
     return Branches.pointNX(branch, absoluteSideIndex);
 }
 
-export function branchSideNRightY(branch: Branch, absoluteSideIndex: number): number {
+export const branchSideNRightY = (branch: Branch, absoluteSideIndex: number): number => {
     return Branches.pointNY(branch, absoluteSideIndex);
 }

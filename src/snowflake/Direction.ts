@@ -31,10 +31,10 @@ export const sines: Array6<number> = [
     Math.sin(values[5]),
 ];
 
-export function next(d: Direction): Direction {
+export const next = (d: Direction): Direction => {
     return ((d + 1) % values.length) as Direction;
 }
 
-export function previous(d: Direction): Direction {
+export const previou = (d: Direction): Direction => {
     return rem(d - 1, values.length) as Direction;
 }

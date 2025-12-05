@@ -6,14 +6,14 @@ import * as Directions from "./Direction";
 import { Direction } from "./Direction";
 import { Branch } from "./Branch";
 
-export function normalizeSide2DFaceM(
+export const normalizeSide2DFaceM = (
   resultLeft: SideCacheArray,
   resultRight: SideCacheArray,
   resultHeight: SideCacheArray,
   partIndex: number,
   face: Face,
   absoluteDirection: number
-): void {
+): void => {
   const d = rem(1 - absoluteDirection, Directions.values.length) as Direction;
   const side2dLeftX = Side2Ds.faceSideNLeftX(face, absoluteDirection);
   const side2dLeftY = Side2Ds.faceSideNLeftY(face, absoluteDirection);
@@ -24,14 +24,14 @@ export function normalizeSide2DFaceM(
   resultHeight[partIndex] = Points.rotateY(side2dLeftX, side2dLeftY, d);
 }
 
-export function normalizeSide2DBranchM(
+export const normalizeSide2DBranchM = (
   resultLeft: SideCacheArray,
   resultRight: SideCacheArray,
   resultHeight: SideCacheArray,
   partIndex: number,
   branch: Branch,
   absoluteDirection: number
-): void {
+): void => {
   const d = rem(1 - absoluteDirection, Directions.values.length) as Direction;
   const side2dLeftX = Side2Ds.branchSideNLeftX(branch, absoluteDirection);
   const side2dLeftY = Side2Ds.branchSideNLeftY(branch, absoluteDirection);
@@ -42,34 +42,34 @@ export function normalizeSide2DBranchM(
   resultHeight[partIndex] = Points.rotateY(side2dLeftX, side2dLeftY, d);
 }
 
-export function normalizeFaceRelativeSide2DsM(
+export const normalizeFaceRelativeSide2DsM = (
   resultLeft: Array6<SideCacheArray>,
   resultRight: Array6<SideCacheArray>,
   resultHeight: Array6<SideCacheArray>,
   partIndex: number, face: Face
-): void {
+): void => {
   for (let i = 0; i < Directions.values.length; ++i) {
     normalizeSide2DFaceM(resultLeft[i], resultRight[i], resultHeight[i], partIndex, face, i);
   }
 }
 
-export function normalizeBranchRelativeSide2DsM(
+export const normalizeBranchRelativeSide2DsM = (
   resultLeft: Array6<SideCacheArray>,
   resultRight: Array6<SideCacheArray>,
   resultHeight: Array6<SideCacheArray>,
   partIndex: number,
   branch: Branch
-): void {
+): void => {
   for (let i = 0; i < Directions.values.length; ++i) {
     normalizeSide2DBranchM(resultLeft[i], resultRight[i], resultHeight[i], partIndex, branch, i);
   }
 }
-export function overlapDistance(height1: number, height2: number) {
+export const overlapDistance = (height1: number, height2: number) => {
   return height1 - height2;
 }
 
 // Returns 'true' if the line segments l1...r1 and l2...r2 overlap.
-export function overlaps(l1: number, r1: number, l2: number, r2: number): boolean {
+export const overlaps = (l1: number, r1: number, l2: number, r2: number): boolean => {
   // s1 ---......
   // s2       ......---
   //    and

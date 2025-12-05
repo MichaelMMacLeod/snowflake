@@ -58,7 +58,7 @@ export const configParser: ConfigParser<UnparsedConfig, Config> = {
     updatedCallback: parseFunction0,
 }
 
-export function zero(): Config {
+export const zero = (): Config => {
     return parseConfigAndDisplayErrors(
         configParser,
         {
