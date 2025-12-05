@@ -1,0 +1,46 @@
+import { RGBA } from "./color/Color.js";
+import { ColorScheme } from "./color/Scheme.js";
+import { ColorTheme } from "./color/Theme.js";
+import * as Eithers from "maybe-either/Either";
+import { Either } from "maybe-either/Either";
+import { Maybe } from "maybe-either/Maybe";
+import { NonEmptyArray, SnowflakeID } from "./Utils.js";
+export declare function isBoolean(value: any): value is boolean;
+export declare function isFunction(value: any): boolean;
+export declare function isNumber(value: any): value is number;
+export declare function isFunctionN(value: any, argCount: number): boolean;
+export declare function isFunction0(value: any): value is () => any;
+export declare function isFunction1(value: any): value is (a: any) => any;
+export declare function parseRGBComponent(value: any): Either<string, number>;
+export declare function parseAlphaComponent(value: any): Either<string, number>;
+type Parser<T> = (value: any) => Either<string, T>;
+export declare const parseRGBA: Parser<RGBA>;
+export declare const parseColorScheme: Parser<ColorScheme>;
+export declare const parseColorTheme: Parser<ColorTheme>;
+export declare function parseSnowflakeID(value: any): Either<string, NonEmptyArray<number>>;
+export declare function parseNat(value: any): Either<string, number>;
+export declare function parseNonnegativeFloat(value: any): Either<string, number>;
+export declare function parsePositiveFloat(value: any): Either<string, number>;
+export declare const parseBool: (value: any) => Eithers.Either<string, boolean>;
+export declare const parseFunction0: (value: any) => Eithers.Either<string, () => any>;
+export declare const parseFunction1: (value: any) => Eithers.Either<string, (a: any) => any>;
+export type ParserFailure = {
+    expected: string;
+    actual: any;
+};
+export declare function isObject(value: any): value is Object;
+export type ConfigParser<UnparsedConfig, Config> = {
+    [K in keyof UnparsedConfig]: (value: any) => K extends keyof Config ? Either<string, Config[K]> : never;
+};
+export declare function parseConfig<UnparsedConfig, Config>(u: UnparsedConfig, configParser: ConfigParser<UnparsedConfig, Config>): Either<Array<ParserFailure>, Config>;
+export declare function parseErrorString(e: ParserFailure): string;
+export declare function parseErrorsString(e: Array<ParserFailure>): string;
+export declare function parseConfigAndDisplayErrors<UnparsedConfig, Config>(configParser: ConfigParser<UnparsedConfig, Config>, u: UnparsedConfig): Config;
+export declare function snowflakeIDString(id: NonEmptyArray<number>): SnowflakeID;
+export declare function randomSnowflakeId(): NonEmptyArray<number>;
+export declare function randomSnowflakeIDString(): SnowflakeID;
+export type ConfigSynchronizer<State, Config> = {
+    [K in keyof Config]: (c: Config, s: State, newValue: Config[K], oldValue: Maybe<Config[K]>) => boolean;
+};
+export declare function sync<Config extends Object, State>(configSynchronizer: ConfigSynchronizer<State, Config>, state: State, resetState: () => void, oldConfig: Maybe<Config>, newConfig: Config): void;
+export {};

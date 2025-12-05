@@ -1,0 +1,51 @@
+import { NonEmptyArray, SnowflakeID } from "../common/Utils.js";
+import { Maybe } from "maybe-either/Maybe";
+type Attributes = {
+    [key: string]: string;
+};
+type Constants = {
+    ASPECT_RATIO: number;
+    SIZE_SCALAR: number;
+    VIEWPORT_WIDTH: number;
+    VIEWPORT_HEIGHT: number;
+    HANDLE_OUTER_HOVER_SCALE: number;
+    HANDLE_OUTER_SIZE: number;
+    HANDLE_OUTER_HOVERED_SIZE: number;
+    HANDLE_INNER_SIZE: number;
+    LINE_WIDTH: number;
+    MARGIN_WIDTH: number;
+    MARGIN_HEIGHT: number;
+    GRAPHABLE_VIEWPORT_WIDTH: number;
+    GRAPHABLE_VIEWPORT_HEIGHT: number;
+    ROOT_STYLE: string;
+    ROOT_ATTRS: Attributes;
+    HANDLE_INSIDE_ATTRS: Attributes;
+    HANDLE_OUTSIDE_ATTRS: Attributes;
+    FACETING_BRANCHING_LINE_ATTRS: Attributes;
+    HANDLE_LINE_ATTRS: Attributes;
+    PROGRESS_ATTRS: Attributes;
+};
+type GraphHandle = {
+    g: SVGElement;
+    inside: SVGElement;
+    outside: SVGElement;
+};
+export type SnowflakeGraph = {
+    constants: Constants;
+    snowflakeID: NonEmptyArray<number>;
+    root: SVGSVGElement;
+    style: HTMLStyleElement;
+    g: SVGElement;
+    handles: Array<GraphHandle>;
+    handleLine: SVGElement;
+    facetingBranchingLine: SVGElement;
+    progress: SVGElement;
+    handleBeingDragged: Maybe<number>;
+    hoveredHandle: Maybe<number>;
+    handleMovedCallback: (snowflakeID: SnowflakeID) => void;
+};
+export declare const syncToSnowflakeID: (g: SnowflakeGraph) => void;
+export declare const syncToPercentGrown: (g: SnowflakeGraph, percentGrown: number) => void;
+export declare const zero: () => SnowflakeGraph;
+export declare const setConstants: (g: SnowflakeGraph, aspectRatio: number, isLightTheme: boolean) => void;
+export {};

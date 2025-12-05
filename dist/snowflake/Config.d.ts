@@ -1,0 +1,33 @@
+import { ConfigParser, ConfigSynchronizer } from "../common/Config.js";
+import { State } from "./State.js";
+import { NonEmptyArray, SnowflakeID } from "../common/Utils.js";
+import { ColorTheme } from "../common/color/Theme.js";
+export type UnparsedConfig = Partial<{
+    snowflakeID: SnowflakeID;
+    snowflakeCanvasSizePX: number;
+    targetGrowthTimeMS: number;
+    upsCap: number;
+    maxUpdates: number;
+    playing: boolean;
+    colorTheme: ColorTheme;
+    isLightTheme: boolean;
+    finishedGrowingCallback: () => void;
+    resetCallback: () => void;
+    updatedCallback: () => void;
+}>;
+export type Config = {
+    snowflakeID: NonEmptyArray<number>;
+    snowflakeCanvasSizePX: number;
+    targetGrowthTimeMS: number;
+    upsCap: number;
+    maxUpdates: number;
+    playing: boolean;
+    colorTheme: ColorTheme;
+    isLightTheme: boolean;
+    finishedGrowingCallback: () => void;
+    resetCallback: () => void;
+    updatedCallback: () => void;
+};
+export declare const configParser: ConfigParser<UnparsedConfig, Config>;
+export declare const zero: () => Config;
+export declare const configSynchronizer: ConfigSynchronizer<State, Config>;

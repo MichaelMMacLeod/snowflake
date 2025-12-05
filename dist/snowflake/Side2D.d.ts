@@ -1,0 +1,10 @@
+import { Face } from "./Face.js";
+import { Branch } from "./Branch.js";
+export declare const faceSideNLeftX: (face: Face, absoluteSideIndex: number) => number;
+export declare const faceSideNLeftY: (face: Face, absoluteSideIndex: number) => number;
+export declare const faceSideNRightX: (face: Face, absoluteSideIndex: number) => number;
+export declare const faceSideNRightY: (face: Face, absoluteSideIndex: number) => number;
+export declare const branchSideNLeftX: (branch: Branch, absoluteSideIndex: number) => number;
+export declare const branchSideNLeftY: (branch: Branch, absoluteSideIndex: number) => number;
+export declare const branchSideNRightX: (branch: Branch, absoluteSideIndex: number) => number;
+export declare const branchSideNRightY: (branch: Branch, absoluteSideIndex: number) => number;
