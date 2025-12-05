@@ -11,14 +11,21 @@ type SideCache = [
     Array6<SideCacheArray>,
     Array6<SideCacheArray>
 ];
+declare const _faces = 0;
+declare const _branches = 1;
+declare const _numFaces = 2;
+declare const _numBranches = 3;
+declare const _sideCaches = 4;
+declare const _numInitialGrownFaces = 5;
+declare const _numInitialGrownBranches = 6;
 export type Snowflake = {
-    faces: Array<Face>;
-    branches: Array<Branch>;
-    numFaces: number;
-    numBranches: number;
-    sideCaches: SideCache;
-    numInitialGrownFaces: number;
-    numInitialGrownBranches: number;
+    [_faces]: Array<Face>;
+    [_branches]: Array<Branch>;
+    [_numFaces]: number;
+    [_numBranches]: number;
+    [_sideCaches]: SideCache;
+    [_numInitialGrownFaces]: number;
+    [_numInitialGrownBranches]: number;
 };
 export declare const addFaceM: (snowflake: Snowflake, centerX: number, centerY: number, size: number, isFirstFace: boolean, direction: Direction, growthScale: number, growing: boolean) => boolean;
 export declare const addBranchM: (snowflake: Snowflake, startX: number, startY: number, size: number, length: number, direction: Direction, growthScale: number, growing: boolean) => boolean;

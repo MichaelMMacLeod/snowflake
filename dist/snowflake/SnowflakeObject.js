@@ -67,53 +67,6 @@ import * as Sides from "./Side.js";
 //    objects. This way, the JS engine can store them as arrays of unboxed doubles 
 //    instead of arrays of pointers to objects with properties which are doubles.
 //
-// 6. 'reduce_funcs' in Webpack's TerserPlugin is disabled. This option, when
-//    enabled, transforms code like this:
-//
-//    | function normalizeSide2DFaceM(
-//    |   resultLeft: SideCacheArray,
-//    |   resultRight: SideCacheArray,
-//    |   resultHeight: SideCacheArray,
-//    |   partIndex: number,
-//    |   face: Face,
-//    |   absoluteDirection: number
-//    | ): void {
-//    |   const d = rem(1 - absoluteDirection, Directions.values.length) as Direction;
-//    |   const side2dLeftX = Side2Ds.faceSideNLeftX(face, absoluteDirection);
-//    |   const side2dLeftY = Side2Ds.faceSideNLeftY(face, absoluteDirection);
-//    |   const side2dRightX = Side2Ds.faceSideNRightX(face, absoluteDirection);
-//    |   const side2dRightY = Side2Ds.faceSideNRightY(face, absoluteDirection);
-//    |   resultLeft[partIndex] = Points.rotateX(side2dLeftX, side2dLeftY, d);
-//    |   resultRight[partIndex] = Points.rotateX(side2dRightX, side2dRightY, d);
-//    |   resultHeight[partIndex] = Points.rotateY(side2dLeftX, side2dLeftY, d);
-//    | }
-//
-//    Into code like this:
-//
-//    | function normalizeSide2DFaceM(resultLeft, resultRight, resultHeight, partIndex, face, absoluteDirection) {
-//    |   const d = Utils_rem(1 - absoluteDirection, values.length)
-//    |     , side2dLeftX = function(face, absoluteSideIndex) {
-//    |       return pointNX(face, (absoluteSideIndex + 1) % values.length)
-//    |   }(face, absoluteDirection)
-//    |     , side2dLeftY = function(face, absoluteSideIndex) {
-//    |       return pointNY(face, (absoluteSideIndex + 1) % values.length)
-//    |   }(face, absoluteDirection)
-//    |     , side2dRightX = function(face, absoluteSideIndex) {
-//    |       return pointNX(face, absoluteSideIndex)
-//    |   }(face, absoluteDirection)
-//    |     , side2dRightY = function(face, absoluteSideIndex) {
-//    |       return pointNY(face, absoluteSideIndex)
-//    |   }(face, absoluteDirection);
-//    |   resultLeft[partIndex] = rotateX(side2dLeftX, side2dLeftY, d),
-//    |   resultRight[partIndex] = rotateX(side2dRightX, side2dRightY, d),
-//    |   resultHeight[partIndex] = rotateY(side2dLeftX, side2dLeftY, d)
-//    | }
-//
-//    Using Chrome's performance profiler, the effect of this transformation seems
-//    to be that 'normalizeSide2DFaceM' now allocates closures which are then
-//    immediately applied (and need to then be freed by the garbage collector).
-//    The code with this option turned off seems to not need to perform any allocations.
-//
 // Historical note: the original overlap detection algorithm used a 'ray tracing'
 // strategy to find covered parts. This algorithm shot 'rays' from all around
 // the snowflake at its center, stopping each ray at the first part hit. Parts
@@ -132,9 +85,16 @@ const FACE_HEIGHT_CACHE = 2;
 const BRANCH_LEFT_CACHE = 3;
 const BRANCH_RIGHT_CACHE = 4;
 const BRANCH_HEIGHT_CACHE = 5;
+const _faces = 0;
+const _branches = 1;
+const _numFaces = 2;
+const _numBranches = 3;
+const _sideCaches = 4;
+const _numInitialGrownFaces = 5;
+const _numInitialGrownBranches = 6;
 export const addFaceM = (snowflake, centerX, centerY, size, isFirstFace, direction, growthScale, growing) => {
-    if (snowflake.numFaces < MAX_FACES) {
-        const f = snowflake.faces[snowflake.numFaces];
+    if (snowflake[_numFaces] < MAX_FACES) {
+        const f = snowflake[_faces][snowflake[_numFaces]];
         f.center.x = centerX;
         f.center.y = centerY;
         f.size = size;
@@ -142,14 +102,14 @@ export const addFaceM = (snowflake, centerX, centerY, size, isFirstFace, directi
         f.direction = direction;
         f.growthScale = growthScale;
         f.growing = growing;
-        snowflake.numFaces += 1;
+        snowflake[_numFaces] += 1;
         return false;
     }
     return true;
 };
 export const addBranchM = (snowflake, startX, startY, size, length, direction, growthScale, growing) => {
-    if (snowflake.numBranches < MAX_BRANCHES) {
-        const b = snowflake.branches[snowflake.numBranches];
+    if (snowflake[_numBranches] < MAX_BRANCHES) {
+        const b = snowflake[_branches][snowflake[_numBranches]];
         b.start.x = startX;
         b.start.y = startY;
         b.size = size;
@@ -157,40 +117,40 @@ export const addBranchM = (snowflake, startX, startY, size, length, direction, g
         b.direction = direction;
         b.growthScale = growthScale;
         b.growing = growing;
-        snowflake.numBranches += 1;
+        snowflake[_numBranches] += 1;
         return false;
     }
     return true;
 };
 export const forEachFace = (snowflake, f) => {
-    for (let i = 0; i < snowflake.numFaces; ++i) {
-        f(snowflake.faces[i], i);
+    for (let i = 0; i < snowflake[_numFaces]; ++i) {
+        f(snowflake[_faces][i], i);
     }
 };
 export const forEachBranch = (snowflake, f) => {
-    for (let i = 0; i < snowflake.numBranches; ++i) {
-        f(snowflake.branches[i], i);
+    for (let i = 0; i < snowflake[_numBranches]; ++i) {
+        f(snowflake[_branches][i], i);
     }
 };
 const oneZeroArray = [1, 0];
 export const forEachGrowingFace = (snowflake, f) => {
-    for (let i = snowflake.numInitialGrownFaces; i < snowflake.numFaces; ++i) {
-        const face = snowflake.faces[i];
+    for (let i = snowflake[_numInitialGrownFaces]; i < snowflake[_numFaces]; ++i) {
+        const face = snowflake[_faces][i];
         if (!face.growing) {
-            snowflake.numInitialGrownFaces += oneZeroArray[Math.min(1, i - snowflake.numInitialGrownFaces)];
+            snowflake[_numInitialGrownFaces] += oneZeroArray[Math.min(1, i - snowflake[_numInitialGrownFaces])];
             continue;
         }
-        f(snowflake.faces[i], i);
+        f(snowflake[_faces][i], i);
     }
 };
 export const forEachGrowingBranch = (snowflake, f) => {
-    for (let i = snowflake.numInitialGrownBranches; i < snowflake.numBranches; ++i) {
-        const branch = snowflake.branches[i];
+    for (let i = snowflake[_numInitialGrownBranches]; i < snowflake[_numBranches]; ++i) {
+        const branch = snowflake[_branches][i];
         if (!branch.growing) {
-            snowflake.numInitialGrownBranches += oneZeroArray[Math.min(1, i - snowflake.numInitialGrownBranches)];
+            snowflake[_numInitialGrownBranches] += oneZeroArray[Math.min(1, i - snowflake[_numInitialGrownBranches])];
             continue;
         }
-        f(snowflake.branches[i], i);
+        f(snowflake[_branches][i], i);
     }
 };
 export const draw = (graphic, snowflake, foregroundColor) => {
@@ -215,6 +175,10 @@ const sideCacheZeroFunc = (length) => {
 export const zero = () => {
     const mkFaceCache = sideCacheZeroFunc(MAX_FACES);
     const mkBranchCache = sideCacheZeroFunc(MAX_BRANCHES);
+    const faces = zeroParts(MAX_FACES, Faces.zero);
+    const branches = zeroParts(MAX_BRANCHES, Branches.zero);
+    const numFaces = 1;
+    const numBranches = 0;
     const sideCaches = [
         makeArray6(mkFaceCache),
         makeArray6(mkFaceCache),
@@ -223,24 +187,24 @@ export const zero = () => {
         makeArray6(mkBranchCache),
         makeArray6(mkBranchCache),
     ];
-    const faces = zeroParts(MAX_FACES, Faces.zero);
-    const branches = zeroParts(MAX_BRANCHES, Branches.zero);
-    return {
+    const numInitialGrownFaces = 0;
+    const numInitialGrownBranches = 0;
+    return [
         faces,
         branches,
-        numFaces: 1,
-        numBranches: 0,
+        numFaces,
+        numBranches,
         sideCaches,
-        numInitialGrownFaces: 0,
-        numInitialGrownBranches: 0,
-    };
+        numInitialGrownFaces,
+        numInitialGrownBranches,
+    ];
 };
 export const zeroM = (s) => {
-    s.numFaces = 1;
-    Faces.zeroM(s.faces[0]);
-    s.numBranches = 0;
-    s.numInitialGrownFaces = 0;
-    s.numInitialGrownBranches = 0;
+    s[_numFaces] = 1;
+    Faces.zeroM(s[_faces][0]);
+    s[_numBranches] = 0;
+    s[_numInitialGrownFaces] = 0;
+    s[_numInitialGrownBranches] = 0;
 };
 const branchSplittingGrowthScales = [0.5, 0.9, 0.5];
 const addBranchesToFace = (snowflake, face) => {
@@ -284,10 +248,10 @@ export const addFacesToGrowingBranches = (snowflake) => {
 };
 export const cacheNormalizedSides = (snowflake) => {
     forEachGrowingFace(snowflake, (f, fi) => {
-        Sides.normalizeFaceRelativeSide2DsM(snowflake.sideCaches[FACE_LEFT_CACHE], snowflake.sideCaches[FACE_RIGHT_CACHE], snowflake.sideCaches[FACE_HEIGHT_CACHE], fi, f);
+        Sides.normalizeFaceRelativeSide2DsM(snowflake[_sideCaches][FACE_LEFT_CACHE], snowflake[_sideCaches][FACE_RIGHT_CACHE], snowflake[_sideCaches][FACE_HEIGHT_CACHE], fi, f);
     });
     forEachGrowingBranch(snowflake, (b, bi) => {
-        Sides.normalizeBranchRelativeSide2DsM(snowflake.sideCaches[BRANCH_LEFT_CACHE], snowflake.sideCaches[BRANCH_RIGHT_CACHE], snowflake.sideCaches[BRANCH_HEIGHT_CACHE], bi, b);
+        Sides.normalizeBranchRelativeSide2DsM(snowflake[_sideCaches][BRANCH_LEFT_CACHE], snowflake[_sideCaches][BRANCH_RIGHT_CACHE], snowflake[_sideCaches][BRANCH_HEIGHT_CACHE], bi, b);
     });
 };
 export const killPartIfCoveredInOneDirection = (part, partIndex, sideLeftCache, sideRightCache, sideHeightCache, otherLeftSideCache, otherRightSideCache, otherHeightSideCache, numOtherSides, otherCacheContainsPart) => {
@@ -339,12 +303,12 @@ export const killPartIfCovered = (part, partIndex, caches, numFaces, numBranches
 };
 export const killCoveredFaces = (snowflake) => {
     forEachGrowingFace(snowflake, (f, fi) => {
-        killPartIfCovered(f, fi, snowflake.sideCaches, snowflake.numFaces, snowflake.numBranches, true);
+        killPartIfCovered(f, fi, snowflake[_sideCaches], snowflake[_numFaces], snowflake[_numBranches], true);
     });
 };
 export const killCoveredBranches = (snowflake) => {
     forEachGrowingBranch(snowflake, (b, bi) => {
-        killPartIfCovered(b, bi, snowflake.sideCaches, snowflake.numFaces, snowflake.numBranches, false);
+        killPartIfCovered(b, bi, snowflake[_sideCaches], snowflake[_numFaces], snowflake[_numBranches], false);
     });
 };
 //# sourceMappingURL=SnowflakeObject.js.map
