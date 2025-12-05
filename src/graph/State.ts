@@ -11,7 +11,7 @@ export type GraphState = {
     isLightTheme: boolean,
 };
 
-export function zero(): GraphState {
+export const zero = (): GraphState => {
     return {
         graph: none(),
         percentGrown: 0,
@@ -20,7 +20,7 @@ export function zero(): GraphState {
     };
 }
 
-export function initialize(state: GraphState): Node {
+export const initialize = (state: GraphState): Node => {
     return Maybes.map(
         state.graph,
         () => {
@@ -33,24 +33,24 @@ export function initialize(state: GraphState): Node {
         });
 }
 
-export function setPercentGrown(state: GraphState, percentGrown: number): void {
+export const setPercentGrown = (state: GraphState, percentGrown: number): void => {
     state.percentGrown = percentGrown;
     mapSome(state.graph, g => syncToPercentGrown(g, percentGrown));
 }
 
-export function setSnowflakeID(state: GraphState, snowflakeID: NonEmptyArray<number>): void {
+export const setSnowflakeID = (state: GraphState, snowflakeID: NonEmptyArray<number>): void => {
     mapSome(state.graph, g => {
         g.snowflakeID = snowflakeID;
         syncToSnowflakeID(g);
     });
 }
 
-export function setAspectRatio(state: GraphState, aspectRatio: number): void {
+export const setAspectRatio = (state: GraphState, aspectRatio: number): void => {
     state.aspectRatio = aspectRatio;
     mapSome(state.graph, g => SnowflakeGraphs.setConstants(g, state.aspectRatio, state.isLightTheme));
 }
 
-export function setIsLightTheme(state: GraphState, isLightTheme: boolean): void {
+export const setIsLightTheme = (state: GraphState, isLightTheme: boolean): void => {
     state.isLightTheme = isLightTheme;
     mapSome(state.graph, g => SnowflakeGraphs.setConstants(g, state.aspectRatio, state.isLightTheme));
 }

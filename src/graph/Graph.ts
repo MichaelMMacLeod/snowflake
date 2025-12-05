@@ -32,7 +32,7 @@ type Constants = {
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-function makeConstants(SIZE_SCALAR: number, ASPECT_RATIO: number, isLightTheme: boolean): Constants {
+const makeConstants = (SIZE_SCALAR: number, ASPECT_RATIO: number, isLightTheme: boolean): Constants => {
     const VIEWPORT_HEIGHT = 200;
     const VIEWPORT_WIDTH = ASPECT_RATIO * VIEWPORT_HEIGHT;
     const HANDLE_OUTER_HOVER_SCALE = 1.5;
@@ -175,13 +175,13 @@ svg * {
     };
 }
 
-function setSVGAttributes(element: SVGElement, attributes: Attributes): void {
+const setSVGAttributes = (element: SVGElement, attributes: Attributes): void => {
     for (const [k, v] of Object.entries(attributes)) {
         element.setAttribute(k, v);
     }
 }
 
-function createSVGElement(element: string, attributes: Attributes): SVGElement {
+const createSVGElement = (element: string, attributes: Attributes): SVGElement => {
     const svg = document.createElementNS(SVG_NS, element);
     setSVGAttributes(svg, attributes);
     return svg;
@@ -193,7 +193,7 @@ type GraphHandle = {
     outside: SVGElement,
 };
 
-function handleZero(cs: Constants): GraphHandle {
+const handleZero = (cs: Constants): GraphHandle => {
     const g = createSVGElement('g', { 'class': 'sf-graph-handle' });
     const inside = createSVGElement('circle', cs.HANDLE_INSIDE_ATTRS);
     const outside = createSVGElement('circle', cs.HANDLE_OUTSIDE_ATTRS);
@@ -206,31 +206,31 @@ function handleZero(cs: Constants): GraphHandle {
     };
 }
 
-function setHandleLocation(handle: GraphHandle, x: number, y: number): void {
+const setHandleLocation = (handle: GraphHandle, x: number, y: number): void => {
     const attrs = { 'cx': x.toString(), 'cy': y.toString() };
     setSVGAttributes(handle.inside, attrs);
     setSVGAttributes(handle.outside, attrs);
 }
 
-function moveHandleUpwards(sfg: SnowflakeGraph, h: number): void {
+const moveHandleUpwards = (sfg: SnowflakeGraph, h: number): void => {
     sfg.snowflakeID[h] = Math.max(0, sfg.snowflakeID[h] - 1);
     sfg.handleMovedCallback(snowflakeIDString(sfg.snowflakeID));
     syncToSnowflakeID(sfg);
 }
 
-function moveHandleDownwards(sfg: SnowflakeGraph, h: number): void {
+const moveHandleDownwards = (sfg: SnowflakeGraph, h: number): void => {
     sfg.snowflakeID[h] = Math.min(8, sfg.snowflakeID[h] + 1);
     sfg.handleMovedCallback(snowflakeIDString(sfg.snowflakeID));
     syncToSnowflakeID(sfg);
 }
 
-function moveHandleToNth(sfg: SnowflakeGraph, h: number, nth: number): void {
+const moveHandleToNth = (sfg: SnowflakeGraph, h: number, nth: number): void => {
     sfg.snowflakeID[h] = Math.max(0, Math.min(8, Math.floor(nth)));
     sfg.handleMovedCallback(snowflakeIDString(sfg.snowflakeID));
     syncToSnowflakeID(sfg);
 }
 
-function addHandle(cs: Constants, g: SVGElement, x: number, y: number, sfg: SnowflakeGraph, nthHandle: number): GraphHandle {
+const addHandle = (cs: Constants, g: SVGElement, x: number, y: number, sfg: SnowflakeGraph, nthHandle: number): GraphHandle => {
     const result = handleZero(cs);
     result.outside.addEventListener('keydown', e => {
         switch (e.key) {
@@ -258,19 +258,19 @@ function addHandle(cs: Constants, g: SVGElement, x: number, y: number, sfg: Snow
     return result;
 }
 
-function createFacetingBranchingLine(cs: Constants, g: SVGElement): SVGElement {
+const createFacetingBranchingLine = (cs: Constants, g: SVGElement): SVGElement => {
     const result = createSVGElement('line', cs.FACETING_BRANCHING_LINE_ATTRS);;
     g.appendChild(result);
     return result;
 }
 
-function createHandleLine(cs: Constants, g: SVGElement): SVGElement {
+const createHandleLine = (cs: Constants, g: SVGElement): SVGElement => {
     const result = createSVGElement('polyline', cs.HANDLE_LINE_ATTRS);;
     g.appendChild(result);
     return result;
 }
 
-function fitHandleLineToHandles(line: SVGElement, handles: Array<GraphHandle>): void {
+const fitHandleLineToHandles = (line: SVGElement, handles: Array<GraphHandle>): void => {
     const points = handles.map(h => {
         const x = h.inside.getAttribute('cx');
         const y = h.inside.getAttribute('cy');
@@ -294,13 +294,13 @@ export type SnowflakeGraph = {
     handleMovedCallback: (snowflakeID: SnowflakeID) => void,
 };
 
-function createProgress(cs: Constants, g: SVGElement): SVGElement {
+const createProgress = (cs: Constants, g: SVGElement): SVGElement => {
     const result = createSVGElement('rect', cs.PROGRESS_ATTRS);
     g.appendChild(result);
     return result;
 }
 
-function fitProgressToGrowth(cs: Constants, progress: SVGElement, percentGrown: number): void {
+const fitProgressToGrowth = (cs: Constants, progress: SVGElement, percentGrown: number): void => {
     const width = cs.GRAPHABLE_VIEWPORT_WIDTH * percentGrown;
     setSVGAttributes(progress, {
         'width': width.toString(),
@@ -308,7 +308,7 @@ function fitProgressToGrowth(cs: Constants, progress: SVGElement, percentGrown: 
     });
 }
 
-export function syncToSnowflakeID(g: SnowflakeGraph): void {
+export const syncToSnowflakeID = (g: SnowflakeGraph): void => {
     const id = g.snowflakeID;
     while (g.handles.length < id.length) {
         const nthHandle = g.handles.length;
@@ -335,11 +335,11 @@ export function syncToSnowflakeID(g: SnowflakeGraph): void {
     fitHandleLineToHandles(g.handleLine, g.handles);
 }
 
-export function syncToPercentGrown(g: SnowflakeGraph, percentGrown: number): void {
+export const syncToPercentGrown = (g: SnowflakeGraph, percentGrown: number): void => {
     fitProgressToGrowth(g.constants, g.progress, percentGrown);
 }
 
-function graphHandleCenter(g: SVGElement): Point {
+const graphHandleCenter = (g: SVGElement): Point => {
     const r = (g as SVGGraphicsElement).getBBox();
     return {
         x: r.x + r.width * 0.5,
@@ -347,11 +347,11 @@ function graphHandleCenter(g: SVGElement): Point {
     }
 }
 
-function distanceToGraphHandle(g: SVGElement, p: Point): number {
+const distanceToGraphHandle = (g: SVGElement, p: Point): number => {
     return Math.abs(graphHandleCenter(g).x - p.x);
 }
 
-function closestGraphHandle(g: SnowflakeGraph, ev: MouseEvent): number {
+const closestGraphHandle = (g: SnowflakeGraph, ev: MouseEvent): number => {
     const p = viewportToSvgPoint(g, { x: ev.clientX, y: ev.clientY });
     let closest = 0;
     let closestDistance = Infinity;
@@ -365,7 +365,7 @@ function closestGraphHandle(g: SnowflakeGraph, ev: MouseEvent): number {
     return closest;
 }
 
-function viewportToSvgPoint(g: SnowflakeGraph, viewportPoint: Point): DOMPoint {
+const viewportToSvgPoint = (g: SnowflakeGraph, viewportPoint: Point): DOMPoint => {
     const svgPoint = g.root.createSVGPoint();
     svgPoint.x = viewportPoint.x;
     svgPoint.y = viewportPoint.y;
@@ -376,14 +376,14 @@ function viewportToSvgPoint(g: SnowflakeGraph, viewportPoint: Point): DOMPoint {
     return svgPoint.matrixTransform(ctm);
 }
 
-function closestYChoice(g: SnowflakeGraph, viewportPoint: Point): number {
+const closestYChoice = (g: SnowflakeGraph, viewportPoint: Point): number => {
     const p = viewportToSvgPoint(g, viewportPoint);
     const y = (p.y - g.constants.MARGIN_HEIGHT) / g.constants.GRAPHABLE_VIEWPORT_HEIGHT;
     const i = Math.round(y * (yChoices.length - 1));
     return clamp(i, 0, yChoices.length - 1);
 }
 
-function syncToConstants(g: SnowflakeGraph, cs: Constants) {
+const syncToConstants = (g: SnowflakeGraph, cs: Constants) => {
     g.constants = cs;
     g.style.textContent = cs.ROOT_STYLE;
     setSVGAttributes(g.root, cs.ROOT_ATTRS);
@@ -391,7 +391,7 @@ function syncToConstants(g: SnowflakeGraph, cs: Constants) {
     syncToSnowflakeID(g);
 }
 
-function mouseEventIsInsideElement(ev: MouseEvent, e: Element): boolean {
+const mouseEventIsInsideElement = (ev: MouseEvent, e: Element): boolean => {
     const r = e.getBoundingClientRect();
     const x = ev.clientX;
     const y = ev.clientY;
@@ -399,7 +399,7 @@ function mouseEventIsInsideElement(ev: MouseEvent, e: Element): boolean {
         && y >= r.top && y <= r.bottom;
 }
 
-export function zero(): SnowflakeGraph {
+export const zero = (): SnowflakeGraph => {
     const root = document.createElementNS(SVG_NS, 'svg');
     const constants = makeConstants(0.5, 3, false);
 
@@ -423,7 +423,7 @@ export function zero(): SnowflakeGraph {
         hoveredHandle: none(),
         handleMovedCallback: (snowflakeID: string) => { return; },
     };
-    function updateHandlePosition(h: number, ev: MouseEvent) {
+    const updateHandlePosition = (h: number, ev: MouseEvent) => {
         const p = { x: ev.clientX, y: ev.clientY };
         const yChoice = closestYChoice(result, p);
         let oldYChoice = result.snowflakeID[h];
@@ -434,20 +434,20 @@ export function zero(): SnowflakeGraph {
         syncToSnowflakeID(result);
         result.handleMovedCallback(snowflakeIDString(result.snowflakeID));
     }
-    function handleMouseDown(ev: MouseEvent): void {
+    const handleMouseDown = (ev: MouseEvent): void => {
         const h = closestGraphHandle(result, ev);
         result.handleBeingDragged = some(h);
         updateHandlePosition(h, ev);
     }
-    function handleMouseUp(ev: MouseEvent): void {
+    const handleMouseUp = (ev: MouseEvent): void => {
         result.handleBeingDragged = none();
     }
-    function handleMouseMove(ev: MouseEvent): void {
+    const handleMouseMove = (ev: MouseEvent): void => {
         const hoverClass = 'sf-graph-handle-outside-hover';
-        function removeHoverClass(handleIdx: number): void {
+        const removeHoverClass = (handleIdx: number): void => {
             result.handles[handleIdx].outside.classList.remove(hoverClass);
         }
-        function addHoverClass(handleIdx: number): void {
+        const addHoverClass = (handleIdx: number): void => {
             result.handles[handleIdx].outside.classList.add(hoverClass);
         }
         Maybes.map(
@@ -495,7 +495,7 @@ export function zero(): SnowflakeGraph {
     return result;
 }
 
-export function setConstants(g: SnowflakeGraph, aspectRatio: number, isLightTheme: boolean): void {
+export const setConstants = (g: SnowflakeGraph, aspectRatio: number, isLightTheme: boolean): void => {
     const constants = makeConstants(0.5, aspectRatio, isLightTheme);
     syncToConstants(g, constants);
 }

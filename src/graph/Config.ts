@@ -30,7 +30,7 @@ export const configParser: ConfigParser<UnparsedConfig, Config> = {
     handleMovedCallback: parseFunction1,
 };
 
-export function zero(): Config {
+export const zero = (): Config => {
     return parseConfigAndDisplayErrors(
         configParser,
         {
