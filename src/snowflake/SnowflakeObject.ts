@@ -2,7 +2,7 @@ import { Face } from "./Face.js";
 import * as Faces from "./Face.js";
 import { Branch } from "./Branch.js";
 import * as Branches from "./Branch.js";
-import { Graphic } from "./Graphic.js";
+import { _graphic_ctx, Graphic } from "./Graphic.js";
 import { Direction, DIRS } from "./Direction.js";
 import * as Directions from "./Direction.js";
 import { Array6, makeArray6, rem, SideCacheArray, sideCacheConstructor } from "../common/Utils.js";
@@ -204,13 +204,13 @@ export const forEachGrowingBranch = (snowflake: Snowflake, f: (branch: Branch, i
   }
 }
 
-export const draw = (graphic: Graphic, snowflake: Snowflake, foregroundColor: string): boolean => {
+export const draw = (g: Graphic, snowflake: Snowflake, foregroundColor: string): boolean => {
   let anyPartOutside = false;
-  graphic.ctx.strokeStyle = foregroundColor;
-  graphic.ctx.beginPath();
-  forEachGrowingFace(snowflake, (f, _) => anyPartOutside ||= Faces.draw(graphic, f));
-  forEachGrowingBranch(snowflake, (b, _) => anyPartOutside ||= Branches.draw(graphic, b));
-  graphic.ctx.stroke();
+  g[_graphic_ctx].strokeStyle = foregroundColor;
+  g[_graphic_ctx].beginPath();
+  forEachGrowingFace(snowflake, (f, _) => anyPartOutside ||= Faces.draw(g, f));
+  forEachGrowingBranch(snowflake, (b, _) => anyPartOutside ||= Branches.draw(g, b));
+  g[_graphic_ctx].stroke();
   return anyPartOutside;
 }
 

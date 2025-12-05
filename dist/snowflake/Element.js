@@ -18,6 +18,7 @@ import * as Eithers from "maybe-either/Either";
 import * as States from "./State.js";
 import { configParser, configSynchronizer } from "./Config.js";
 import * as Configs from "./Config.js";
+import { _graphic_canvas } from "./Graphic.js";
 class SnowflakeElement extends HTMLElement {
     constructor() {
         super();
@@ -31,7 +32,7 @@ class SnowflakeElement extends HTMLElement {
     }
     connectedCallback() {
         Maybes.map(initializeGraphic(__classPrivateFieldGet(this, _SnowflakeElement_state, "f"), __classPrivateFieldGet(this, _SnowflakeElement_config, "f").snowflakeCanvasSizePX), () => { throw new Error("couldn't get canvas 2d context"); }, g => {
-            __classPrivateFieldGet(this, _SnowflakeElement_shadow, "f").appendChild(g.canvas);
+            __classPrivateFieldGet(this, _SnowflakeElement_shadow, "f").appendChild(g[_graphic_canvas]);
         });
     }
     disconnectedCallback() { }
@@ -54,7 +55,7 @@ class SnowflakeElement extends HTMLElement {
         return States.percentGrown(__classPrivateFieldGet(this, _SnowflakeElement_state, "f"));
     }
     canvas() {
-        return Maybes.unwrapOr(__classPrivateFieldGet(this, _SnowflakeElement_state, "f")[States._graphic], () => { throw new Error('element not yet inserted into document'); }).canvas;
+        return Maybes.unwrapOr(__classPrivateFieldGet(this, _SnowflakeElement_state, "f")[States._graphic], () => { throw new Error('element not yet inserted into document'); })[_graphic_canvas];
     }
 }
 _SnowflakeElement_state = new WeakMap(), _SnowflakeElement_config = new WeakMap(), _SnowflakeElement_shadow = new WeakMap();

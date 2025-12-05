@@ -7,6 +7,7 @@ import * as States from "./State.js";
 import { Config, configParser, configSynchronizer, UnparsedConfig } from "./Config.js";
 import * as Configs from "./Config.js";
 import { SnowflakeID } from "../common/Utils.js";
+import { _graphic_canvas } from "./Graphic.js";
 
 export default class SnowflakeElement extends HTMLElement {
     #state: State;
@@ -26,14 +27,14 @@ export default class SnowflakeElement extends HTMLElement {
             initializeGraphic(this.#state, this.#config.snowflakeCanvasSizePX),
             () => { throw new Error("couldn't get canvas 2d context"); },
             g => {
-                this.#shadow.appendChild(g.canvas);
+                this.#shadow.appendChild(g[_graphic_canvas]);
             },
         );
     }
 
-    disconnectedCallback() {}
+    disconnectedCallback() { }
 
-    adoptedCallback() {}
+    adoptedCallback() { }
 
     configure(unparsedConfig: UnparsedConfig): void {
         const config = parseConfigAndDisplayErrors(configParser, unparsedConfig);
@@ -65,6 +66,6 @@ export default class SnowflakeElement extends HTMLElement {
         return Maybes.unwrapOr(
             this.#state[States._graphic],
             () => { throw new Error('element not yet inserted into document') },
-        ).canvas;
+        )[_graphic_canvas];
     }
 }

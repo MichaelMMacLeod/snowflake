@@ -1,4 +1,4 @@
-import { Graphic } from "./Graphic.js";
+import { _graphic_sizePX, Graphic } from "./Graphic.js";
 
 // Coordinate system(s):
 //
@@ -32,15 +32,15 @@ import { Graphic } from "./Graphic.js";
 // | 1 |   |0     0    1 |   | 1 |
 
 export const viewspaceX = (graphic: Graphic, worldX: number): number => {
-    const w = graphic.sizePX;
+    const w = graphic[_graphic_sizePX];
     return worldX * w * 0.5 + w * 0.5;
 }
 
 export const viewspaceY = (graphic: Graphic, worldY: number): number => {
-    const h = graphic.sizePX;
+    const h = graphic[_graphic_sizePX];
     return worldY * -h * 0.5 + h * 0.5;
 }
 
 export const outsideVisibleArea = (graphic: Graphic, viewN: number): boolean => {
-    return viewN < 0 || viewN > graphic.sizePX;
+    return viewN < 0 || viewN > graphic[_graphic_sizePX];
 }

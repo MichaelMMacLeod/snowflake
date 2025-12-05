@@ -2,7 +2,7 @@ import * as Points from "../common/Point.js";
 import { midpointTN, Point } from "../common/Point.js";
 import { Direction } from "./Direction.js";
 import * as Directions from "./Direction.js";
-import { Graphic } from "./Graphic.js";
+import { _graphic_ctx, Graphic } from "./Graphic.js";
 import { outsideVisibleArea, viewspaceX, viewspaceY } from "./CoordinateSystem.js";
 import { faceSizeGrowthScalar } from "../common/Constants.js";
 
@@ -65,39 +65,39 @@ export const setPointNManually = (result: Point, direction: Direction, center: P
     result.y = center.y + size * Directions.sines[d];
 }
 
-export const draw = (graphic: Graphic, face: Face): boolean => {
+export const draw = (g: Graphic, face: Face): boolean => {
     const d = face.direction;
-    const p0x = viewspaceX(graphic, pointNX(face, (d + 0) % 6));
-    const p0y = viewspaceY(graphic, pointNY(face, (d + 0) % 6));
-    const p1x = viewspaceX(graphic, pointNX(face, (d + 1) % 6));
-    const p1y = viewspaceY(graphic, pointNY(face, (d + 1) % 6));
-    const p2x = viewspaceX(graphic, pointNX(face, (d + 2) % 6));
-    const p2y = viewspaceY(graphic, pointNY(face, (d + 2) % 6));
-    const p3x = viewspaceX(graphic, pointNX(face, (d + 3) % 6));
-    const p3y = viewspaceY(graphic, pointNY(face, (d + 3) % 6));
-    const p4x = viewspaceX(graphic, pointNX(face, (d + 4) % 6));
-    const p4y = viewspaceY(graphic, pointNY(face, (d + 4) % 6));
-    const p5x = viewspaceX(graphic, pointNX(face, (d + 5) % 6));
-    const p5y = viewspaceY(graphic, pointNY(face, (d + 5) % 6));
-    if (outsideVisibleArea(graphic, p0x)
-        || outsideVisibleArea(graphic, p1x)
-        || outsideVisibleArea(graphic, p2x)
-        || outsideVisibleArea(graphic, p3x)
-        || outsideVisibleArea(graphic, p4x)
-        || outsideVisibleArea(graphic, p5x)
-        || outsideVisibleArea(graphic, p0y)
-        || outsideVisibleArea(graphic, p1y)
-        || outsideVisibleArea(graphic, p2y)
-        || outsideVisibleArea(graphic, p3y)
-        || outsideVisibleArea(graphic, p4y)
-        || outsideVisibleArea(graphic, p5y)
+    const p0x = viewspaceX(g, pointNX(face, (d + 0) % 6));
+    const p0y = viewspaceY(g, pointNY(face, (d + 0) % 6));
+    const p1x = viewspaceX(g, pointNX(face, (d + 1) % 6));
+    const p1y = viewspaceY(g, pointNY(face, (d + 1) % 6));
+    const p2x = viewspaceX(g, pointNX(face, (d + 2) % 6));
+    const p2y = viewspaceY(g, pointNY(face, (d + 2) % 6));
+    const p3x = viewspaceX(g, pointNX(face, (d + 3) % 6));
+    const p3y = viewspaceY(g, pointNY(face, (d + 3) % 6));
+    const p4x = viewspaceX(g, pointNX(face, (d + 4) % 6));
+    const p4y = viewspaceY(g, pointNY(face, (d + 4) % 6));
+    const p5x = viewspaceX(g, pointNX(face, (d + 5) % 6));
+    const p5y = viewspaceY(g, pointNY(face, (d + 5) % 6));
+    if (outsideVisibleArea(g, p0x)
+        || outsideVisibleArea(g, p1x)
+        || outsideVisibleArea(g, p2x)
+        || outsideVisibleArea(g, p3x)
+        || outsideVisibleArea(g, p4x)
+        || outsideVisibleArea(g, p5x)
+        || outsideVisibleArea(g, p0y)
+        || outsideVisibleArea(g, p1y)
+        || outsideVisibleArea(g, p2y)
+        || outsideVisibleArea(g, p3y)
+        || outsideVisibleArea(g, p4y)
+        || outsideVisibleArea(g, p5y)
     ) {
         return true;
     }
-    const ctx = graphic.ctx;
+    const ctx = g[_graphic_ctx];
     if (face.isFirstFace) {
-        const cx = viewspaceX(graphic, face.center.x);
-        const cy = viewspaceY(graphic, face.center.y);
+        const cx = viewspaceX(g, face.center.x);
+        const cy = viewspaceY(g, face.center.y);
         ctx.moveTo(p0x, p0y);
         ctx.lineTo(p1x, p1y);
         ctx.lineTo(p2x, p2y);

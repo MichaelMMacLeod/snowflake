@@ -1,4 +1,7 @@
 import { none, some } from "maybe-either/Maybe";
+export const _graphic_sizePX = 0;
+export const _graphic_canvas = 1;
+export const _graphic_ctx = 2;
 export const make = (sizePX) => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -14,9 +17,10 @@ export const make = (sizePX) => {
     canvas.style.width = `${sizePX}px`;
     canvas.style.height = `${sizePX}px`;
     canvas.className = 'sf-canvas';
-    return some({ sizePX, canvas, ctx });
+    return some([sizePX, canvas, ctx]);
 };
-export const clear = (graphic) => {
-    graphic.ctx.clearRect(0, 0, graphic.ctx.canvas.width, graphic.ctx.canvas.height);
+export const clear = (g) => {
+    const c = g[_graphic_ctx].canvas;
+    g[_graphic_ctx].clearRect(0, 0, c.width, c.height);
 };
 //# sourceMappingURL=Graphic.js.map

@@ -33,7 +33,7 @@ export declare const forEachFace: (snowflake: Snowflake, f: (face: Face, index: 
 export declare const forEachBranch: (snowflake: Snowflake, f: (branch: Branch, index: number) => void) => void;
 export declare const forEachGrowingFace: (snowflake: Snowflake, f: (face: Face, index: number) => void) => void;
 export declare const forEachGrowingBranch: (snowflake: Snowflake, f: (branch: Branch, index: number) => void) => void;
-export declare const draw: (graphic: Graphic, snowflake: Snowflake, foregroundColor: string) => boolean;
+export declare const draw: (g: Graphic, snowflake: Snowflake, foregroundColor: string) => boolean;
 export declare const zero: () => Snowflake;
 export declare const zeroM: (s: Snowflake) => void;
 export declare const addBranchesToGrowingFaces: (snowflake: Snowflake) => void;

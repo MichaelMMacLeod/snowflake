@@ -1,9 +1,12 @@
 import { Maybe, none, some } from "maybe-either/Maybe";
 
+export const _graphic_sizePX = 0;
+export const _graphic_canvas = 1;
+export const _graphic_ctx = 2;
 export type Graphic = {
-    sizePX: number,
-    canvas: HTMLCanvasElement,
-    ctx: CanvasRenderingContext2D,
+    [_graphic_sizePX]: number,
+    [_graphic_canvas]: HTMLCanvasElement,
+    [_graphic_ctx]: CanvasRenderingContext2D,
 };
 
 export const make = (sizePX: number): Maybe<Graphic> => {
@@ -21,9 +24,10 @@ export const make = (sizePX: number): Maybe<Graphic> => {
     canvas.style.width = `${sizePX}px`;
     canvas.style.height = `${sizePX}px`;
     canvas.className = 'sf-canvas';
-    return some({ sizePX, canvas, ctx });
+    return some([sizePX, canvas, ctx]);
 }
 
-export const clear = (graphic: Graphic): void => {
-    graphic.ctx.clearRect(0, 0, graphic.ctx.canvas.width, graphic.ctx.canvas.height);
+export const clear = (g: Graphic): void => {
+    const c = g[_graphic_ctx].canvas;
+    g[_graphic_ctx].clearRect(0, 0, c.width, c.height);
 }

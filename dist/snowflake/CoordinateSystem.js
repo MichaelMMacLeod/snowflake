@@ -1,3 +1,4 @@
+import { _graphic_sizePX } from "./Graphic.js";
 // Coordinate system(s):
 //
 // 1: "World" space. This is two dimensional (x,y) with the origin,
@@ -28,14 +29,14 @@
 // |r.y| = |0   -h/2  h/2| * |p.y|
 // | 1 |   |0     0    1 |   | 1 |
 export const viewspaceX = (graphic, worldX) => {
-    const w = graphic.sizePX;
+    const w = graphic[_graphic_sizePX];
     return worldX * w * 0.5 + w * 0.5;
 };
 export const viewspaceY = (graphic, worldY) => {
-    const h = graphic.sizePX;
+    const h = graphic[_graphic_sizePX];
     return worldY * -h * 0.5 + h * 0.5;
 };
 export const outsideVisibleArea = (graphic, viewN) => {
-    return viewN < 0 || viewN > graphic.sizePX;
+    return viewN < 0 || viewN > graphic[_graphic_sizePX];
 };
 //# sourceMappingURL=CoordinateSystem.js.map

@@ -1,3 +1,4 @@
+import { _graphic_canvas, _graphic_ctx, _graphic_sizePX } from "./Graphic.js";
 import * as Graphics from "./Graphic.js";
 import { addBranchesToGrowingFaces, addFacesToGrowingBranches } from "./SnowflakeObject.js";
 import * as Snowflakes from "./SnowflakeObject.js";
@@ -48,11 +49,13 @@ export const reset = (state) => {
 };
 export const setSnowflakeCanvasSizePX = (state, snowflakeCanvasSizePX) => {
     mapSome(state[_graphic], g => {
-        g.sizePX = snowflakeCanvasSizePX;
-        g.ctx.canvas.width = snowflakeCanvasSizePX;
-        g.ctx.canvas.height = snowflakeCanvasSizePX;
-        g.canvas.style.width = `${snowflakeCanvasSizePX}px`;
-        g.canvas.style.height = `${snowflakeCanvasSizePX}px`;
+        g[_graphic_sizePX] = snowflakeCanvasSizePX;
+        const ctxc = g[_graphic_ctx].canvas;
+        ctxc.width = snowflakeCanvasSizePX;
+        ctxc.height = snowflakeCanvasSizePX;
+        const cstyle = g[_graphic_canvas].style;
+        cstyle.width = `${snowflakeCanvasSizePX}px`;
+        cstyle.height = `${snowflakeCanvasSizePX}px`;
     });
     return isSome(state[_graphic]);
 };
