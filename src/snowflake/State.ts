@@ -11,23 +11,44 @@ import * as RGBA from "../common/color/Color";
 import * as ColorThemes from "../common/color/Theme";
 import { ColorTheme } from "../common/color/Theme";
 
-export type State = {
-    growthInput: NonEmptyArray<number>,
-    graphic: Maybe<Graphic>,
-    snowflake: Snowflake,
-    currentGrowthType: GrowthType | undefined,
-    idealMSBetweenUpdates: number,
-    growing: boolean,
-    hasScheduledUpdate: boolean,
+export const _growthInput = 0;
+export const _graphic = 1;
+export const _snowflake = 2;
+export const _currentGrowthType = 3;
+export const _idealMSBetweenUpdates = 4;
+export const _growing = 5;
+export const _hasScheduledUpdate = 6;
+export const _colorTheme = 7;
+export const _isLightTheme = 8;
+export const _updateCount = 9;
+export const _currentMS = 10;
+export const _updateBank = 11;
+export const _maxUpdates = 12;
+export const _resetStartTime = 13;
+export const _playing = 14;
+export const _finishedGrowingCallback = 15;
+export const _needsReset = 16;
+export const _resetCallback = 17;
+export const _updatedCallback = 18;
+export const _updateOnNextFrame = 19;
+export const _doUpdate = 20;
 
-    colorTheme: ColorTheme,
-    isLightTheme: boolean,
+export type State = {
+    [_growthInput]: NonEmptyArray<number>,
+    [_graphic]: Maybe<Graphic>,
+    [_snowflake]: Snowflake,
+    [_currentGrowthType]: GrowthType | undefined,
+    [_idealMSBetweenUpdates]: number,
+    [_growing]: boolean,
+    [_hasScheduledUpdate]: boolean,
+    [_colorTheme]: ColorTheme,
+    [_isLightTheme]: boolean,
 
     // Running total number of updates since last reset.
-    updateCount: number,
+    [_updateCount]: number,
 
     // Current time as of the start of the last update.
-    currentMS: number,
+    [_currentMS]: number,
 
     // The interval that the update function is called at is not
     // completely under our control. It may be called sooner or later
@@ -41,34 +62,31 @@ export type State = {
     // If we were to throw away these fractional updates, we would skip over
     // required updates which would slow down the growth of the snowflake,
     // throwing us off our desired time-to-grown.
-    updateBank: number,
+    [_updateBank]: number,
 
-    maxUpdates: number,
-
-    resetStartTime: number,
-
-    playing: boolean,
-    finishedGrowingCallback: () => void,
-    needsReset: boolean,
-    resetCallback: () => void,
-    updatedCallback: () => void,
-
-    updateOnNextFrame: () => void,
-    doUpdate: () => void,
+    [_maxUpdates]: number,
+    [_resetStartTime]: number,
+    [_playing]: boolean,
+    [_finishedGrowingCallback]: () => void,
+    [_needsReset]: boolean,
+    [_resetCallback]: () => void,
+    [_updatedCallback]: () => void,
+    [_updateOnNextFrame]: () => void,
+    [_doUpdate]: () => void,
 };
 
 function currentThemeForegroundRGBAString(state: State): string {
-    if (state.isLightTheme) {
-        return RGBA.toString(state.colorTheme.light.foreground);
+    if (state[_isLightTheme]) {
+        return RGBA.toString(state[_colorTheme].light.foreground);
     }
-    return RGBA.toString(state.colorTheme.dark.foreground);
+    return RGBA.toString(state[_colorTheme].dark.foreground);
 }
 
 export function reset(state: State): void {
-    state.needsReset = true;
-    state.currentMS = performance.now();
-    state.resetStartTime = performance.now();
-    if (state.playing) {
+    state[_needsReset] = true;
+    state[_currentMS] = performance.now();
+    state[_resetStartTime] = performance.now();
+    if (state[_playing]) {
         scheduleUpdate(state);
     } else {
         doReset(state);
@@ -76,70 +94,96 @@ export function reset(state: State): void {
 }
 
 export function setSnowflakeCanvasSizePX(state: State, snowflakeCanvasSizePX: number): boolean {
-    mapSome(state.graphic, g => {
+    mapSome(state[_graphic], g => {
         g.sizePX = snowflakeCanvasSizePX;
         g.ctx.canvas.width = snowflakeCanvasSizePX;
         g.ctx.canvas.height = snowflakeCanvasSizePX;
         g.canvas.style.width = `${snowflakeCanvasSizePX}px`;
         g.canvas.style.height = `${snowflakeCanvasSizePX}px`;
     });
-    return isSome(state.graphic);
+    return isSome(state[_graphic]);
 }
 
 export function initializeGraphic(state: State, snowflakeCanvasSizePX: number): Maybe<Graphic> {
-    return Maybes.orElse(state.graphic, () => {
-        state.graphic = Graphics.make(snowflakeCanvasSizePX);
-        return state.graphic;
+    return Maybes.orElse(state[_graphic], () => {
+        state[_graphic] = Graphics.make(snowflakeCanvasSizePX);
+        return state[_graphic];
     });
 }
 
 export function scheduleUpdate(state: State): void {
-    if (state.hasScheduledUpdate) {
+    if (state[_hasScheduledUpdate]) {
         return;
-    } else if (state.growing && state.playing || state.needsReset) {
-        state.hasScheduledUpdate = true;
-        setTimeout(state.updateOnNextFrame, state.idealMSBetweenUpdates);
+    } else if (state[_growing] && state[_playing] || state[_needsReset]) {
+        state[_hasScheduledUpdate] = true;
+        setTimeout(state[_updateOnNextFrame], state[_idealMSBetweenUpdates]);
     } else {
-        state.hasScheduledUpdate = false;
+        state[_hasScheduledUpdate] = false;
     }
 }
 
 export function setIdealMSBetweenUpdates(state: State, targetGrowthTimeMS: number, upsCap: number): void {
-    state.idealMSBetweenUpdates = Math.max(1000 / upsCap, targetGrowthTimeMS / state.maxUpdates);
+    state[_idealMSBetweenUpdates] = Math.max(1000 / upsCap, targetGrowthTimeMS / state[_maxUpdates]);
 }
 
 export function zero(): State {
-    const snowflake = Snowflakes.zero();
-
     // These defaults are overwritten in Controller which synchronizes
     // this state with the default Config. It's the values in the 
     // default Config that matter.
-    const result: State = {
-        growthInput: [0],
-        graphic: none(),
+
+    const doNothing = () => { return; };
+
+    const growthInput: NonEmptyArray<number> = [0];
+    const graphic: Maybe<Graphic> = none();
+    const snowflake = Snowflakes.zero();
+    const currentGrowthType = undefined;
+    const idealMSBetweenUpdates = 0;
+    const growing = true;
+    const hasScheduledUpdate = false;
+    const colorTheme = ColorThemes.zero();
+    const isLightTheme = true;
+    const updateCount = 0;
+    const currentMS = 0;
+    const updateBank = 0;
+    const maxUpdates = 500;
+    const resetStartTime = performance.now();
+    const playing = false;
+    const finishedGrowingCallback = () => doNothing;
+    const needsReset = false;
+    const resetCallback = () => doNothing;
+    const updatedCallback = () => doNothing;
+    const updateOnNextFrame = () => doNothing;
+    const doUpdate = doNothing;
+
+    const result: State = [
+        growthInput,
+        graphic,
         snowflake,
-        currentGrowthType: undefined,
-        growing: true,
-        updateBank: 0,
-        updateCount: 0,
-        currentMS: 0,
-        idealMSBetweenUpdates: 0,
-        maxUpdates: 500,
-        resetStartTime: performance.now(),
-        playing: false,
-        finishedGrowingCallback: () => { return; },
-        needsReset: false,
-        resetCallback: () => { return; },
-        hasScheduledUpdate: false,
-        colorTheme: ColorThemes.zero(),
-        isLightTheme: true,
-        updatedCallback: () => { return; },
-        updateOnNextFrame: () => { requestAnimationFrame(result.doUpdate); },
-        doUpdate: () => {
-            update(result);
-            result.hasScheduledUpdate = false;
-            scheduleUpdate(result);
-        }
+        currentGrowthType,
+        idealMSBetweenUpdates,
+        growing,
+        hasScheduledUpdate,
+        colorTheme,
+        isLightTheme,
+        updateCount,
+        currentMS,
+        updateBank,
+        maxUpdates,
+        resetStartTime,
+        playing,
+        finishedGrowingCallback,
+        needsReset,
+        resetCallback,
+        updatedCallback,
+        updateOnNextFrame,
+        doUpdate,
+    ];
+
+    result[_updateOnNextFrame] = () => { requestAnimationFrame(result[_doUpdate]); };
+    result[_doUpdate] = () => {
+        update(result);
+        result[_hasScheduledUpdate] = false;
+        scheduleUpdate(result);
     };
 
     scheduleUpdate(result);
@@ -148,45 +192,45 @@ export function zero(): State {
 }
 
 export function percentGrown(state: State): number {
-    return state.updateCount / state.maxUpdates;
+    return state[_updateCount] / state[_maxUpdates];
 }
 
 function doReset(state: State): void {
-    state.needsReset = false;
-    Snowflakes.zeroM(state.snowflake);
-    state.currentGrowthType = undefined;
-    state.growing = true;
-    state.updateBank = 0;
-    state.updateCount = 0;
-    mapSome(state.graphic, g => Graphics.clear(g));
-    state.resetCallback();
+    state[_needsReset] = false;
+    Snowflakes.zeroM(state[_snowflake]);
+    state[_currentGrowthType] = undefined;
+    state[_growing] = true;
+    state[_updateBank] = 0;
+    state[_updateCount] = 0;
+    mapSome(state[_graphic], g => Graphics.clear(g));
+    state[_resetCallback]();
 }
 
 export function update(state: State): void {
-    const snowflake = state.snowflake;
+    const snowflake = state[_snowflake];
 
-    if (state.needsReset) {
+    if (state[_needsReset]) {
         doReset(state);
     }
 
-    const lastMS = state.currentMS;
-    state.currentMS = performance.now();
-    const deltaMS = state.currentMS - lastMS;
+    const lastMS = state[_currentMS];
+    state[_currentMS] = performance.now();
+    const deltaMS = state[_currentMS] - lastMS;
 
-    let requiredUpdates = Math.min(state.maxUpdates - state.updateCount, deltaMS / state.idealMSBetweenUpdates + state.updateBank);
-    state.updateBank = fracPart(requiredUpdates);
+    let requiredUpdates = Math.min(state[_maxUpdates] - state[_updateCount], deltaMS / state[_idealMSBetweenUpdates] + state[_updateBank]);
+    state[_updateBank] = fracPart(requiredUpdates);
     requiredUpdates = Math.floor(requiredUpdates);
 
     function doUpdate() {
-        const growth = interpretGrowth(state.growthInput, percentGrown(state));
+        const growth = interpretGrowth(state[_growthInput], percentGrown(state));
 
-        if (state.currentGrowthType === undefined) {
-            state.currentGrowthType = growth.growthType;
+        if (state[_currentGrowthType] === undefined) {
+            state[_currentGrowthType] = growth.growthType;
         }
 
-        if (state.currentGrowthType !== growth.growthType) {
-            state.currentGrowthType = growth.growthType;
-            if (state.currentGrowthType === 'branching') {
+        if (state[_currentGrowthType] !== growth.growthType) {
+            state[_currentGrowthType] = growth.growthType;
+            if (state[_currentGrowthType] === 'branching') {
                 addBranchesToGrowingFaces(snowflake);
             } else {
                 addFacesToGrowingBranches(snowflake);
@@ -195,7 +239,7 @@ export function update(state: State): void {
 
         Snowflakes.cacheNormalizedSides(snowflake);
 
-        if (state.currentGrowthType === 'branching') {
+        if (state[_currentGrowthType] === 'branching') {
             Snowflakes.killCoveredBranches(snowflake);
             Snowflakes.forEachGrowingBranch(snowflake, (b, _) => Branches.enlarge(b, growth.scale));
         } else {
@@ -203,11 +247,11 @@ export function update(state: State): void {
             Snowflakes.forEachGrowingFace(snowflake, (f, _) => Faces.enlarge(f, growth.scale));
         }
 
-        mapSome(state.graphic, g => {
+        mapSome(state[_graphic], g => {
             const foregroundColor = currentThemeForegroundRGBAString(state);
             if (Snowflakes.draw(g, snowflake, foregroundColor)) {
-                state.updateCount = state.maxUpdates;
-                state.updateBank = 0;
+                state[_updateCount] = state[_maxUpdates];
+                state[_updateBank] = 0;
             }
         });
     }
@@ -216,23 +260,23 @@ export function update(state: State): void {
     const msBudget = msPer60FPSFrame * 0.9; // Allow for 10% free time so we don't skip frames.
     let currentMS = performance.now();
     let elapsedMS = 0;
-    for (let i = 0; i < requiredUpdates && state.updateCount < state.maxUpdates; ++i) {
-        state.updateCount += 1;
+    for (let i = 0; i < requiredUpdates && state[_updateCount] < state[_maxUpdates]; ++i) {
+        state[_updateCount] += 1;
         doUpdate();
         const newMS = performance.now();
         elapsedMS += newMS - currentMS;
         currentMS = newMS;
         if (elapsedMS > msBudget) {
-            state.updateBank += requiredUpdates - i;
+            state[_updateBank] += requiredUpdates - i;
             break;
         }
     }
 
-    state.updatedCallback();
+    state[_updatedCallback]();
 
-    if (state.updateCount >= state.maxUpdates) {
-        state.updateCount = state.maxUpdates;
-        state.finishedGrowingCallback();
-        state.growing = false;
+    if (state[_updateCount] >= state[_maxUpdates]) {
+        state[_updateCount] = state[_maxUpdates];
+        state[_finishedGrowingCallback]();
+        state[_growing] = false;
     }
 }

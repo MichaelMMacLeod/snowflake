@@ -5,12 +5,12 @@ import {
     parseColorTheme,
     parseConfigAndDisplayErrors,
     parseFunction0,
-    parseFunction1,
     parseNat,
     parseSnowflakeID,
     randomSnowflakeIDString
 } from "../common/Config";
 import { scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX, State } from "./State";
+import * as States from './State';
 import { arraysEqual, NonEmptyArray, SnowflakeID } from "../common/Utils";
 import * as Maybes from "../common/Maybe";
 import * as ColorThemes from "../common/color/Theme";
@@ -85,7 +85,7 @@ export const configSynchronizer: ConfigSynchronizer<State, Config> = {
             oldValue => arraysEqual(newValue, oldValue, (a, b) => a === b)
         );
         if (!newEqOld) {
-            s.growthInput = newValue;
+            s[States._growthInput] = newValue;
             return true;
         }
         return false;
@@ -114,12 +114,12 @@ export const configSynchronizer: ConfigSynchronizer<State, Config> = {
         return Maybes.map(
             oldValue,
             () => {
-                s.maxUpdates = newValue;
+                s[States._maxUpdates] = newValue;
                 return true;
             },
             oldValue => {
                 if (newValue !== oldValue) {
-                    s.maxUpdates = newValue;
+                    s[States._maxUpdates] = newValue;
                     return true;
                 }
                 return false;
@@ -129,8 +129,8 @@ export const configSynchronizer: ConfigSynchronizer<State, Config> = {
     playing: (_c, s, newValue, oldValue) => {
         const newEqOld = Maybes.map(oldValue, () => false, oldValue => newValue === oldValue);
         if (!newEqOld) {
-            s.playing = newValue;
-            s.currentMS = performance.now();
+            s[States._playing] = newValue;
+            s[States._currentMS] = performance.now();
             scheduleUpdate(s);
         }
         return false;
@@ -139,14 +139,14 @@ export const configSynchronizer: ConfigSynchronizer<State, Config> = {
         return Maybes.map(
             oldValue,
             () => {
-                s.colorTheme = newValue;
+                s[States._colorTheme] = newValue;
                 return true;
             },
             oldValue => {
                 if (ColorThemes.equals(newValue, oldValue)) {
                     return false;
                 }
-                s.colorTheme = newValue;
+                s[States._colorTheme] = newValue;
                 return true;
             }
         );
@@ -155,28 +155,28 @@ export const configSynchronizer: ConfigSynchronizer<State, Config> = {
         return Maybes.map(
             oldValue,
             () => {
-                s.isLightTheme = newValue;
+                s[States._isLightTheme] = newValue;
                 return true;
             },
             oldValue => {
                 if (newValue === oldValue) {
                     return false;
                 }
-                s.isLightTheme = newValue;
+                s[States._isLightTheme] = newValue;
                 return true;
             }
         )
     },
     finishedGrowingCallback: (_c, s, newValue, _oldValue) => {
-        s.finishedGrowingCallback = newValue;
+        s[States._finishedGrowingCallback] = newValue;
         return false;
     },
     resetCallback: (_c, s, newValue, _oldValue) => {
-        s.resetCallback = newValue;
+        s[States._resetCallback] = newValue;
         return false;
     },
     updatedCallback: (_c, s, newValue, _oldValue) => {
-        s.updatedCallback = newValue;
+        s[States._updatedCallback] = newValue;
         return false;
     },
 };

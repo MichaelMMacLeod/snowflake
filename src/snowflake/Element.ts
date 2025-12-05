@@ -63,7 +63,7 @@ export default class SnowflakeElement extends HTMLElement {
 
     canvas(): HTMLCanvasElement {
         return Maybes.unwrapOr(
-            this.#state.graphic,
+            this.#state[States._graphic],
             () => { throw new Error('element not yet inserted into document') },
         ).canvas;
     }
