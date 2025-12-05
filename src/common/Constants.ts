@@ -8,3 +8,5 @@ export const branchSizeGrowthScalar = overallScale * 0.0005;
 
 export const yChoices: Array<number> =
   [-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1];
+
+export const faceSizeZero = 0.0025;

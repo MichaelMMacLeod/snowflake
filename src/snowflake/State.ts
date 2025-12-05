@@ -243,10 +243,10 @@ export const update = (state: State): void => {
 
         if (state[_currentGrowthType] === 'branching') {
             Snowflakes.killCoveredBranches(snowflake);
-            Snowflakes.forEachGrowingBranch(snowflake, (b, _) => Branches.enlarge(b, growth.scale));
+            Snowflakes.enlargeGrowingBranches(snowflake);
         } else {
             Snowflakes.killCoveredFaces(snowflake);
-            Snowflakes.forEachGrowingFace(snowflake, (f, _) => Faces.enlarge(f, growth.scale));
+            Snowflakes.enlargeGrowingFaces(snowflake, growth.scale);
         }
 
         mapSome(state[_graphic], g => {

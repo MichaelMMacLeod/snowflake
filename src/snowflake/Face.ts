@@ -15,42 +15,12 @@ export type Face = {
     growing: boolean,
 };
 
-const SIZE_ZERO = 0.0025;
-
-export const zero = (): Face => {
-    return {
-        center: Points.zero(),
-        size: SIZE_ZERO,
-        isFirstFace: true,
-        direction: 0,
-        growthScale: 1,
-        growing: true,
-    }
-};
-
-export const zeroM = (face: Face): void => {
-    Points.zeroM(face.center);
-    face.size = SIZE_ZERO;
-    face.isFirstFace = true;
-    face.direction = 0;
-    face.growthScale = 1;
-    face.growing = true;
-}
-
-export const manualPointNX = (centerX: number, size: number, absoluteDirection: number): number => {
+export const pointNX = (centerX: number, size: number, absoluteDirection: number): number => {
     return centerX + size * Directions.cosines[absoluteDirection];
 }
 
-export const manualPointNY = (centerY: number, size: number, absoluteDirection: number): number => {
+export const pointNY = (centerY: number, size: number, absoluteDirection: number): number => {
     return centerY + size * Directions.sines[absoluteDirection];
-}
-
-export const pointNX = (face: Face, absoluteDirection: number): number => {
-    return manualPointNX(face.center.x, face.size, absoluteDirection);
-}
-
-export const pointNY = (face: Face, absoluteDirection: number): number => {
-    return manualPointNY(face.center.y, face.size, absoluteDirection);
 }
 
 export const setPointN = (result: Point, face: Face, i: number) => {
@@ -65,20 +35,19 @@ export const setPointNManually = (result: Point, direction: Direction, center: P
     result.y = center.y + size * Directions.sines[d];
 }
 
-export const draw = (g: Graphic, face: Face): boolean => {
-    const d = face.direction;
-    const p0x = viewspaceX(g, pointNX(face, (d + 0) % 6));
-    const p0y = viewspaceY(g, pointNY(face, (d + 0) % 6));
-    const p1x = viewspaceX(g, pointNX(face, (d + 1) % 6));
-    const p1y = viewspaceY(g, pointNY(face, (d + 1) % 6));
-    const p2x = viewspaceX(g, pointNX(face, (d + 2) % 6));
-    const p2y = viewspaceY(g, pointNY(face, (d + 2) % 6));
-    const p3x = viewspaceX(g, pointNX(face, (d + 3) % 6));
-    const p3y = viewspaceY(g, pointNY(face, (d + 3) % 6));
-    const p4x = viewspaceX(g, pointNX(face, (d + 4) % 6));
-    const p4y = viewspaceY(g, pointNY(face, (d + 4) % 6));
-    const p5x = viewspaceX(g, pointNX(face, (d + 5) % 6));
-    const p5y = viewspaceY(g, pointNY(face, (d + 5) % 6));
+export const draw = (g: Graphic, centerX: number, centerY: number, size: number, d: Direction, isFirstFace: boolean): boolean => {
+    const p0x = viewspaceX(g, pointNX(centerX, size, (d + 0) % 6));
+    const p0y = viewspaceY(g, pointNY(centerY, size, (d + 0) % 6));
+    const p1x = viewspaceX(g, pointNX(centerX, size, (d + 1) % 6));
+    const p1y = viewspaceY(g, pointNY(centerY, size, (d + 1) % 6));
+    const p2x = viewspaceX(g, pointNX(centerX, size, (d + 2) % 6));
+    const p2y = viewspaceY(g, pointNY(centerY, size, (d + 2) % 6));
+    const p3x = viewspaceX(g, pointNX(centerX, size, (d + 3) % 6));
+    const p3y = viewspaceY(g, pointNY(centerY, size, (d + 3) % 6));
+    const p4x = viewspaceX(g, pointNX(centerX, size, (d + 4) % 6));
+    const p4y = viewspaceY(g, pointNY(centerY, size, (d + 4) % 6));
+    const p5x = viewspaceX(g, pointNX(centerX, size, (d + 5) % 6));
+    const p5y = viewspaceY(g, pointNY(centerY, size, (d + 5) % 6));
     if (outsideVisibleArea(g, p0x)
         || outsideVisibleArea(g, p1x)
         || outsideVisibleArea(g, p2x)
@@ -95,9 +64,9 @@ export const draw = (g: Graphic, face: Face): boolean => {
         return true;
     }
     const ctx = g[_graphic_ctx];
-    if (face.isFirstFace) {
-        const cx = viewspaceX(g, face.center.x);
-        const cy = viewspaceY(g, face.center.y);
+    if (isFirstFace) {
+        const cx = viewspaceX(g, centerX);
+        const cy = viewspaceY(g, centerY);
         ctx.moveTo(p0x, p0y);
         ctx.lineTo(p1x, p1y);
         ctx.lineTo(p2x, p2y);
@@ -144,14 +113,4 @@ export const draw = (g: Graphic, face: Face): boolean => {
         ctx.lineTo(p5x, p5y);
     }
     return false;
-}
-
-export const enlarge = (face: Face, scale: number): void => {
-    face.size += scale * faceSizeGrowthScalar * face.growthScale;
-    if (!face.isFirstFace) {
-        const dx = scale * faceSizeGrowthScalar * Math.cos(Directions.values[face.direction]) * face.growthScale;
-        const dy = scale * faceSizeGrowthScalar * Math.sin(Directions.values[face.direction]) * face.growthScale;
-        face.center.x += dx;
-        face.center.y += dy;
-    }
 }

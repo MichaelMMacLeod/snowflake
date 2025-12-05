@@ -15,28 +15,28 @@ import * as Directions from "./Direction.js";
 // example, the left point of side zero is the right point of side one.
 //
 // These functions do not take into consideration the 'direction' of the parts.
-export const faceSideNLeftX = (face, absoluteSideIndex) => {
-    return Faces.pointNX(face, (absoluteSideIndex + 1) % Directions.values.length);
+export const faceSideNLeftX = (centerX, size, absoluteSideIndex) => {
+    return Faces.pointNX(centerX, size, (absoluteSideIndex + 1) % Directions.values.length);
 };
-export const faceSideNLeftY = (face, absoluteSideIndex) => {
-    return Faces.pointNY(face, (absoluteSideIndex + 1) % Directions.values.length);
+export const faceSideNLeftY = (centerY, size, absoluteSideIndex) => {
+    return Faces.pointNY(centerY, size, (absoluteSideIndex + 1) % Directions.values.length);
 };
-export const faceSideNRightX = (face, absoluteSideIndex) => {
-    return Faces.pointNX(face, absoluteSideIndex);
+export const faceSideNRightX = (centerX, size, absoluteSideIndex) => {
+    return Faces.pointNX(centerX, size, absoluteSideIndex);
 };
-export const faceSideNRightY = (face, absoluteSideIndex) => {
-    return Faces.pointNY(face, absoluteSideIndex);
+export const faceSideNRightY = (centerY, size, absoluteSideIndex) => {
+    return Faces.pointNY(centerY, size, absoluteSideIndex);
 };
-export const branchSideNLeftX = (branch, absoluteSideIndex) => {
-    return Branches.pointNX(branch, (absoluteSideIndex + 1) % Directions.values.length);
+export const branchSideNLeftX = (startX, length, branchDirection, size, absoluteSideIndex) => {
+    return Branches.pointNX(startX, length, branchDirection, size, (absoluteSideIndex + 1) % Directions.values.length);
 };
-export const branchSideNLeftY = (branch, absoluteSideIndex) => {
-    return Branches.pointNY(branch, (absoluteSideIndex + 1) % Directions.values.length);
+export const branchSideNLeftY = (startY, length, branchDirection, size, absoluteSideIndex) => {
+    return Branches.pointNY(startY, length, branchDirection, size, (absoluteSideIndex + 1) % Directions.values.length);
 };
-export const branchSideNRightX = (branch, absoluteSideIndex) => {
-    return Branches.pointNX(branch, absoluteSideIndex);
+export const branchSideNRightX = (startX, length, branchDirection, size, absoluteSideIndex) => {
+    return Branches.pointNX(startX, length, branchDirection, size, absoluteSideIndex);
 };
-export const branchSideNRightY = (branch, absoluteSideIndex) => {
-    return Branches.pointNY(branch, absoluteSideIndex);
+export const branchSideNRightY = (startY, length, branchDirection, size, absoluteSideIndex) => {
+    return Branches.pointNY(startY, length, branchDirection, size, absoluteSideIndex);
 };
 //# sourceMappingURL=Side2D.js.map

@@ -2,8 +2,6 @@ import { _graphic_canvas, _graphic_sizePX } from "./Graphic.js";
 import * as Graphics from "./Graphic.js";
 import { addBranchesToGrowingFaces, addFacesToGrowingBranches } from "./SnowflakeObject.js";
 import * as Snowflakes from "./SnowflakeObject.js";
-import * as Branches from "./Branch.js";
-import * as Faces from "./Face.js";
 import { fracPart, interpretGrowth } from "../common/Utils.js";
 import { isSome, mapSome, none } from "maybe-either/Maybe";
 import * as Maybes from "maybe-either/Maybe";
@@ -179,11 +177,11 @@ export const update = (state) => {
         Snowflakes.cacheNormalizedSides(snowflake);
         if (state[_currentGrowthType] === 'branching') {
             Snowflakes.killCoveredBranches(snowflake);
-            Snowflakes.forEachGrowingBranch(snowflake, (b, _) => Branches.enlarge(b, growth.scale));
+            Snowflakes.enlargeGrowingBranches(snowflake);
         }
         else {
             Snowflakes.killCoveredFaces(snowflake);
-            Snowflakes.forEachGrowingFace(snowflake, (f, _) => Faces.enlarge(f, growth.scale));
+            Snowflakes.enlargeGrowingFaces(snowflake, growth.scale);
         }
         mapSome(state[_graphic], g => {
             const foregroundColor = currentThemeForegroundRGBAString(state);
