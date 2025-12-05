@@ -5,17 +5,25 @@
   "description": "",
   "type": "module",
   "exports": {
-    "./Snowflake": {
+    "./Element/Snowflake": {
       "import": "./dist/snowflake/Element.js",
       "types": "./dist/snowflake/Element.d.ts"
     },
-    "./Graph": {
+    "./Element/Graph": {
       "import": "./dist/graph/Element.js",
       "types": "./dist/graph/Element.d.ts"
     },
     "./Utils": {
       "import": "./dist/common/Utils.js",
       "types": "./dist/common/Utils.d.ts"
+    },
+    "./Config/Graph": {
+      "import": "./dist/graph/Config.js",
+      "types": "./dist/graph/Config.d.ts"
+    },
+    "./Config/Snowflake": {
+      "import": "./dist/snowflake/Config.js",
+      "types": "./dist/snowflake/Config.d.ts"
     }
   },
   "scripts": {
