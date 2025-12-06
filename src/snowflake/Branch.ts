@@ -1,11 +1,9 @@
-import * as Points from "../common/Point.js";
-import { midpointTN, Point } from "../common/Point.js";
+import { midpointTN } from "../common/Point.js";
 import { Direction } from "./Direction.js";
 import * as Directions from "./Direction.js";
 import { _graphic_ctx, Graphic } from "./Graphic.js";
 import { outsideVisibleArea, viewspaceX, viewspaceY } from "./CoordinateSystem.js";
 import * as Faces from "./Face.js";
-import { branchLengthGrowthScalar, branchSizeGrowthScalar } from "../common/Constants.js";
 import { rem } from "../common/Utils.js";
 
 export const endCenterX = (startX: number, length: number, d: Direction): number => {
@@ -19,7 +17,7 @@ export const endCenterY = (startY: number, length: number, d: Direction): number
 export const pointNX = (startX: number, length: number, branchDirection: Direction, size: number, absoluteDirection: number): number => {
     const d = rem(absoluteDirection - branchDirection, Directions.values.length);
     if (d === 5 || d === 0 || d === 1) {
-        return Faces.pointNX(endCenterX(startX, length, d), size, absoluteDirection);
+        return Faces.pointNX(endCenterX(startX, length, branchDirection), size, absoluteDirection);
     }
     return Faces.pointNX(startX, size, absoluteDirection);
 }
@@ -32,7 +30,7 @@ export const pointNY = (startY: number, length: number, branchDirection: Directi
     return Faces.pointNY(startY, size, absoluteDirection);
 }
 
-export const draw = (g: Graphic, startX: number, startY: number, d: Direction, size: number): boolean => {
+export const draw = (g: Graphic, startX: number, startY: number, size: number, length: number, d: Direction): boolean => {
     const p0x = viewspaceX(g, pointNX(startX, length, d, size, (d + 0) % 6));
     const p0y = viewspaceY(g, pointNY(startY, length, d, size, (d + 0) % 6));
     const p1x = viewspaceX(g, pointNX(startX, length, d, size, (d + 1) % 6));

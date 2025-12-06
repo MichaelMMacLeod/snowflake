@@ -13,7 +13,7 @@ export const endCenterY = (startY, length, d) => {
 export const pointNX = (startX, length, branchDirection, size, absoluteDirection) => {
     const d = rem(absoluteDirection - branchDirection, Directions.values.length);
     if (d === 5 || d === 0 || d === 1) {
-        return Faces.pointNX(endCenterX(startX, length, d), size, absoluteDirection);
+        return Faces.pointNX(endCenterX(startX, length, branchDirection), size, absoluteDirection);
     }
     return Faces.pointNX(startX, size, absoluteDirection);
 };
@@ -24,7 +24,7 @@ export const pointNY = (startY, length, branchDirection, size, absoluteDirection
     }
     return Faces.pointNY(startY, size, absoluteDirection);
 };
-export const draw = (g, startX, startY, d, size) => {
+export const draw = (g, startX, startY, size, length, d) => {
     const p0x = viewspaceX(g, pointNX(startX, length, d, size, (d + 0) % 6));
     const p0y = viewspaceY(g, pointNY(startY, length, d, size, (d + 0) % 6));
     const p1x = viewspaceX(g, pointNX(startX, length, d, size, (d + 1) % 6));
