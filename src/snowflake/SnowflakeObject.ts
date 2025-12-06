@@ -19,7 +19,7 @@ import * as Sides from "./Side.js";
 //
 // Determining if two horizontal line segments overlap each other is simple,
 // and is what 'killPartIfCoveredInOneDirection' (specifically, Sides.overlaps())
-// does. This const takes a part and its horizontal side and does a linear 
+// does. This function takes a part and its horizontal side and does a linear 
 // search through the horizontal sides of every other part, using Sides.overlaps()
 // to check if the sides of the given part are below any other sides. It kills
 // the part if its side is below any other side.
