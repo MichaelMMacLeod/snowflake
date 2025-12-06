@@ -219,15 +219,14 @@ export const draw = (g: Graphic, snowflake: Snowflake, foregroundColor: string):
     const size = snowflake[_face_sizes][fi];
     const d = snowflake[_face_directions][fi] as Direction;
     const isFirstFace = fi === 0;
-    anyPartOutside ||= Faces.draw(g, centerX, centerY, size, d, isFirstFace);
+    return anyPartOutside ||= Faces.draw(g, centerX, centerY, size, d, isFirstFace)
   });
   forEachGrowingBranch(snowflake, bi => {
     const startX = snowflake[_branch_start_xs][bi];
     const startY = snowflake[_branch_start_ys][bi];
     const d = snowflake[_branch_directions][bi] as Direction;
     const size = snowflake[_branch_sizes][bi];
-    const length = snowflake[_branch_lengths][bi];
-    anyPartOutside ||= Branches.draw(g, startX, startY, size, length, d);
+    anyPartOutside ||= Branches.draw(g, startX, startY, d, size)
   });
   g[_graphic_ctx].stroke();
   return anyPartOutside;
