@@ -447,14 +447,13 @@ export const killPartIfCoveredInOneDirection = (
 ): void => {
   const sl = sideLeftCache[partIndex];
   const sr = sideRightCache[partIndex];
-  const sh = sideHeightCache[partIndex];
-  for (let oi = 0; oi < numOtherSides; ++oi) {
+  for (let oi = 0; oi < numOtherSides && growings[partIndex] === 1; ++oi) {
     const ol = otherLeftSideCache[oi];
     const or = otherRightSideCache[oi];
     const overlaps = Sides.overlaps(ol, or, sl, sr);
     if (overlaps
+      && otherHeightSideCache[oi] - sideHeightCache[partIndex] > 0
       && !(otherCacheContainsPart && oi === partIndex)
-      && otherHeightSideCache[oi] - sh > 0
     ) {
       growings[partIndex] = 0;
       break;
