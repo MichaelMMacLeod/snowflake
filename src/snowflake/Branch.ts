@@ -8,43 +8,64 @@ import * as Faces from "./Face.js";
 import { branchLengthGrowthScalar, branchSizeGrowthScalar } from "../common/Constants.js";
 import { rem } from "../common/Utils.js";
 
-export const endCenterX = (startX: number, length: number, d: Direction): number => {
-    return startX + length * Directions.cosines[d];
+export type Branch = {
+    start: Point,
+    size: number,
+    length: number,
+    direction: Direction,
+    growthScale: number,
+    growing: boolean,
 }
 
-export const endCenterY = (startY: number, length: number, d: Direction): number => {
-    return startY + length * Directions.sines[d];
+export const zero = (): Branch => {
+    return {
+        start: Points.zero(),
+        size: 0,
+        length: 0,
+        direction: 0,
+        growthScale: 0,
+        growing: false,
+    };
 }
 
-export const pointNX = (startX: number, length: number, branchDirection: Direction, size: number, absoluteDirection: number): number => {
-    const d = rem(absoluteDirection - branchDirection, Directions.values.length);
+export const endCenterX = (branch: Branch): number => {
+    return branch.start.x + branch.length * Directions.cosines[branch.direction];
+}
+
+export const endCenterY = (branch: Branch): number => {
+    return branch.start.y + branch.length * Directions.sines[branch.direction];
+}
+
+export const pointNX = (branch: Branch, absoluteDirection: number): number => {
+    const d = rem(absoluteDirection - branch.direction, Directions.values.length);
     if (d === 5 || d === 0 || d === 1) {
-        return Faces.pointNX(endCenterX(startX, length, d), size, absoluteDirection);
+        return Faces.manualPointNX(endCenterX(branch), branch.size, absoluteDirection);
     }
-    return Faces.pointNX(startX, size, absoluteDirection);
+    return Faces.manualPointNX(branch.start.x, branch.size, absoluteDirection);
 }
 
-export const pointNY = (startY: number, length: number, branchDirection: Direction, size: number, absoluteDirection: number): number => {
-    const d = rem(absoluteDirection - branchDirection, Directions.values.length);
+export const pointNY = (branch: Branch, absoluteDirection: number): number => {
+    const d = rem(absoluteDirection - branch.direction, Directions.values.length);
     if (d === 5 || d === 0 || d === 1) {
-        return Faces.pointNY(endCenterY(startY, length, branchDirection), size, absoluteDirection);
+        return Faces.manualPointNY(endCenterY(branch), branch.size, absoluteDirection);
     }
-    return Faces.pointNY(startY, size, absoluteDirection);
+    return Faces.manualPointNY(branch.start.y, branch.size, absoluteDirection);
 }
 
-export const draw = (g: Graphic, startX: number, startY: number, d: Direction, size: number): boolean => {
-    const p0x = viewspaceX(g, pointNX(startX, length, d, size, (d + 0) % 6));
-    const p0y = viewspaceY(g, pointNY(startY, length, d, size, (d + 0) % 6));
-    const p1x = viewspaceX(g, pointNX(startX, length, d, size, (d + 1) % 6));
-    const p1y = viewspaceY(g, pointNY(startY, length, d, size, (d + 1) % 6));
-    const p2x = viewspaceX(g, pointNX(startX, length, d, size, (d + 2) % 6));
-    const p2y = viewspaceY(g, pointNY(startY, length, d, size, (d + 2) % 6));
-    const p3x = viewspaceX(g, pointNX(startX, length, d, size, (d + 3) % 6));
-    const p3y = viewspaceY(g, pointNY(startY, length, d, size, (d + 3) % 6));
-    const p4x = viewspaceX(g, pointNX(startX, length, d, size, (d + 4) % 6));
-    const p4y = viewspaceY(g, pointNY(startY, length, d, size, (d + 4) % 6));
-    const p5x = viewspaceX(g, pointNX(startX, length, d, size, (d + 5) % 6));
-    const p5y = viewspaceY(g, pointNY(startY, length, d, size, (d + 5) % 6));
+export const draw = (g: Graphic, branch: Branch): boolean => {
+    const d = branch.direction;
+    const p0x = viewspaceX(g, pointNX(branch, (d + 0) % 6));
+    const p0y = viewspaceY(g, pointNY(branch, (d + 0) % 6));
+    const p1x = viewspaceX(g, pointNX(branch, (d + 1) % 6));
+    const p1y = viewspaceY(g, pointNY(branch, (d + 1) % 6));
+    const p2x = viewspaceX(g, pointNX(branch, (d + 2) % 6));
+    const p2y = viewspaceY(g, pointNY(branch, (d + 2) % 6));
+    const p3x = viewspaceX(g, pointNX(branch, (d + 3) % 6));
+    const p3y = viewspaceY(g, pointNY(branch, (d + 3) % 6));
+    const p4x = viewspaceX(g, pointNX(branch, (d + 4) % 6));
+    const p4y = viewspaceY(g, pointNY(branch, (d + 4) % 6));
+    const p5x = viewspaceX(g, pointNX(branch, (d + 5) % 6));
+    const p5y = viewspaceY(g, pointNY(branch, (d + 5) % 6));
     if (outsideVisibleArea(g, p0x)
         || outsideVisibleArea(g, p1x)
         || outsideVisibleArea(g, p2x)
@@ -77,4 +98,11 @@ export const draw = (g: Graphic, startX: number, startY: number, d: Direction, s
     ctx.lineTo(p3x, p3y);
 
     return false;
+}
+
+export const enlarge = (branch: Branch, scale: number): void => {
+    // const lengthScalar = -1.5 * scale + 1.5;
+    // const sizeScalar = 1.5 * scale;
+    branch.size += branchSizeGrowthScalar * branch.growthScale;
+    branch.length += branchLengthGrowthScalar * branch.growthScale;
 }

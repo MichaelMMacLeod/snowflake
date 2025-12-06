@@ -1,7 +1,18 @@
+import { Point } from "../common/Point.js";
 import { Direction } from "./Direction.js";
 import { Graphic } from "./Graphic.js";
-export declare const endCenterX: (startX: number, length: number, d: Direction) => number;
-export declare const endCenterY: (startY: number, length: number, d: Direction) => number;
-export declare const pointNX: (startX: number, length: number, branchDirection: Direction, size: number, absoluteDirection: number) => number;
-export declare const pointNY: (startY: number, length: number, branchDirection: Direction, size: number, absoluteDirection: number) => number;
-export declare const draw: (g: Graphic, startX: number, startY: number, d: Direction, size: number) => boolean;
+export type Branch = {
+    start: Point;
+    size: number;
+    length: number;
+    direction: Direction;
+    growthScale: number;
+    growing: boolean;
+};
+export declare const zero: () => Branch;
+export declare const endCenterX: (branch: Branch) => number;
+export declare const endCenterY: (branch: Branch) => number;
+export declare const pointNX: (branch: Branch, absoluteDirection: number) => number;
+export declare const pointNY: (branch: Branch, absoluteDirection: number) => number;
+export declare const draw: (g: Graphic, branch: Branch) => boolean;
+export declare const enlarge: (branch: Branch, scale: number) => void;

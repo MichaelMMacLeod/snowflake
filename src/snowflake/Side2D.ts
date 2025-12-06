@@ -1,7 +1,8 @@
+import { Face } from "./Face.js";
 import * as Faces from "./Face.js";
+import { Branch } from "./Branch.js";
 import * as Branches from "./Branch.js";
 import * as Directions from "./Direction.js";
-import { Direction } from "./Direction.js";
 
 // The functions in this file return coordinates of endpoints of lines in a part.
 // The nth side of a part is defined in the following way:
@@ -18,34 +19,34 @@ import { Direction } from "./Direction.js";
 //
 // These functions do not take into consideration the 'direction' of the parts.
 
-export const faceSideNLeftX = (centerX: number, size: number, absoluteSideIndex: number): number => {
-    return Faces.pointNX(centerX, size, (absoluteSideIndex + 1) % Directions.values.length);
+export const faceSideNLeftX = (face: Face, absoluteSideIndex: number): number => {
+    return Faces.pointNX(face, (absoluteSideIndex + 1) % Directions.values.length);
 }
 
-export const faceSideNLeftY = (centerY: number, size: number, absoluteSideIndex: number): number => {
-    return Faces.pointNY(centerY, size, (absoluteSideIndex + 1) % Directions.values.length);
+export const faceSideNLeftY = (face: Face, absoluteSideIndex: number): number => {
+    return Faces.pointNY(face, (absoluteSideIndex + 1) % Directions.values.length);
 }
 
-export const faceSideNRightX = (centerX: number, size: number, absoluteSideIndex: number): number => {
-    return Faces.pointNX(centerX, size, absoluteSideIndex);
+export const faceSideNRightX = (face: Face, absoluteSideIndex: number): number => {
+    return Faces.pointNX(face, absoluteSideIndex);
 }
 
-export const faceSideNRightY = (centerY: number, size: number, absoluteSideIndex: number): number => {
-    return Faces.pointNY(centerY, size, absoluteSideIndex);
+export const faceSideNRightY = (face: Face, absoluteSideIndex: number): number => {
+    return Faces.pointNY(face, absoluteSideIndex);
 }
 
-export const branchSideNLeftX = (startX: number, length: number, branchDirection: Direction, size: number, absoluteSideIndex: number): number => {
-    return Branches.pointNX(startX, length, branchDirection, size, (absoluteSideIndex + 1) % Directions.values.length);
+export const branchSideNLeftX = (branch: Branch, absoluteSideIndex: number): number => {
+    return Branches.pointNX(branch, (absoluteSideIndex + 1) % Directions.values.length);
 }
 
-export const branchSideNLeftY = (startY: number, length: number, branchDirection: Direction, size: number, absoluteSideIndex: number): number => {
-    return Branches.pointNY(startY, length, branchDirection, size, (absoluteSideIndex + 1) % Directions.values.length);
+export const branchSideNLeftY = (branch: Branch, absoluteSideIndex: number): number => {
+    return Branches.pointNY(branch, (absoluteSideIndex + 1) % Directions.values.length);
 }
 
-export const branchSideNRightX = (startX: number, length: number, branchDirection: Direction, size: number, absoluteSideIndex: number): number => {
-    return Branches.pointNX(startX, length, branchDirection, size, absoluteSideIndex);
+export const branchSideNRightX = (branch: Branch, absoluteSideIndex: number): number => {
+    return Branches.pointNX(branch, absoluteSideIndex);
 }
 
-export const branchSideNRightY = (startY: number, length: number, branchDirection: Direction, size: number, absoluteSideIndex: number): number => {
-    return Branches.pointNY(startY, length, branchDirection, size, absoluteSideIndex);
+export const branchSideNRightY = (branch: Branch, absoluteSideIndex: number): number => {
+    return Branches.pointNY(branch, absoluteSideIndex);
 }
