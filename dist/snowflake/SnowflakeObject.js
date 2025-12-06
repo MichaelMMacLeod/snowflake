@@ -320,13 +320,14 @@ export const cacheNormalizedSides = (snowflake) => {
 export const killPartIfCoveredInOneDirection = (partIndex, sideLeftCache, sideRightCache, sideHeightCache, otherLeftSideCache, otherRightSideCache, otherHeightSideCache, numOtherSides, otherCacheContainsPart, growings) => {
     const sl = sideLeftCache[partIndex];
     const sr = sideRightCache[partIndex];
-    for (let oi = 0; oi < numOtherSides && growings[partIndex] === 1; ++oi) {
+    const sh = sideHeightCache[partIndex];
+    for (let oi = 0; oi < numOtherSides; ++oi) {
         const ol = otherLeftSideCache[oi];
         const or = otherRightSideCache[oi];
         const overlaps = Sides.overlaps(ol, or, sl, sr);
         if (overlaps
-            && otherHeightSideCache[oi] - sideHeightCache[partIndex] > 0
-            && !(otherCacheContainsPart && oi === partIndex)) {
+            && !(otherCacheContainsPart && oi === partIndex)
+            && otherHeightSideCache[oi] - sh > 0) {
             growings[partIndex] = 0;
             break;
         }
