@@ -363,7 +363,7 @@ type Killable = {
   growing: boolean,
 };
 
-export const killPartIfCoveredInOneDirection = (
+export function killPartIfCoveredInOneDirection(
   part: Killable,
   partIndex: number,
   sideLeftCache: SideCacheArray,
@@ -374,13 +374,14 @@ export const killPartIfCoveredInOneDirection = (
   otherHeightSideCache: SideCacheArray,
   numOtherSides: number,
   otherCacheContainsPart: boolean,
-): void => {
+): void {
   const sl = sideLeftCache[partIndex];
   const sr = sideRightCache[partIndex];
   for (let oi = 0; oi < numOtherSides && part.growing; ++oi) {
     const ol = otherLeftSideCache[oi];
     const or = otherRightSideCache[oi];
-    const overlaps = Sides.overlaps(ol, or, sl, sr);
+    // const overlaps = Sides.overlaps(ol, or, sl, sr);
+    const overlaps = ol < sr && sl < or
     if (overlaps
       && otherHeightSideCache[oi] - sideHeightCache[partIndex] > 0
       && !(otherCacheContainsPart && oi === partIndex)
@@ -391,7 +392,7 @@ export const killPartIfCoveredInOneDirection = (
   }
 }
 
-export const killPartIfCoveredInOneOfTwoDirections = (
+export function killPartIfCoveredInOneOfTwoDirections(
   caches: SideCache,
   numFaces: number,
   numBranches: number,
@@ -400,7 +401,7 @@ export const killPartIfCoveredInOneOfTwoDirections = (
   part: Killable,
   partIndex: number,
   partIsFace: boolean,
-): void => {
+): void {
   const partCache = partIsFace ? 0 : 3;
   const plc = caches[partCache];
   const prc = caches[partCache + 1];
@@ -427,14 +428,14 @@ export const killPartIfCoveredInOneOfTwoDirections = (
   }
 }
 
-export const killPartIfCovered = (
+export function killPartIfCovered(
   part: Killable,
   partIndex: number,
   caches: SideCache,
   numFaces: number,
   numBranches: number,
   partIsFace: boolean,
-): void => {
+): void {
   const d = part.direction;
   const leftDirection = d;
   const rightDirection = rem(d - 1, Directions.values.length) as Direction;

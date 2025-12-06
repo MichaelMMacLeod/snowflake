@@ -255,13 +255,14 @@ export const cacheNormalizedSides = (snowflake) => {
         Sides.normalizeBranchRelativeSide2DsM(snowflake[_sideCaches][BRANCH_LEFT_CACHE], snowflake[_sideCaches][BRANCH_RIGHT_CACHE], snowflake[_sideCaches][BRANCH_HEIGHT_CACHE], bi, b);
     });
 };
-export const killPartIfCoveredInOneDirection = (part, partIndex, sideLeftCache, sideRightCache, sideHeightCache, otherLeftSideCache, otherRightSideCache, otherHeightSideCache, numOtherSides, otherCacheContainsPart) => {
+export function killPartIfCoveredInOneDirection(part, partIndex, sideLeftCache, sideRightCache, sideHeightCache, otherLeftSideCache, otherRightSideCache, otherHeightSideCache, numOtherSides, otherCacheContainsPart) {
     const sl = sideLeftCache[partIndex];
     const sr = sideRightCache[partIndex];
     for (let oi = 0; oi < numOtherSides && part.growing; ++oi) {
         const ol = otherLeftSideCache[oi];
         const or = otherRightSideCache[oi];
-        const overlaps = Sides.overlaps(ol, or, sl, sr);
+        // const overlaps = Sides.overlaps(ol, or, sl, sr);
+        const overlaps = ol < sr && sl < or;
         if (overlaps
             && otherHeightSideCache[oi] - sideHeightCache[partIndex] > 0
             && !(otherCacheContainsPart && oi === partIndex)) {
@@ -269,8 +270,8 @@ export const killPartIfCoveredInOneDirection = (part, partIndex, sideLeftCache, 
             break;
         }
     }
-};
-export const killPartIfCoveredInOneOfTwoDirections = (caches, numFaces, numBranches, left, right, part, partIndex, partIsFace) => {
+}
+export function killPartIfCoveredInOneOfTwoDirections(caches, numFaces, numBranches, left, right, part, partIndex, partIsFace) {
     const partCache = partIsFace ? 0 : 3;
     const plc = caches[partCache];
     const prc = caches[partCache + 1];
@@ -295,13 +296,13 @@ export const killPartIfCoveredInOneOfTwoDirections = (caches, numFaces, numBranc
             }
         }
     }
-};
-export const killPartIfCovered = (part, partIndex, caches, numFaces, numBranches, partIsFace) => {
+}
+export function killPartIfCovered(part, partIndex, caches, numFaces, numBranches, partIsFace) {
     const d = part.direction;
     const leftDirection = d;
     const rightDirection = rem(d - 1, Directions.values.length);
     killPartIfCoveredInOneOfTwoDirections(caches, numFaces, numBranches, leftDirection, rightDirection, part, partIndex, partIsFace);
-};
+}
 export const killCoveredFaces = (snowflake) => {
     forEachGrowingFace(snowflake, (f, fi) => {
         killPartIfCovered(f, fi, snowflake[_sideCaches], snowflake[_numFaces], snowflake[_numBranches], true);

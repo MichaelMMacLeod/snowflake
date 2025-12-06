@@ -36,12 +36,12 @@ export const overlapDistance = (height1, height2) => {
     return height1 - height2;
 };
 // Returns 'true' if the line segments l1...r1 and l2...r2 overlap.
-export const overlaps = (l1, r1, l2, r2) => {
+export /*@__INLINE__*/ function overlaps(l1, r1, l2, r2) {
     // s1 ---......
     // s2       ......---
     //    and
     // s1       ......--- 
     // s2 ---......
     return l1 < r2 && l2 < r1;
-};
+}
 //# sourceMappingURL=Side.js.map

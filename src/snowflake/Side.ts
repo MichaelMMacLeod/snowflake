@@ -69,7 +69,7 @@ export const overlapDistance = (height1: number, height2: number) => {
 }
 
 // Returns 'true' if the line segments l1...r1 and l2...r2 overlap.
-export const overlaps = (l1: number, r1: number, l2: number, r2: number): boolean => {
+export /*@__INLINE__*/ function overlaps(l1: number, r1: number, l2: number, r2: number): boolean {
   // s1 ---......
   // s2       ......---
   //    and
