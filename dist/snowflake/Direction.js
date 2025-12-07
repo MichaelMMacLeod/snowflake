@@ -1,6 +1,5 @@
-import { rem } from "../common/Utils.js";
 import { oneSixthCircle } from "../common/Constants.js";
-export const DIRS = 6;
+export const NUM_DIRECTIONS = 6;
 export const values = [
     0 * oneSixthCircle,
     1 * oneSixthCircle,
@@ -25,10 +24,4 @@ export const sines = [
     Math.sin(values[4]),
     Math.sin(values[5]),
 ];
-export const next = (d) => {
-    return ((d + 1) % values.length);
-};
-export const previou = (d) => {
-    return rem(d - 1, values.length);
-};
 //# sourceMappingURL=Direction.js.map

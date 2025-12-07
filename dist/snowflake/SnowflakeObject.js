@@ -302,7 +302,7 @@ export function killPartIfCoveredInOneOfTwoDirections(caches, numFaces, numBranc
 export function killPartIfCovered(partDirection, killPart, partIsDead, partIndex, caches, numFaces, numBranches, partIsFace) {
     const d = partDirection;
     const leftDirection = d;
-    const rightDirection = rem(d - 1, Directions.values.length);
+    const rightDirection = rem(d - 1, Directions.NUM_DIRECTIONS);
     killPartIfCoveredInOneOfTwoDirections(caches, numFaces, numBranches, leftDirection, rightDirection, killPart, partIsDead, partIndex, partIsFace);
 }
 let closure_var_face = Faces.zero();

@@ -14,7 +14,7 @@ export const normalizeSide2DFaceM = (
   face: Face,
   absoluteDirection: number
 ): void => {
-  const d = rem(1 - absoluteDirection, Directions.values.length) as Direction;
+  const d = rem(1 - absoluteDirection, Directions.NUM_DIRECTIONS) as Direction;
   const side2dLeftX = Side2Ds.faceSideNLeftX(face, absoluteDirection);
   const side2dLeftY = Side2Ds.faceSideNLeftY(face, absoluteDirection);
   const side2dRightX = Side2Ds.faceSideNRightX(face, absoluteDirection);
@@ -32,7 +32,7 @@ export const normalizeSide2DBranchM = (
   branch: Branch,
   absoluteDirection: number
 ): void => {
-  const d = rem(1 - absoluteDirection, Directions.values.length) as Direction;
+  const d = rem(1 - absoluteDirection, Directions.NUM_DIRECTIONS) as Direction;
   const side2dLeftX = Side2Ds.branchSideNLeftX(branch, absoluteDirection);
   const side2dLeftY = Side2Ds.branchSideNLeftY(branch, absoluteDirection);
   const side2dRightX = Side2Ds.branchSideNRightX(branch, absoluteDirection);
@@ -48,7 +48,7 @@ export const normalizeFaceRelativeSide2DsM = (
   resultHeight: Array6<SideCacheArray>,
   partIndex: number, face: Face
 ): void => {
-  for (let i = 0; i < Directions.values.length; ++i) {
+  for (let i = 0; i < Directions.NUM_DIRECTIONS; ++i) {
     normalizeSide2DFaceM(resultLeft[i], resultRight[i], resultHeight[i], partIndex, face, i);
   }
 }
@@ -60,7 +60,7 @@ export const normalizeBranchRelativeSide2DsM = (
   partIndex: number,
   branch: Branch
 ): void => {
-  for (let i = 0; i < Directions.values.length; ++i) {
+  for (let i = 0; i < Directions.NUM_DIRECTIONS; ++i) {
     normalizeSide2DBranchM(resultLeft[i], resultRight[i], resultHeight[i], partIndex, branch, i);
   }
 }

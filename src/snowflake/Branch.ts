@@ -52,7 +52,7 @@ export const endCenterY = (branch: Branch): number => {
 }
 
 export const pointNX = (branch: Branch, absoluteDirection: number): number => {
-    const d = rem(absoluteDirection - branch[_branch_direction], Directions.values.length);
+    const d = rem(absoluteDirection - branch[_branch_direction], Directions.NUM_DIRECTIONS);
     if (d === 5 || d === 0 || d === 1) {
         return Faces.manualPointNX(endCenterX(branch), branch[_branch_size], absoluteDirection);
     }
@@ -60,7 +60,7 @@ export const pointNX = (branch: Branch, absoluteDirection: number): number => {
 }
 
 export const pointNY = (branch: Branch, absoluteDirection: number): number => {
-    const d = rem(absoluteDirection - branch[_branch_direction], Directions.values.length);
+    const d = rem(absoluteDirection - branch[_branch_direction], Directions.NUM_DIRECTIONS);
     if (d === 5 || d === 0 || d === 1) {
         return Faces.manualPointNY(endCenterY(branch), branch[_branch_size], absoluteDirection);
     }

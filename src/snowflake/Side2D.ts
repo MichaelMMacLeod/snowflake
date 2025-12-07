@@ -20,11 +20,11 @@ import * as Directions from "./Direction.js";
 // These functions do not take into consideration the 'direction' of the parts.
 
 export const faceSideNLeftX = (face: Face, absoluteSideIndex: number): number => {
-    return Faces.pointNX(face, (absoluteSideIndex + 1) % Directions.values.length);
+    return Faces.pointNX(face, (absoluteSideIndex + 1) % Directions.NUM_DIRECTIONS);
 }
 
 export const faceSideNLeftY = (face: Face, absoluteSideIndex: number): number => {
-    return Faces.pointNY(face, (absoluteSideIndex + 1) % Directions.values.length);
+    return Faces.pointNY(face, (absoluteSideIndex + 1) % Directions.NUM_DIRECTIONS);
 }
 
 export const faceSideNRightX = (face: Face, absoluteSideIndex: number): number => {
@@ -36,11 +36,11 @@ export const faceSideNRightY = (face: Face, absoluteSideIndex: number): number =
 }
 
 export const branchSideNLeftX = (branch: Branch, absoluteSideIndex: number): number => {
-    return Branches.pointNX(branch, (absoluteSideIndex + 1) % Directions.values.length);
+    return Branches.pointNX(branch, (absoluteSideIndex + 1) % Directions.NUM_DIRECTIONS);
 }
 
 export const branchSideNLeftY = (branch: Branch, absoluteSideIndex: number): number => {
-    return Branches.pointNY(branch, (absoluteSideIndex + 1) % Directions.values.length);
+    return Branches.pointNY(branch, (absoluteSideIndex + 1) % Directions.NUM_DIRECTIONS);
 }
 
 export const branchSideNRightX = (branch: Branch, absoluteSideIndex: number): number => {

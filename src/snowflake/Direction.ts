@@ -2,7 +2,7 @@ import { rem, Array6 } from "../common/Utils.js";
 import { oneSixthCircle } from "../common/Constants.js";
 
 export type Direction = 0 | 1 | 2 | 3 | 4 | 5;
-export const DIRS: 6 = 6;
+export const NUM_DIRECTIONS: 6 = 6;
 
 export const values: Array6<number> = [
     0 * oneSixthCircle,
@@ -30,11 +30,3 @@ export const sines: Array6<number> = [
     Math.sin(values[4]),
     Math.sin(values[5]),
 ];
-
-export const next = (d: Direction): Direction => {
-    return ((d + 1) % values.length) as Direction;
-}
-
-export const previou = (d: Direction): Direction => {
-    return rem(d - 1, values.length) as Direction;
-}

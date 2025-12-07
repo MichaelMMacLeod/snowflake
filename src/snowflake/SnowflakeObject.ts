@@ -20,7 +20,7 @@ import {
 } from "./Branch.js";
 import * as Branches from "./Branch.js";
 import { _graphic_ctx, Graphic } from "./Graphic.js";
-import { Direction, DIRS } from "./Direction.js";
+import { Direction } from "./Direction.js";
 import * as Directions from "./Direction.js";
 import {
   Array6,
@@ -457,7 +457,7 @@ export function killPartIfCovered(
 ): void {
   const d = partDirection;
   const leftDirection = d;
-  const rightDirection = rem(d - 1, Directions.values.length) as Direction;
+  const rightDirection = rem(d - 1, Directions.NUM_DIRECTIONS) as Direction;
   killPartIfCoveredInOneOfTwoDirections(
     caches,
     numFaces,
