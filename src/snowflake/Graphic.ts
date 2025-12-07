@@ -3,13 +3,14 @@ import { Maybe, none, some } from "maybe-either/Maybe";
 export const _graphic_sizePX = 0;
 export const _graphic_canvas = 1;
 export const _graphic_ctx = 2;
+
 export type Graphic = {
     [_graphic_sizePX]: number,
     [_graphic_canvas]: HTMLCanvasElement,
     [_graphic_ctx]: CanvasRenderingContext2D,
 };
 
-export const make = (sizePX: number): Maybe<Graphic> => {
+export const zero = (sizePX: number): Maybe<Graphic> => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (ctx === null) {

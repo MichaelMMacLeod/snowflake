@@ -2,7 +2,7 @@ import { none, some } from "maybe-either/Maybe";
 export const _graphic_sizePX = 0;
 export const _graphic_canvas = 1;
 export const _graphic_ctx = 2;
-export const make = (sizePX) => {
+export const zero = (sizePX) => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (ctx === null) {

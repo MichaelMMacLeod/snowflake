@@ -107,7 +107,7 @@ export const setSnowflakeCanvasSizePX = (state: State, snowflakeCanvasSizePX: nu
 
 export const initializeGraphic = (state: State, snowflakeCanvasSizePX: number): Maybe<Graphic> => {
     return Maybes.orElse(state[_State_graphic], () => {
-        state[_State_graphic] = Graphics.make(snowflakeCanvasSizePX);
+        state[_State_graphic] = Graphics.zero(snowflakeCanvasSizePX);
         return state[_State_graphic];
     });
 }

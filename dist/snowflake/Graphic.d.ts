@@ -7,5 +7,5 @@ export type Graphic = {
     [_graphic_canvas]: HTMLCanvasElement;
     [_graphic_ctx]: CanvasRenderingContext2D;
 };
-export declare const make: (sizePX: number) => Maybe<Graphic>;
+export declare const zero: (sizePX: number) => Maybe<Graphic>;
 export declare const clear: (g: Graphic) => void;
