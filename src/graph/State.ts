@@ -3,29 +3,22 @@ import { _SnowflakeGraph_root, _SnowflakeGraph_snowflakeID, SnowflakeGraph, sync
 import * as SnowflakeGraphs from "./Graph.js";
 import { NonEmptyArray } from "../common/Utils.js";
 import * as Maybes from "maybe-either/Maybe";
+import { defaultGraphConfig, GraphConfig } from "./Config.js";
 
-export const _graphState_graph = 0;
-export const _graphState_percentGrown = 1;
-export const _graphState_aspectRatio = 2;
-export const _graphState_isLightTheme = 3;
+export const _GraphState_graph = 0;
+export const _GraphState_cfg = 1;
 
 export type GraphState = {
-    [_graphState_graph]: Maybe<SnowflakeGraph>
-    [_graphState_percentGrown]: number,
-    [_graphState_aspectRatio]: number,
-    [_graphState_isLightTheme]: boolean,
+    [_GraphState_graph]: Maybe<SnowflakeGraph>,
+    [_GraphState_cfg]: GraphConfig,
 };
 
 export const zero = (): GraphState => {
     const graph = none;
-    const percentGrown = 0;
-    const aspectRatio = 3;
-    const isLightTheme = true;
+    const cfg = { ...defaultGraphConfig } /* create non-frozen copy */;
     return [
         graph,
-        percentGrown,
-        aspectRatio,
-        isLightTheme,
+        cfg,
     ];
 }
 
@@ -33,35 +26,13 @@ export const reset = (_g: GraphState) => { }
 
 export const initialize = (state: GraphState): Node => {
     return Maybes.map(
-        state[_graphState_graph],
+        state[_GraphState_graph],
         () => {
             const g = SnowflakeGraphs.zero();
-            state[_graphState_graph] = some(g);
+            state[_GraphState_graph] = some(g);
             return g[_SnowflakeGraph_root];
         },
         g => {
             return g[_SnowflakeGraph_root];
         });
-}
-
-export const setPercentGrown = (state: GraphState, percentGrown: number): void => {
-    state[_graphState_percentGrown] = percentGrown;
-    mapSome(state[_graphState_graph], g => syncToPercentGrown(g, percentGrown));
-}
-
-export const setSnowflakeID = (state: GraphState, snowflakeID: NonEmptyArray<number>): void => {
-    mapSome(state[_graphState_graph], g => {
-        g[_SnowflakeGraph_snowflakeID] = snowflakeID;
-        syncToSnowflakeID(g);
-    });
-}
-
-export const setAspectRatio = (state: GraphState, aspectRatio: number): void => {
-    state[_graphState_aspectRatio] = aspectRatio;
-    mapSome(state[_graphState_graph], g => SnowflakeGraphs.setConstants(g, state[_graphState_aspectRatio], state[_graphState_isLightTheme]));
-}
-
-export const setIsLightTheme = (state: GraphState, isLightTheme: boolean): void => {
-    state[_graphState_isLightTheme] = isLightTheme;
-    mapSome(state[_graphState_graph], g => SnowflakeGraphs.setConstants(g, state[_graphState_aspectRatio], state[_graphState_isLightTheme]));
 }
