@@ -18,6 +18,8 @@ export const randomIntInclusive = (min, max) => {
     return Math.floor(Math.random() * (max - min + 1) + min);
 };
 export const sideCacheConstructor = length => new Float64Array(length);
+export const growthTypeBranching = 0;
+export const growthTypeFaceting = 1;
 export const interpretGrowth = (growthInput, time) => {
     let s = lerp(0, growthInput.length - 1, time);
     let n = fracPart(s);
@@ -27,7 +29,7 @@ export const interpretGrowth = (growthInput, time) => {
     // let timeScalar = -0.01 * s + 1;
     return {
         scale: /*timeScalar **/ Math.abs(signedScale),
-        growthType: signedScale > 0.0 ? 'branching' : 'faceting',
+        growthType: signedScale > 0.0 ? growthTypeBranching : growthTypeFaceting,
     };
 };
 export const arraysEqual = (a1, a2, eqT) => {

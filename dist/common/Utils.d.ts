@@ -10,7 +10,11 @@ export type NonEmptyArray<T> = {
 export declare const randomIntInclusive: (min: number, max: number) => number;
 export type SideCacheArray = Float64Array;
 export declare const sideCacheConstructor: (length: number) => SideCacheArray;
-export type GrowthType = 'branching' | 'faceting';
+export type GrowthTypeBranching = 0;
+export declare const growthTypeBranching = 0;
+export type GrowthTypeFaceting = 1;
+export declare const growthTypeFaceting = 1;
+export type GrowthType = GrowthTypeBranching | GrowthTypeFaceting;
 export type Growth = {
     scale: number;
     growthType: GrowthType;

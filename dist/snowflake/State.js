@@ -4,7 +4,7 @@ import { addBranchesToGrowingFaces, addFacesToGrowingBranches } from "./Snowflak
 import * as Snowflakes from "./SnowflakeObject.js";
 import * as Branches from "./Branch.js";
 import * as Faces from "./Face.js";
-import { fracPart, interpretGrowth } from "../common/Utils.js";
+import { fracPart, growthTypeBranching, interpretGrowth } from "../common/Utils.js";
 import { isSome, mapSome, none } from "maybe-either/Maybe";
 import * as Maybes from "maybe-either/Maybe";
 import * as RGBA from "../common/color/Color.js";
@@ -169,7 +169,7 @@ export const update = (state) => {
         }
         if (state[_currentGrowthType] !== growth.growthType) {
             state[_currentGrowthType] = growth.growthType;
-            if (state[_currentGrowthType] === 'branching') {
+            if (state[_currentGrowthType] === growthTypeBranching) {
                 addBranchesToGrowingFaces(snowflake);
             }
             else {
@@ -177,7 +177,7 @@ export const update = (state) => {
             }
         }
         Snowflakes.cacheNormalizedSides(snowflake);
-        if (state[_currentGrowthType] === 'branching') {
+        if (state[_currentGrowthType] === growthTypeBranching) {
             Snowflakes.killCoveredBranches(snowflake);
             Snowflakes.forEachGrowingBranch(snowflake, (b, _) => Branches.enlarge(b, growth.scale));
         }
