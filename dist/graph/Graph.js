@@ -117,7 +117,7 @@ const facetingBranchingLineAttrs = {
     'y1': facetingBranchingLineY,
     'y2': facetingBranchingLineY,
     'x1': `${marginWidth}`,
-    'x2': buildFacetingBranchingLineX2Value(defaultGraphableViewportWidth),
+    'x2': buildFacetingBranchingLineX2Value(defaultAspectRatio),
     'stroke-width': `${lineWidth}`,
     'stroke-dasharray': '5,5',
     'fill': 'none',
