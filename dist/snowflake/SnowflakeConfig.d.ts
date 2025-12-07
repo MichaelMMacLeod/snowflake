@@ -1,5 +1,5 @@
+import { SnowflakeID } from "../common/SnowflakeID.js";
 import { State } from "./State.js";
-import { SnowflakeID } from "../common/Utils.js";
 import * as ColorThemes from "../common/ColorScheme.js";
 import { ColorScheme } from "../common/ColorScheme.js";
 import { Maybe } from "maybe-either/Maybe";

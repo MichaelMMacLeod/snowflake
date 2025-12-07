@@ -1,5 +1,6 @@
 import {
-    parseSnowflakeID,
+    parseSnowflakeIDString,
+    SnowflakeID,
 } from "../common/SnowflakeID.js";
 import {
     _State_currentMS,
@@ -10,11 +11,12 @@ import {
     State
 } from "./State.js";
 import * as States from './State.js';
-import { doNothing, SnowflakeID } from "../common/Utils.js";
+import { arraysEqual, doNothing } from "../common/Utils.js";
 import * as ColorThemes from "../common/ColorScheme.js";
 import { ColorScheme } from "../common/ColorScheme.js";
 import { Maybe } from "maybe-either/Maybe";
 import { Either, getLeft, mapRight, right } from "maybe-either/Either";
+import * as SnowflakeIDs from "../common/SnowflakeID.js";
 
 export const _SnowflakeConfig_snowflakeID = 0;
 export const _SnowflakeConfig_snowflakeCanvasSizePX = 1;
@@ -76,7 +78,7 @@ const resetUnecessary = false;
 
 type ErrorMessage = string;
 
-export const defaultSnowflakeID = '13925257291' as SnowflakeID;
+export const defaultSnowflakeID = SnowflakeIDs.defaultSnowflakeID;
 export const defaultSnowflakeCanvasSizePX = 800;
 export const defaultTargetGrowthTimeMS = 8000;
 export const defaultUpsCap = 100000000;
@@ -118,13 +120,11 @@ type CfgFunction<K extends keyof SnowflakeConfig> = (
 ) => Either<ErrorMessage, ResetStatus>;
 
 const cfgSnowflakeID: CfgFunction<_SnowflakeConfig_snowflakeID> = (_cfg, state, oldValue, newValue) => {
-    if (oldValue === newValue) {
+    if (arraysEqual(oldValue, newValue, (v1, v2) => v1 === v2)) {
         return right(resetUnecessary);
     }
-    return mapRight(parseSnowflakeID(newValue), r => {
-        state[_State_growthInput] = r;
-        return resetRequred;
-    });
+    state[_State_growthInput] = newValue;
+    return right(resetRequred);
 };
 
 const cfgSnowflakeCanvasSizePX: CfgFunction<_SnowflakeConfig_snowflakeCanvasSizePX> = (_cfg, state, oldValue, newValue) => {

@@ -1,12 +1,12 @@
-import { parseSnowflakeID, randomSnowflakeIDString } from "../common/SnowflakeID.js";
+import { parseSnowflakeIDString, SnowflakeID } from "../common/SnowflakeID.js";
+import * as SnowflakeIDs from "../common/SnowflakeID.js";
 import * as Maybes from "maybe-either/Maybe";
 import { _State_cfg, _State_graphic, initializeGraphic, State } from "./State.js";
-import * as Eithers from "maybe-either/Either";
 import * as States from "./State.js";
 import * as Configs from "./SnowflakeConfig.js";
-import { SnowflakeID } from "../common/Utils.js";
 import { _graphic_canvas } from "./Graphic.js";
-import { _SnowflakeConfig_snowflakeCanvasSizePX, SnowflakeConfig } from "./SnowflakeConfig.js";
+import { _SnowflakeConfig_snowflakeCanvasSizePX, _SnowflakeConfig_snowflakeID, SnowflakeConfig } from "./SnowflakeConfig.js";
+import { Either } from "maybe-either/Either";
 
 export default class SnowflakeElement extends HTMLElement {
     #state: State;
@@ -49,16 +49,16 @@ export default class SnowflakeElement extends HTMLElement {
         States.reset(this.#state);
     }
 
-    isValidSnowflakeId(id: string): id is SnowflakeID {
-        return Eithers.map(
-            parseSnowflakeID(id),
-            () => false,
-            () => true
-        );
+    parseSnowflakeID(id: string): Either<string, SnowflakeID> {
+        return parseSnowflakeIDString(id);
     }
 
     randomSnowflakeId(): SnowflakeID {
-        return randomSnowflakeIDString();
+        return SnowflakeIDs.randomSnowflakeID();
+    }
+
+    snowflakeIDString(): string {
+        return SnowflakeIDs.formatAsSnowflakeIDString(this.#state[_State_cfg][_SnowflakeConfig_snowflakeID]);
     }
 
     percentGrown(): number {

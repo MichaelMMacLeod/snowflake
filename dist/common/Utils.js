@@ -1,4 +1,4 @@
-import { yChoices } from "./Constants.js";
+import { yChoices } from "./SnowflakeID.js";
 export const rem = (x, m) => {
     return ((x % m) + m) % m;
 };
@@ -26,9 +26,8 @@ export const interpretGrowth = (growthInput, time) => {
     let a = yChoices[growthInput[Math.floor(s)]];
     let b = yChoices[growthInput[Math.ceil(s)]];
     let signedScale = lerp(a, b, n);
-    // let timeScalar = -0.01 * s + 1;
     return {
-        scale: /*timeScalar **/ Math.abs(signedScale),
+        scale: Math.abs(signedScale),
         growthType: signedScale > 0.0 ? growthTypeBranching : growthTypeFaceting,
     };
 };

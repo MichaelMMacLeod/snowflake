@@ -7,6 +7,10 @@ export declare const makeArray6: <T>(f: () => T) => Array6<T>;
 export type NonEmptyArray<T> = {
     0: T;
 } & Array<T>;
+export type ArrayAtLeast2<T> = {
+    0: T;
+    1: T;
+} & Array<T>;
 export declare const randomIntInclusive: (min: number, max: number) => number;
 export type SideCacheArray = Float64Array;
 export declare const sideCacheConstructor: (length: number) => SideCacheArray;
@@ -21,9 +25,4 @@ export type Growth = {
 };
 export declare const interpretGrowth: (growthInput: Array<number>, time: number) => Growth;
 export declare const arraysEqual: <T>(a1: Array<T>, a2: Array<T>, eqT: (t1: T, t2: T) => boolean) => boolean;
-declare const snowflakeIDTag: unique symbol;
-export type SnowflakeID = string & {
-    readonly [snowflakeIDTag]: 'SnowflakeID';
-};
 export declare const doNothing: () => void;
-export {};

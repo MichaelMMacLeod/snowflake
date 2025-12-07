@@ -1,6 +1,5 @@
-import { parseSnowflakeID, snowflakeIDString } from "../common/SnowflakeID.js";
-import { yChoices } from "../common/Constants.js";
-import { clamp, NonEmptyArray, SnowflakeID } from "../common/Utils.js";
+import { parseSnowflakeIDString, formatAsSnowflakeIDString, yChoices, SnowflakeID, nextSmallestYChoiceIndex, nextLargestYChoiceIndex, nthYChoiceIndex, YChoiceIndex } from "../common/SnowflakeID.js";
+import { clamp, NonEmptyArray } from "../common/Utils.js";
 import { Maybe, none, some } from "maybe-either/Maybe";
 import * as Maybes from "maybe-either/Maybe";
 import { Point } from "../common/Point.js";
@@ -21,7 +20,7 @@ export const _SnowflakeGraph_handleMovedCallback = 10;
 export const _SnowflakeGraph_colorStylesStyle = 11;
 
 export type SnowflakeGraph = {
-    [_SnowflakeGraph_snowflakeID]: NonEmptyArray<number>,
+    [_SnowflakeGraph_snowflakeID]: SnowflakeID,
     [_SnowflakeGraph_root]: SVGSVGElement,
     [_SnowflakeGraph_style]: HTMLStyleElement,
     [_SnowflakeGraph_g]: SVGGElement,
@@ -215,20 +214,20 @@ const setHandleLocation = (handle: GraphHandle, x: number, y: number): void => {
 };
 
 const moveHandleUpwards = (sfg: SnowflakeGraph, h: number, aspectRatio: number): void => {
-    sfg[_SnowflakeGraph_snowflakeID][h] = Math.max(0, sfg[_SnowflakeGraph_snowflakeID][h] - 1);
-    sfg[_SnowflakeGraph_handleMovedCallback](snowflakeIDString(sfg[_SnowflakeGraph_snowflakeID]));
+    sfg[_SnowflakeGraph_snowflakeID][h] = nextSmallestYChoiceIndex(sfg[_SnowflakeGraph_snowflakeID][h]);
+    sfg[_SnowflakeGraph_handleMovedCallback](sfg[_SnowflakeGraph_snowflakeID]);
     syncToSnowflakeID(sfg, aspectRatio);
 };
 
 const moveHandleDownwards = (sfg: SnowflakeGraph, h: number, aspectRatio: number): void => {
-    sfg[_SnowflakeGraph_snowflakeID][h] = Math.min(8, sfg[_SnowflakeGraph_snowflakeID][h] + 1);
-    sfg[_SnowflakeGraph_handleMovedCallback](snowflakeIDString(sfg[_SnowflakeGraph_snowflakeID]));
+    sfg[_SnowflakeGraph_snowflakeID][h] = nextLargestYChoiceIndex(sfg[_SnowflakeGraph_snowflakeID][h]);
+    sfg[_SnowflakeGraph_handleMovedCallback](sfg[_SnowflakeGraph_snowflakeID]);
     syncToSnowflakeID(sfg, aspectRatio);
 };
 
 const moveHandleToNth = (sfg: SnowflakeGraph, h: number, nth: number, aspectRatio: number): void => {
-    sfg[_SnowflakeGraph_snowflakeID][h] = Math.max(0, Math.min(8, Math.floor(nth)));
-    sfg[_SnowflakeGraph_handleMovedCallback](snowflakeIDString(sfg[_SnowflakeGraph_snowflakeID]));
+    sfg[_SnowflakeGraph_snowflakeID][h] = nthYChoiceIndex(nth);
+    sfg[_SnowflakeGraph_handleMovedCallback](sfg[_SnowflakeGraph_snowflakeID]);
     syncToSnowflakeID(sfg, aspectRatio);
 };
 
@@ -364,11 +363,10 @@ const viewportToSvgPoint = (g: SnowflakeGraph, viewportPoint: Point): DOMPoint =
     return svgPoint.matrixTransform(ctm);
 };
 
-const closestYChoice = (g: SnowflakeGraph, viewportPoint: Point): number => {
+const closestYChoice = (g: SnowflakeGraph, viewportPoint: Point): YChoiceIndex => {
     const p = viewportToSvgPoint(g, viewportPoint);
     const y = (p.y - marginHeight) / graphableViewportHeight;
-    const i = Math.round(y * (yChoices.length - 1));
-    return clamp(i, 0, yChoices.length - 1);
+    return nthYChoiceIndex(Math.round(y * (yChoices.length - 1)));
 };
 
 const mouseEventIsInsideElement = (ev: MouseEvent, e: Element): boolean => {
@@ -380,7 +378,7 @@ const mouseEventIsInsideElement = (ev: MouseEvent, e: Element): boolean => {
 }
 
 export const zero = (): SnowflakeGraph => {
-    const snowflakeID: NonEmptyArray<number> = parseSnowflakeID(defaultSnowflakeID)[1] as NonEmptyArray<number>;
+    const snowflakeID = defaultSnowflakeID;
     const root = document.createElementNS(SVG_NS, 'svg');
     const style = document.createElement('style');
     const g = document.createElementNS(SVG_NS, 'g');
@@ -390,7 +388,7 @@ export const zero = (): SnowflakeGraph => {
     const progress = createProgress(g);
     const handleBeingDragged = none;
     const hoveredHandle = none;
-    const handleMovedCallback = (snowflakeID: string) => { return; };
+    const handleMovedCallback = (snowflakeID: SnowflakeID) => { return; };
     const colorStylesStyle = document.createElement('style');
     const result: SnowflakeGraph = [
         snowflakeID,
@@ -423,7 +421,7 @@ export const zero = (): SnowflakeGraph => {
         }
         result[_SnowflakeGraph_snowflakeID][h] = yChoice;
         syncToSnowflakeID(result, defaultAspectRatio);
-        result[_SnowflakeGraph_handleMovedCallback](snowflakeIDString(result[_SnowflakeGraph_snowflakeID]));
+        result[_SnowflakeGraph_handleMovedCallback](result[_SnowflakeGraph_snowflakeID]);
     }
     const handleMouseDown = (ev: MouseEvent): void => {
         const h = closestGraphHandle(result, ev);

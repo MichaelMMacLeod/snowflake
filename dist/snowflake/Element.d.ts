@@ -1,5 +1,6 @@
-import { SnowflakeID } from "../common/Utils.js";
+import { SnowflakeID } from "../common/SnowflakeID.js";
 import { SnowflakeConfig } from "./SnowflakeConfig.js";
+import { Either } from "maybe-either/Either";
 export default class SnowflakeElement extends HTMLElement {
     #private;
     constructor();
@@ -7,8 +8,9 @@ export default class SnowflakeElement extends HTMLElement {
     configure<K extends keyof SnowflakeConfig>(key: K, value: SnowflakeConfig[K]): void;
     configuredValue<K extends keyof SnowflakeConfig>(key: K): SnowflakeConfig[K];
     reset(): void;
-    isValidSnowflakeId(id: string): id is SnowflakeID;
+    parseSnowflakeID(id: string): Either<string, SnowflakeID>;
     randomSnowflakeId(): SnowflakeID;
+    snowflakeIDString(): string;
     percentGrown(): number;
     canvas(): HTMLCanvasElement;
 }

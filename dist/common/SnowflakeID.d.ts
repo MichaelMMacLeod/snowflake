@@ -1,6 +1,17 @@
 import { Either } from "maybe-either/Either";
-import { NonEmptyArray, SnowflakeID } from "./Utils.js";
-export declare const parseSnowflakeID: (value: any) => Either<string, NonEmptyArray<number>>;
-export declare const snowflakeIDString: (id: NonEmptyArray<number>) => SnowflakeID;
-export declare const randomSnowflakeId: () => NonEmptyArray<number>;
-export declare const randomSnowflakeIDString: () => SnowflakeID;
+import { ArrayAtLeast2 } from "./Utils.js";
+export declare const yChoices: Array<number>;
+export type YChoiceIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+export declare const nextLargestYChoiceIndex: (y: YChoiceIndex) => YChoiceIndex;
+export declare const nextSmallestYChoiceIndex: (y: YChoiceIndex) => YChoiceIndex;
+export declare const nthYChoiceIndex: (n: number) => YChoiceIndex;
+declare const snowflakeIDTag: unique symbol;
+export type SnowflakeID = ArrayAtLeast2<YChoiceIndex> & {
+    readonly [snowflakeIDTag]: 'SnowflakeID';
+};
+export declare const defaultSnowflakeID: SnowflakeID;
+export declare const parseSnowflakeIDString: (value: string) => Either<string, SnowflakeID>;
+export declare const formatAsSnowflakeIDString: (id: Array<number>) => string;
+export declare const randomSnowflakeID: () => SnowflakeID;
+export declare const randomSnowflakeIDString: () => string;
+export {};

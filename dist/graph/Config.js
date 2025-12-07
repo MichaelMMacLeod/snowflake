@@ -1,5 +1,4 @@
-import { parseSnowflakeID } from "../common/SnowflakeID.js";
-import { doNothing } from "../common/Utils.js";
+import { arraysEqual, doNothing } from "../common/Utils.js";
 import { _GraphState_graph } from "./State.js";
 import { _SnowflakeGraph_handleMovedCallback, _SnowflakeGraph_snowflakeID, setAspectRatio, setIsLightTheme, syncToPercentGrown, syncToSnowflakeID } from "./Graph.js";
 import * as SnowflakeConfigs from "../snowflake/SnowflakeConfig.js";
@@ -47,16 +46,14 @@ const cfgPercentGrown = (cfg, state, oldValue, newValue) => {
     return right(resetUnecessary);
 };
 const cfgSnowflakeID = (cfg, state, oldValue, newValue) => {
-    if (oldValue === newValue) {
+    if (arraysEqual(oldValue, newValue, (v1, v2) => v1 === v2)) {
         return right(resetUnecessary);
     }
-    return mapRight(parseSnowflakeID(newValue), r => {
-        mapSome(state[_GraphState_graph], g => {
-            g[_SnowflakeGraph_snowflakeID] = r;
-            syncToSnowflakeID(g, cfg[_GraphConfig_aspectRatio]);
-        });
-        return resetUnecessary;
+    mapSome(state[_GraphState_graph], g => {
+        g[_SnowflakeGraph_snowflakeID] = newValue;
+        syncToSnowflakeID(g, cfg[_GraphConfig_aspectRatio]);
     });
+    return right(resetUnecessary);
 };
 const cfgAspectRatio = (_cfg, state, oldValue, newValue) => {
     if (oldValue !== newValue) {

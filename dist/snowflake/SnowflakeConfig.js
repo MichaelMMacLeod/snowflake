@@ -1,9 +1,9 @@
-import { parseSnowflakeID, } from "../common/SnowflakeID.js";
 import { _State_currentMS, _State_growthInput, scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX } from "./State.js";
 import * as States from './State.js';
-import { doNothing } from "../common/Utils.js";
+import { arraysEqual, doNothing } from "../common/Utils.js";
 import * as ColorThemes from "../common/ColorScheme.js";
 import { getLeft, mapRight, right } from "maybe-either/Either";
+import * as SnowflakeIDs from "../common/SnowflakeID.js";
 export const _SnowflakeConfig_snowflakeID = 0;
 export const _SnowflakeConfig_snowflakeCanvasSizePX = 1;
 export const _SnowflakeConfig_targetGrowthTimeMS = 2;
@@ -30,7 +30,7 @@ const cfgKeys = [
 ];
 const resetRequred = true;
 const resetUnecessary = false;
-export const defaultSnowflakeID = '13925257291';
+export const defaultSnowflakeID = SnowflakeIDs.defaultSnowflakeID;
 export const defaultSnowflakeCanvasSizePX = 800;
 export const defaultTargetGrowthTimeMS = 8000;
 export const defaultUpsCap = 100000000;
@@ -62,13 +62,11 @@ const cfgGetOrDefault = (cfg, key) => {
     return defaultConfig[key];
 };
 const cfgSnowflakeID = (_cfg, state, oldValue, newValue) => {
-    if (oldValue === newValue) {
+    if (arraysEqual(oldValue, newValue, (v1, v2) => v1 === v2)) {
         return right(resetUnecessary);
     }
-    return mapRight(parseSnowflakeID(newValue), r => {
-        state[_State_growthInput] = r;
-        return resetRequred;
-    });
+    state[_State_growthInput] = newValue;
+    return right(resetRequred);
 };
 const cfgSnowflakeCanvasSizePX = (_cfg, state, oldValue, newValue) => {
     if (newValue !== oldValue) {

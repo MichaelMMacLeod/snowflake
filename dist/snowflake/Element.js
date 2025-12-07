@@ -10,14 +10,14 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
 var _SnowflakeElement_state, _SnowflakeElement_shadow;
-import { parseSnowflakeID, randomSnowflakeIDString } from "../common/SnowflakeID.js";
+import { parseSnowflakeIDString } from "../common/SnowflakeID.js";
+import * as SnowflakeIDs from "../common/SnowflakeID.js";
 import * as Maybes from "maybe-either/Maybe";
 import { _State_cfg, _State_graphic, initializeGraphic } from "./State.js";
-import * as Eithers from "maybe-either/Either";
 import * as States from "./State.js";
 import * as Configs from "./SnowflakeConfig.js";
 import { _graphic_canvas } from "./Graphic.js";
-import { _SnowflakeConfig_snowflakeCanvasSizePX } from "./SnowflakeConfig.js";
+import { _SnowflakeConfig_snowflakeCanvasSizePX, _SnowflakeConfig_snowflakeID } from "./SnowflakeConfig.js";
 class SnowflakeElement extends HTMLElement {
     constructor() {
         super();
@@ -45,11 +45,14 @@ class SnowflakeElement extends HTMLElement {
     reset() {
         States.reset(__classPrivateFieldGet(this, _SnowflakeElement_state, "f"));
     }
-    isValidSnowflakeId(id) {
-        return Eithers.map(parseSnowflakeID(id), () => false, () => true);
+    parseSnowflakeID(id) {
+        return parseSnowflakeIDString(id);
     }
     randomSnowflakeId() {
-        return randomSnowflakeIDString();
+        return SnowflakeIDs.randomSnowflakeID();
+    }
+    snowflakeIDString() {
+        return SnowflakeIDs.formatAsSnowflakeIDString(__classPrivateFieldGet(this, _SnowflakeElement_state, "f")[_State_cfg][_SnowflakeConfig_snowflakeID]);
     }
     percentGrown() {
         return States.percentGrown(__classPrivateFieldGet(this, _SnowflakeElement_state, "f"));

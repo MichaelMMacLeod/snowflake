@@ -1,4 +1,4 @@
-import { NonEmptyArray, SnowflakeID } from "../common/Utils.js";
+import { SnowflakeID } from "../common/SnowflakeID.js";
 import { Maybe } from "maybe-either/Maybe";
 export declare const _SnowflakeGraph_snowflakeID = 0;
 export declare const _SnowflakeGraph_root = 1;
@@ -13,7 +13,7 @@ export declare const _SnowflakeGraph_hoveredHandle = 9;
 export declare const _SnowflakeGraph_handleMovedCallback = 10;
 export declare const _SnowflakeGraph_colorStylesStyle = 11;
 export type SnowflakeGraph = {
-    [_SnowflakeGraph_snowflakeID]: NonEmptyArray<number>;
+    [_SnowflakeGraph_snowflakeID]: SnowflakeID;
     [_SnowflakeGraph_root]: SVGSVGElement;
     [_SnowflakeGraph_style]: HTMLStyleElement;
     [_SnowflakeGraph_g]: SVGGElement;

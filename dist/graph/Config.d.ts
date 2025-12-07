@@ -1,4 +1,5 @@
-import { NonEmptyArray, SnowflakeID } from "../common/Utils.js";
+import { SnowflakeID } from "../common/SnowflakeID.js";
+import { NonEmptyArray } from "../common/Utils.js";
 import { GraphState } from "./State.js";
 import { Maybe } from "maybe-either/Maybe";
 export declare const _GraphConfig_percentGrown = 0;
