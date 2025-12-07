@@ -34,46 +34,66 @@ export type SnowflakeGraph = {
 
 type Attributes = { [key: string]: string };
 
+const _Constants_aspectRatio = 0;
+const _Constants_sizeScalar = 1;
+const _Constants_viewportWidth = 2;
+const _Constants_viewportHeight = 3;
+const _Constants_handleOuterHoverScale = 4;
+const _Constants_handleOuterSize = 5;
+const _Constants_handleOuterHoveredSize = 6;
+const _Constants_handleInnerSize = 7;
+const _Constants_lineWidth = 8;
+const _Constants_marginWidth = 9;
+const _Constants_marginHeight = 10;
+const _Constants_graphableViewportWidth = 11;
+const _Constants_graphableViewportHeight = 12;
+const _Constants_rootStyle = 13;
+const _Constants_rootAttrs = 14;
+const _Constants_handleInsideAttrs = 15;
+const _Constants_handleOutsideAttrs = 16;
+const _Constants_facetingBranchingLineAttrs = 17;
+const _Constants_handleLineAttrs = 18;
+const _Constants_progressAttrs = 19;
 type Constants = {
-    ASPECT_RATIO: number,
-    SIZE_SCALAR: number,
-    VIEWPORT_WIDTH: number,
-    VIEWPORT_HEIGHT: number,
-    HANDLE_OUTER_HOVER_SCALE: number,
-    HANDLE_OUTER_SIZE: number,
-    HANDLE_OUTER_HOVERED_SIZE: number,
-    HANDLE_INNER_SIZE: number,
-    LINE_WIDTH: number,
-    MARGIN_WIDTH: number,
-    MARGIN_HEIGHT: number,
-    GRAPHABLE_VIEWPORT_WIDTH: number,
-    GRAPHABLE_VIEWPORT_HEIGHT: number,
-    ROOT_STYLE: string,
-    ROOT_ATTRS: Attributes,
-    HANDLE_INSIDE_ATTRS: Attributes,
-    HANDLE_OUTSIDE_ATTRS: Attributes,
-    FACETING_BRANCHING_LINE_ATTRS: Attributes,
-    HANDLE_LINE_ATTRS: Attributes,
-    PROGRESS_ATTRS: Attributes,
+    [_Constants_aspectRatio]: number,
+    [_Constants_sizeScalar]: number,
+    [_Constants_viewportWidth]: number,
+    [_Constants_viewportHeight]: number,
+    [_Constants_handleOuterHoverScale]: number,
+    [_Constants_handleOuterSize]: number,
+    [_Constants_handleOuterHoveredSize]: number,
+    [_Constants_handleInnerSize]: number,
+    [_Constants_lineWidth]: number,
+    [_Constants_marginWidth]: number,
+    [_Constants_marginHeight]: number,
+    [_Constants_graphableViewportWidth]: number,
+    [_Constants_graphableViewportHeight]: number,
+    [_Constants_rootStyle]: string,
+    [_Constants_rootAttrs]: Attributes,
+    [_Constants_handleInsideAttrs]: Attributes,
+    [_Constants_handleOutsideAttrs]: Attributes,
+    [_Constants_facetingBranchingLineAttrs]: Attributes,
+    [_Constants_handleLineAttrs]: Attributes,
+    [_Constants_progressAttrs]: Attributes,
 };
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-const makeConstants = (SIZE_SCALAR: number, ASPECT_RATIO: number, isLightTheme: boolean): Constants => {
-    const VIEWPORT_HEIGHT = 200;
-    const VIEWPORT_WIDTH = ASPECT_RATIO * VIEWPORT_HEIGHT;
-    const HANDLE_OUTER_HOVER_SCALE = 1.5;
-    const HANDLE_OUTER_SIZE = SIZE_SCALAR * 15;
-    const HANDLE_OUTER_HOVERED_SIZE = HANDLE_OUTER_SIZE * HANDLE_OUTER_HOVER_SCALE;
-    const HANDLE_INNER_SIZE = SIZE_SCALAR * 10;
-    const LINE_WIDTH = SIZE_SCALAR * 5;
-    const MARGIN_WIDTH = HANDLE_OUTER_HOVERED_SIZE + LINE_WIDTH;
-    const MARGIN_HEIGHT = HANDLE_OUTER_HOVERED_SIZE + LINE_WIDTH;
-    const GRAPHABLE_VIEWPORT_WIDTH = VIEWPORT_WIDTH - MARGIN_WIDTH * 2;
-    const GRAPHABLE_VIEWPORT_HEIGHT = VIEWPORT_HEIGHT - MARGIN_HEIGHT * 2;
+const makeConstants = (sizeScalar: number, aspectRatio: number, isLightTheme: boolean): Constants => {
+    const viewportHeight = 200;
+    const viewportWidth = aspectRatio * viewportHeight;
+    const handleOuterHoverScale = 1.5;
+    const handleOuterSize = sizeScalar * 15;
+    const handleOuterHoveredSize = handleOuterSize * handleOuterHoverScale;
+    const handleInnerSize = sizeScalar * 10;
+    const lineWidth = sizeScalar * 5;
+    const marginWidth = handleOuterHoveredSize + lineWidth;
+    const marginHeight = handleOuterHoveredSize + lineWidth;
+    const graphableViewportWidth = viewportWidth - marginWidth * 2;
+    const graphableViewportHeight = viewportHeight - marginHeight * 2;
 
-    const ROOT_ATTRS = {
-        'viewBox': `0 0 ${VIEWPORT_WIDTH} ${VIEWPORT_HEIGHT}`,
+    const rootAttrs = {
+        'viewBox': `0 0 ${viewportWidth} ${viewportHeight}`,
         'xmlns': `${SVG_NS}`,
         'width': '100%',
     };
@@ -91,7 +111,7 @@ const makeConstants = (SIZE_SCALAR: number, ASPECT_RATIO: number, isLightTheme: 
         };
     })();
 
-    const ROOT_STYLE = `
+    const rootStyle = `
 svg * {
   --SFG-color-background: ${background};
   --SFG-color-foreground: ${foreground};
@@ -119,10 +139,10 @@ svg * {
   outline: none;
 }
 .sf-graph-handle-outside-hover {
-  scale: ${HANDLE_OUTER_HOVER_SCALE};
+  scale: ${handleOuterHoverScale};
 }
 .sf-graph-handle-outside:focus-visible {
-  scale: ${HANDLE_OUTER_HOVER_SCALE};
+  scale: ${handleOuterHoverScale};
 }
 .sf-graph-handle-outside:focus:not(:focus-visible) {
   outline: none;
@@ -136,70 +156,70 @@ svg * {
 }
 `;
 
-    const HANDLE_INSIDE_ATTRS = {
+    const handleInsideAttrs = {
         'class': 'sf-graph-handle-inside',
-        'r': `${HANDLE_INNER_SIZE}`,
+        'r': `${handleInnerSize}`,
         'cx': '0',
         'cy': '0',
     };
 
-    const HANDLE_OUTSIDE_ATTRS = {
+    const handleOutsideAttrs = {
         'class': 'sf-graph-handle-outside',
-        'r': `${HANDLE_OUTER_SIZE}`,
+        'r': `${handleOuterSize}`,
         'fill-opacity': '0',
-        'stroke-width': `${LINE_WIDTH}`,
+        'stroke-width': `${lineWidth}`,
         'cx': '0',
         'cy': '0',
         'tabindex': '0',
     };
 
-    const facetingBranchingLineY = `${MARGIN_HEIGHT + GRAPHABLE_VIEWPORT_HEIGHT / 2}`;
-    const FACETING_BRANCHING_LINE_ATTRS = {
+    const facetingBranchingLineY = `${marginHeight + graphableViewportHeight / 2}`;
+    const facetingBranchingLineAttrs = {
         'class': 'sf-graph-line',
         'y1': facetingBranchingLineY,
         'y2': facetingBranchingLineY,
-        'x1': `${MARGIN_WIDTH}`,
-        'x2': `${MARGIN_WIDTH + GRAPHABLE_VIEWPORT_WIDTH}`,
-        'stroke-width': `${LINE_WIDTH}`,
+        'x1': `${marginWidth}`,
+        'x2': `${marginWidth + graphableViewportWidth}`,
+        'stroke-width': `${lineWidth}`,
         'stroke-dasharray': '5,5',
         'fill': 'none',
     };
 
-    const HANDLE_LINE_ATTRS = {
+    const handleLineAttrs = {
         'class': 'sf-graph-line',
-        'stroke-width': `${LINE_WIDTH}`,
+        'stroke-width': `${lineWidth}`,
         'fill': 'none',
     };
 
-    const PROGRESS_ATTRS = {
+    const progressAttrs = {
         'class': 'sf-graph-progress',
-        'x': `${MARGIN_WIDTH}`,
+        'x': `${marginWidth}`,
         'y': '0',
-        'height': `${VIEWPORT_HEIGHT}`,
+        'height': `${viewportHeight}`,
     };
 
-    return {
-        ASPECT_RATIO,
-        SIZE_SCALAR,
-        VIEWPORT_WIDTH,
-        VIEWPORT_HEIGHT,
-        HANDLE_OUTER_HOVER_SCALE,
-        HANDLE_OUTER_SIZE,
-        HANDLE_OUTER_HOVERED_SIZE,
-        HANDLE_INNER_SIZE,
-        LINE_WIDTH,
-        MARGIN_WIDTH,
-        MARGIN_HEIGHT,
-        GRAPHABLE_VIEWPORT_WIDTH,
-        GRAPHABLE_VIEWPORT_HEIGHT,
-        ROOT_ATTRS,
-        ROOT_STYLE,
-        HANDLE_INSIDE_ATTRS,
-        HANDLE_OUTSIDE_ATTRS,
-        FACETING_BRANCHING_LINE_ATTRS,
-        HANDLE_LINE_ATTRS,
-        PROGRESS_ATTRS,
-    };
+    return [
+        aspectRatio,
+        sizeScalar,
+        viewportWidth,
+        viewportHeight,
+        handleOuterHoverScale,
+        handleOuterSize,
+        handleOuterHoveredSize,
+        handleInnerSize,
+        lineWidth,
+        marginWidth,
+        marginHeight,
+        graphableViewportWidth,
+        graphableViewportHeight,
+        rootStyle,
+        rootAttrs,
+        handleInsideAttrs,
+        handleOutsideAttrs,
+        facetingBranchingLineAttrs,
+        handleLineAttrs,
+        progressAttrs,
+    ];
 }
 
 const setSVGAttributes = (element: SVGElement, attributes: Attributes): void => {
@@ -222,8 +242,8 @@ type GraphHandle = {
 
 const handleZero = (cs: Constants): GraphHandle => {
     const g = createSVGElement('g', { 'class': 'sf-graph-handle' });
-    const inside = createSVGElement('circle', cs.HANDLE_INSIDE_ATTRS);
-    const outside = createSVGElement('circle', cs.HANDLE_OUTSIDE_ATTRS);
+    const inside = createSVGElement('circle', cs[_Constants_handleInsideAttrs]);
+    const outside = createSVGElement('circle', cs[_Constants_handleOutsideAttrs]);
     g.appendChild(inside);
     g.appendChild(outside);
     return {
@@ -286,13 +306,13 @@ const addHandle = (cs: Constants, g: SVGElement, x: number, y: number, sfg: Snow
 }
 
 const createFacetingBranchingLine = (cs: Constants, g: SVGElement): SVGElement => {
-    const result = createSVGElement('line', cs.FACETING_BRANCHING_LINE_ATTRS);;
+    const result = createSVGElement('line', cs[_Constants_facetingBranchingLineAttrs]);;
     g.appendChild(result);
     return result;
 }
 
 const createHandleLine = (cs: Constants, g: SVGElement): SVGElement => {
-    const result = createSVGElement('polyline', cs.HANDLE_LINE_ATTRS);;
+    const result = createSVGElement('polyline', cs[_Constants_handleLineAttrs]);;
     g.appendChild(result);
     return result;
 }
@@ -307,16 +327,16 @@ const fitHandleLineToHandles = (line: SVGElement, handles: Array<GraphHandle>): 
 }
 
 const createProgress = (cs: Constants, g: SVGElement): SVGElement => {
-    const result = createSVGElement('rect', cs.PROGRESS_ATTRS);
+    const result = createSVGElement('rect', cs[_Constants_progressAttrs]);
     g.appendChild(result);
     return result;
 }
 
 const fitProgressToGrowth = (cs: Constants, progress: SVGElement, percentGrown: number): void => {
-    const width = cs.GRAPHABLE_VIEWPORT_WIDTH * percentGrown;
+    const width = cs[_Constants_graphableViewportWidth] * percentGrown;
     setSVGAttributes(progress, {
         'width': width.toString(),
-        'height': cs.VIEWPORT_HEIGHT.toString(),
+        'height': cs[_Constants_viewportHeight].toString(),
     });
 }
 
@@ -335,10 +355,11 @@ export const syncToSnowflakeID = (g: SnowflakeGraph): void => {
         }
     }
     g[_SnowflakeGraph_handles].forEach((h, i) => {
-        const x0 = g[_SnowflakeGraph_constants].MARGIN_WIDTH;
-        const y0 = g[_SnowflakeGraph_constants].MARGIN_HEIGHT;
-        const dx = g[_SnowflakeGraph_constants].GRAPHABLE_VIEWPORT_WIDTH / (id.length - 1);
-        const dy = g[_SnowflakeGraph_constants].GRAPHABLE_VIEWPORT_HEIGHT / (yChoices.length - 1);
+        const constants = g[_SnowflakeGraph_constants];
+        const x0 = constants[_Constants_marginWidth];
+        const y0 = constants[_Constants_marginHeight];
+        const dx = constants[_Constants_graphableViewportWidth] / (id.length - 1);
+        const dy = constants[_Constants_graphableViewportHeight] / (yChoices.length - 1);
         const x = x0 + dx * i;
         const y = y0 + dy * id[i];
         setSVGAttributes(h.inside, { 'cx': x.toString(), 'cy': y.toString() });
@@ -390,16 +411,16 @@ const viewportToSvgPoint = (g: SnowflakeGraph, viewportPoint: Point): DOMPoint =
 
 const closestYChoice = (g: SnowflakeGraph, viewportPoint: Point): number => {
     const p = viewportToSvgPoint(g, viewportPoint);
-    const y = (p.y - g[_SnowflakeGraph_constants].MARGIN_HEIGHT) / g[_SnowflakeGraph_constants].GRAPHABLE_VIEWPORT_HEIGHT;
+    const y = (p.y - g[_SnowflakeGraph_constants][_Constants_marginHeight]) / g[_SnowflakeGraph_constants][_Constants_graphableViewportHeight];
     const i = Math.round(y * (yChoices.length - 1));
     return clamp(i, 0, yChoices.length - 1);
 }
 
 const syncToConstants = (g: SnowflakeGraph, cs: Constants) => {
     g[_SnowflakeGraph_constants] = cs;
-    g[_SnowflakeGraph_style].textContent = cs.ROOT_STYLE;
-    setSVGAttributes(g[_SnowflakeGraph_root], cs.ROOT_ATTRS);
-    setSVGAttributes(g[_SnowflakeGraph_facetingBranchingLine], cs.FACETING_BRANCHING_LINE_ATTRS);
+    g[_SnowflakeGraph_style].textContent = cs[_Constants_rootStyle];
+    setSVGAttributes(g[_SnowflakeGraph_root], cs[_Constants_rootAttrs]);
+    setSVGAttributes(g[_SnowflakeGraph_facetingBranchingLine], cs[_Constants_facetingBranchingLineAttrs]);
     syncToSnowflakeID(g);
 }
 
@@ -439,7 +460,7 @@ export const zero = (): SnowflakeGraph => {
         handleMovedCallback,
     ];
     root.replaceChildren(); // remove all of root's children.
-    style.textContent = constants.ROOT_STYLE;
+    style.textContent = constants[_Constants_rootStyle];
     root.appendChild(style);
     const updateHandlePosition = (h: number, ev: MouseEvent) => {
         const p = { x: ev.clientX, y: ev.clientY };
@@ -503,7 +524,7 @@ export const zero = (): SnowflakeGraph => {
     window.addEventListener('mouseup', handleMouseUp);
     window.addEventListener('mousemove', handleMouseMove);
     result[_SnowflakeGraph_root].appendChild(result[_SnowflakeGraph_g]);
-    setSVGAttributes(result[_SnowflakeGraph_root], constants.ROOT_ATTRS);
+    setSVGAttributes(result[_SnowflakeGraph_root], constants[_Constants_rootAttrs]);
     result[_SnowflakeGraph_handles] = [
         addHandle(constants, g, 0, 0, result, 0),
         addHandle(constants, g, 0, 0, result, 1),
