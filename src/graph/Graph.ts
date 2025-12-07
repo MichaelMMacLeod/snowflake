@@ -63,6 +63,24 @@ const rootAttrs: Attributes = {
     'width': '100%',
 };
 
+const propertyColorBackground = '--a';
+const propertyColorForeground = '--b';
+
+const classNameGraphHandleInside = 'a';
+const classNameGraphHandleOutside = 'b';
+const classNameGraphHandleOutsideHover = 'c';
+const classNameGraphLine = 'd';
+const classNameGraphProgress = 'e';
+
+const classGraphHandleInside = '.' + classNameGraphHandleInside;
+const classGraphHandleOutside = '.' + classNameGraphHandleOutside;
+const classGraphHandleOutsideHover = '.' + classNameGraphHandleOutsideHover;
+const classGraphLine = '.' + classNameGraphLine;
+const classGraphProgress = '.' + classNameGraphProgress;
+
+const varColorBackground = 'var(' + propertyColorBackground + ')';
+const varColorForeground = 'var(' + propertyColorForeground + ')';
+
 const buildColorStyles = (isLightTheme: boolean): string => {
     let background = defaultGraphDarkThemeColor;
     let foreground = defaultGraphLightThemeColor;
@@ -70,63 +88,48 @@ const buildColorStyles = (isLightTheme: boolean): string => {
         background = defaultGraphLightThemeColor;
         foreground = defaultGraphDarkThemeColor;
     }
-    return 'svg *{--SFG-color-background:'
+    return 'svg *{'
+        + propertyColorBackground
+        + ':'
         + background
-        + ';--SFG-color-foreground:'
+        + ';'
+        + propertyColorForeground
+        + ':'
         + foreground
         + '}';
 };
 
-const rootStyle = `
-svg * {
-  transform-box: fill-box;
-}
-.sf-graph-handle-inside {
-  fill: var(--SFG-color-foreground);
-}
-.sf-graph-handle-outside {
-  stroke: var(--SFG-color-foreground);
-}
-.sf-graph-handle-outside {
-  scale: 1;
-  transition: scale 0.1s;
-  transform-origin: center;
-}
-@media (prefers-reduced-motion: reduce) {
-  .sf-graph-handle-outside {
-    transition: scale 0s;
-  }
-}
-.sf-graph-handle-outside:focus:not(:focus-visisble) {
-  outline: none;
-}
-.sf-graph-handle-outside-hover {
-  scale: ${handleOuterHoverScale};
-}
-.sf-graph-handle-outside:focus-visible {
-  scale: ${handleOuterHoverScale};
-}
-.sf-graph-handle-outside:focus:not(:focus-visible) {
-  outline: none;
-}
-.sf-graph-line {
-  stroke: var(--SFG-color-foreground);
-}
-.sf-graph-progress {
-  fill: var(--SFG-color-foreground);
-  fill-opacity: 0.075;
-}
-`;
+const styleSvgStar = 'svg *{transform-box:fill-box}'
+const styleClassGraphHandleInside = `${classGraphHandleInside}{fill:${varColorForeground}}`;
+const styleClassGraphHandleOutside = `${classGraphHandleOutside}{stroke:${varColorForeground};scale:1;transition:scale 0.1s;transform-origin:center}`;
+const styleMediaPrefersReducedMotionReduce = `@media (prefers-reduced-motion:reduce){${classGraphHandleOutside}{transition:scale 0s}}`;
+const styleClassGraphHandleOutsideHover = `${classGraphHandleOutsideHover}{scale:${handleOuterHoverScale}}`;
+const styleClassGraphHandleOutsideFocusVisisble = `${classGraphHandleOutside}:focus-visible{scale:${handleOuterHoverScale}}`;
+const styleClassGraphLine = `${classGraphLine}{stroke:${varColorForeground}}`;
+const styleClassGraphProgress = `${classGraphProgress}{fill:${varColorForeground};fill-opacity:0.075}`;
+
+const styles = [
+    styleSvgStar,
+    styleClassGraphHandleInside,
+    styleClassGraphHandleOutside,
+    styleMediaPrefersReducedMotionReduce,
+    styleClassGraphHandleOutsideHover,
+    styleClassGraphHandleOutsideFocusVisisble,
+    styleClassGraphLine,
+    styleClassGraphProgress,
+];
+
+const rootStyle = styles.join('');
 
 const handleInsideAttrs = {
-    'class': 'sf-graph-handle-inside',
+    'class': classNameGraphHandleInside,
     'r': `${handleInnerSize}`,
     'cx': '0',
     'cy': '0',
 };
 
 const handleOutsideAttrs = {
-    'class': 'sf-graph-handle-outside',
+    'class': classNameGraphHandleOutside,
     'r': `${handleOuterSize}`,
     'fill-opacity': '0',
     'stroke-width': `${lineWidth}`,
@@ -148,7 +151,7 @@ const buildFacetingBranchingLineX2Value = (aspectRatio: number): string => {
 };
 
 const facetingBranchingLineAttrs = {
-    'class': 'sf-graph-line',
+    'class': classNameGraphLine,
     'y1': facetingBranchingLineY,
     'y2': facetingBranchingLineY,
     'x1': `${marginWidth}`,
@@ -159,13 +162,13 @@ const facetingBranchingLineAttrs = {
 };
 
 const handleLineAttrs = {
-    'class': 'sf-graph-line',
+    'class': classNameGraphLine,
     'stroke-width': `${lineWidth}`,
     'fill': 'none',
 };
 
 const progressAttrs = {
-    'class': 'sf-graph-progress',
+    'class': classNameGraphProgress,
     'x': `${marginWidth}`,
     'y': '0',
     'height': `${viewportHeight}`,
@@ -193,7 +196,7 @@ type GraphHandle = {
 };
 
 const handleZero = (): GraphHandle => {
-    const g = createSVGElement('g', { 'class': 'sf-graph-handle' });
+    const g = document.createElementNS(SVG_NS, 'g');
     const inside = createSVGElement('circle', handleInsideAttrs);
     const outside = createSVGElement('circle', handleOutsideAttrs);
     g.appendChild(inside);
@@ -380,7 +383,7 @@ export const zero = (): SnowflakeGraph => {
     const snowflakeID: NonEmptyArray<number> = [0, 0];
     const root = document.createElementNS(SVG_NS, 'svg');
     const style = document.createElement('style');
-    const g = createSVGElement('g', { 'class': 'sf-graph' });
+    const g = document.createElementNS(SVG_NS, 'g');
     const handles: Array<GraphHandle> = [];
     const handleLine = createHandleLine(g);
     const facetingBranchingLine = createFacetingBranchingLine(g);
@@ -404,7 +407,7 @@ export const zero = (): SnowflakeGraph => {
         colorStylesStyle
     ];
     root.replaceChildren(); // remove all of root's children.
-    
+
     style.textContent = rootStyle;
     root.appendChild(style);
 
@@ -431,12 +434,11 @@ export const zero = (): SnowflakeGraph => {
         result[_SnowflakeGraph_handleBeingDragged] = none;
     }
     const handleMouseMove = (ev: MouseEvent): void => {
-        const hoverClass = 'sf-graph-handle-outside-hover';
         const removeHoverClass = (handleIdx: number): void => {
-            result[_SnowflakeGraph_handles][handleIdx].outside.classList.remove(hoverClass);
+            result[_SnowflakeGraph_handles][handleIdx].outside.classList.remove(classNameGraphHandleOutsideHover);
         }
         const addHoverClass = (handleIdx: number): void => {
-            result[_SnowflakeGraph_handles][handleIdx].outside.classList.add(hoverClass);
+            result[_SnowflakeGraph_handles][handleIdx].outside.classList.add(classNameGraphHandleOutsideHover);
         }
         Maybes.map(
             result[_SnowflakeGraph_handleBeingDragged],
