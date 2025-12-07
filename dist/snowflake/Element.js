@@ -9,10 +9,10 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _SnowflakeElement_state, _SnowflakeElement_cfg, _SnowflakeElement_shadow;
+var _SnowflakeElement_state, _SnowflakeElement_shadow;
 import { parseSnowflakeID, randomSnowflakeIDString } from "../common/Config.js";
 import * as Maybes from "maybe-either/Maybe";
-import { _State_graphic, initializeGraphic } from "./State.js";
+import { _State_cfg, _State_graphic, initializeGraphic } from "./State.js";
 import * as Eithers from "maybe-either/Either";
 import * as States from "./State.js";
 import * as Configs from "./Config.js";
@@ -22,27 +22,26 @@ class SnowflakeElement extends HTMLElement {
     constructor() {
         super();
         _SnowflakeElement_state.set(this, void 0);
-        _SnowflakeElement_cfg.set(this, void 0);
         _SnowflakeElement_shadow.set(this, void 0);
         __classPrivateFieldSet(this, _SnowflakeElement_shadow, this.attachShadow({ mode: 'open' }), "f");
-        __classPrivateFieldSet(this, _SnowflakeElement_state, Configs.createDefaultState(), "f");
-        __classPrivateFieldSet(this, _SnowflakeElement_cfg, Object.assign({}, Configs.defaultConfig), "f") /* create non-frozen copy */;
+        __classPrivateFieldSet(this, _SnowflakeElement_state, States.zero(), "f");
     }
     connectedCallback() {
-        Maybes.map(initializeGraphic(__classPrivateFieldGet(this, _SnowflakeElement_state, "f"), __classPrivateFieldGet(this, _SnowflakeElement_cfg, "f")[_Cfg_snowflakeCanvasSizePX]), () => { throw new Error("couldn't get canvas 2d context"); }, g => {
+        Maybes.map(initializeGraphic(__classPrivateFieldGet(this, _SnowflakeElement_state, "f"), __classPrivateFieldGet(this, _SnowflakeElement_state, "f")[_State_cfg][_Cfg_snowflakeCanvasSizePX]), () => { throw new Error("couldn't get canvas 2d context"); }, g => {
             __classPrivateFieldGet(this, _SnowflakeElement_shadow, "f").appendChild(g[_graphic_canvas]);
         });
     }
     configure(key, value) {
-        Maybes.map(Configs.configure(__classPrivateFieldGet(this, _SnowflakeElement_cfg, "f"), __classPrivateFieldGet(this, _SnowflakeElement_state, "f"), key, value), () => {
-            __classPrivateFieldGet(this, _SnowflakeElement_cfg, "f")[key] = value;
+        const cfg = __classPrivateFieldGet(this, _SnowflakeElement_state, "f")[_State_cfg];
+        Maybes.map(Configs.configure(cfg, __classPrivateFieldGet(this, _SnowflakeElement_state, "f"), key, value), () => {
+            cfg[key] = value;
         }, error => {
             console.error(error);
         });
     }
     ;
     configuredValue(key) {
-        return __classPrivateFieldGet(this, _SnowflakeElement_cfg, "f")[key];
+        return __classPrivateFieldGet(this, _SnowflakeElement_state, "f")[_State_cfg][key];
     }
     reset() {
         States.reset(__classPrivateFieldGet(this, _SnowflakeElement_state, "f"));
@@ -60,6 +59,6 @@ class SnowflakeElement extends HTMLElement {
         return Maybes.unwrapOr(__classPrivateFieldGet(this, _SnowflakeElement_state, "f")[_State_graphic], () => { throw new Error('element not yet inserted into document'); })[_graphic_canvas];
     }
 }
-_SnowflakeElement_state = new WeakMap(), _SnowflakeElement_cfg = new WeakMap(), _SnowflakeElement_shadow = new WeakMap();
+_SnowflakeElement_state = new WeakMap(), _SnowflakeElement_shadow = new WeakMap();
 export default SnowflakeElement;
 //# sourceMappingURL=Element.js.map

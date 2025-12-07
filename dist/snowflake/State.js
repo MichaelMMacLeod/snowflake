@@ -8,7 +8,7 @@ import { doNothing, fracPart, growthTypeBranching, interpretGrowth } from "../co
 import { isSome, mapSome, none } from "maybe-either/Maybe";
 import * as Maybes from "maybe-either/Maybe";
 import * as RGBA from "../common/color/Color.js";
-import * as ColorThemes from "../common/color/Theme.js";
+import { _Cfg_colorTheme, _Cfg_finishedGrowingCallback, _Cfg_isLightTheme, _Cfg_maxUpdates, _Cfg_playing, _Cfg_resetCallback, _Cfg_updatedCallback, defaultConfig } from "./Config.js";
 export const _State_growthInput = 0;
 export const _State_graphic = 1;
 export const _State_snowflake = 2;
@@ -16,31 +16,27 @@ export const _State_currentGrowthType = 3;
 export const _State_idealMSBetweenUpdates = 4;
 export const _State_growing = 5;
 export const _State_hasScheduledUpdate = 6;
-export const _State_colorTheme = 7;
-export const _State_isLightTheme = 8;
-export const _State_updateCount = 9;
-export const _State_currentMS = 10;
-export const _State_updateBank = 11;
-export const _State_maxUpdates = 12;
-export const _State_resetStartTime = 13;
-export const _State_playing = 14;
-export const _State_finishedGrowingCallback = 15;
-export const _State_needsReset = 16;
-export const _State_resetCallback = 17;
-export const _State_updatedCallback = 18;
-export const _State_updateOnNextFrame = 19;
-export const _State_doUpdate = 20;
+export const _State_updateCount = 7;
+export const _State_currentMS = 8;
+export const _State_updateBank = 9;
+export const _State_resetStartTime = 10;
+export const _State_needsReset = 11;
+export const _State_updateOnNextFrame = 12;
+export const _State_doUpdate = 13;
+export const _State_cfg = 14;
 const currentThemeForegroundRGBAString = (state) => {
-    if (state[_State_isLightTheme]) {
-        return RGBA.toString(state[_State_colorTheme].light.foreground);
+    const cfg = state[_State_cfg];
+    const colorTheme = cfg[_Cfg_colorTheme];
+    if (cfg[_Cfg_isLightTheme]) {
+        return RGBA.toString(colorTheme.light.foreground);
     }
-    return RGBA.toString(state[_State_colorTheme].dark.foreground);
+    return RGBA.toString(colorTheme.dark.foreground);
 };
 export const reset = (state) => {
     state[_State_needsReset] = true;
     state[_State_currentMS] = performance.now();
     state[_State_resetStartTime] = performance.now();
-    if (state[_State_playing]) {
+    if (state[_State_cfg][_Cfg_playing]) {
         scheduleUpdate(state);
     }
     else {
@@ -69,21 +65,22 @@ export const scheduleUpdate = (state) => {
     if (state[_State_hasScheduledUpdate]) {
         return;
     }
-    else if (state[_State_growing] && state[_State_playing] || state[_State_needsReset]) {
-        state[_State_hasScheduledUpdate] = true;
-        setTimeout(state[_State_updateOnNextFrame], state[_State_idealMSBetweenUpdates]);
-    }
     else {
-        state[_State_hasScheduledUpdate] = false;
+        const cfg = state[_State_cfg];
+        if (state[_State_growing] && cfg[_Cfg_playing] || state[_State_needsReset]) {
+            state[_State_hasScheduledUpdate] = true;
+            setTimeout(state[_State_updateOnNextFrame], state[_State_idealMSBetweenUpdates]);
+        }
+        else {
+            state[_State_hasScheduledUpdate] = false;
+        }
     }
 };
 export const setIdealMSBetweenUpdates = (state, targetGrowthTimeMS, upsCap) => {
-    state[_State_idealMSBetweenUpdates] = Math.max(1000 / upsCap, targetGrowthTimeMS / state[_State_maxUpdates]);
+    const maxUpdates = state[_State_cfg][_Cfg_maxUpdates];
+    state[_State_idealMSBetweenUpdates] = Math.max(1000 / upsCap, targetGrowthTimeMS / maxUpdates);
 };
 export const zero = () => {
-    // These defaults are overwritten in Controller which synchronizes
-    // this state with the default Config. It's the values in the 
-    // default Config that matter.
     const growthInput = [0];
     const graphic = none;
     const snowflake = Snowflakes.zero();
@@ -91,20 +88,14 @@ export const zero = () => {
     const idealMSBetweenUpdates = 0;
     const growing = true;
     const hasScheduledUpdate = false;
-    const colorTheme = ColorThemes.zero();
-    const isLightTheme = true;
     const updateCount = 0;
     const currentMS = 0;
     const updateBank = 0;
-    const maxUpdates = 500;
     const resetStartTime = performance.now();
-    const playing = true;
-    const finishedGrowingCallback = doNothing;
     const needsReset = false;
-    const resetCallback = doNothing;
-    const updatedCallback = doNothing;
     const updateOnNextFrame = doNothing;
     const doUpdate = doNothing;
+    const cfg = Object.assign({}, defaultConfig) /* create non-frozen copy */;
     const result = [
         growthInput,
         graphic,
@@ -113,20 +104,14 @@ export const zero = () => {
         idealMSBetweenUpdates,
         growing,
         hasScheduledUpdate,
-        colorTheme,
-        isLightTheme,
         updateCount,
         currentMS,
         updateBank,
-        maxUpdates,
         resetStartTime,
-        playing,
-        finishedGrowingCallback,
         needsReset,
-        resetCallback,
-        updatedCallback,
         updateOnNextFrame,
         doUpdate,
+        cfg,
     ];
     result[_State_updateOnNextFrame] = () => { requestAnimationFrame(result[_State_doUpdate]); };
     result[_State_doUpdate] = () => {
@@ -138,7 +123,8 @@ export const zero = () => {
     return result;
 };
 export const percentGrown = (state) => {
-    return state[_State_updateCount] / state[_State_maxUpdates];
+    const maxUpdates = state[_State_cfg][_Cfg_maxUpdates];
+    return state[_State_updateCount] / maxUpdates;
 };
 const doReset = (state) => {
     state[_State_needsReset] = false;
@@ -148,9 +134,11 @@ const doReset = (state) => {
     state[_State_updateBank] = 0;
     state[_State_updateCount] = 0;
     mapSome(state[_State_graphic], g => Graphics.clear(g));
-    state[_State_resetCallback]();
+    state[_State_cfg][_Cfg_resetCallback]();
 };
 export const update = (state) => {
+    const cfg = state[_State_cfg];
+    const maxUpdates = cfg[_Cfg_maxUpdates];
     const snowflake = state[_State_snowflake];
     if (state[_State_needsReset]) {
         doReset(state);
@@ -158,7 +146,7 @@ export const update = (state) => {
     const lastMS = state[_State_currentMS];
     state[_State_currentMS] = performance.now();
     const deltaMS = state[_State_currentMS] - lastMS;
-    let requiredUpdates = Math.min(state[_State_maxUpdates] - state[_State_updateCount], deltaMS / state[_State_idealMSBetweenUpdates] + state[_State_updateBank]);
+    let requiredUpdates = Math.min(maxUpdates - state[_State_updateCount], deltaMS / state[_State_idealMSBetweenUpdates] + state[_State_updateBank]);
     state[_State_updateBank] = fracPart(requiredUpdates);
     requiredUpdates = Math.floor(requiredUpdates);
     function doUpdate() {
@@ -187,7 +175,7 @@ export const update = (state) => {
         mapSome(state[_State_graphic], g => {
             const foregroundColor = currentThemeForegroundRGBAString(state);
             if (Snowflakes.draw(g, snowflake, foregroundColor)) {
-                state[_State_updateCount] = state[_State_maxUpdates];
+                state[_State_updateCount] = maxUpdates;
                 state[_State_updateBank] = 0;
             }
         });
@@ -196,7 +184,7 @@ export const update = (state) => {
     const msBudget = msPer60FPSFrame * 0.9; // Allow for 10% free time so we don't skip frames.
     let currentMS = performance.now();
     let elapsedMS = 0;
-    for (let i = 0; i < requiredUpdates && state[_State_updateCount] < state[_State_maxUpdates]; ++i) {
+    for (let i = 0; i < requiredUpdates && state[_State_updateCount] < maxUpdates; ++i) {
         state[_State_updateCount] += 1;
         doUpdate();
         const newMS = performance.now();
@@ -207,10 +195,10 @@ export const update = (state) => {
             break;
         }
     }
-    state[_State_updatedCallback]();
-    if (state[_State_updateCount] >= state[_State_maxUpdates]) {
-        state[_State_updateCount] = state[_State_maxUpdates];
-        state[_State_finishedGrowingCallback]();
+    cfg[_Cfg_updatedCallback]();
+    if (state[_State_updateCount] >= maxUpdates) {
+        state[_State_updateCount] = maxUpdates;
+        cfg[_Cfg_finishedGrowingCallback]();
         state[_State_growing] = false;
     }
 };

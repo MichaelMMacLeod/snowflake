@@ -1,24 +1,20 @@
 import {
-    ConfigParser,
-    ConfigSynchronizer,
-    parseBool,
-    parseColorTheme,
-    parseConfigAndDisplayErrors,
-    parseFunction0,
-    parseNat,
     parseSnowflakeID,
-    randomSnowflakeIDString
 } from "../common/Config.js";
-import { _State_colorTheme, _State_finishedGrowingCallback, _State_growthInput, _State_maxUpdates, _State_resetCallback, _State_updatedCallback, scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX, State } from "./State.js";
+import {
+    _State_currentMS,
+    _State_growthInput,
+    scheduleUpdate,
+    setIdealMSBetweenUpdates,
+    setSnowflakeCanvasSizePX,
+    State
+} from "./State.js";
 import * as States from './State.js';
-import { arraysEqual, doNothing, NonEmptyArray, SnowflakeID } from "../common/Utils.js";
-import * as Maybes from "maybe-either/Maybe";
+import { doNothing, SnowflakeID } from "../common/Utils.js";
 import * as ColorThemes from "../common/color/Theme.js";
 import { ColorTheme } from "../common/color/Theme.js";
-import { fromUndefinable, mapNone, Maybe } from "maybe-either/Maybe";
-import * as Eithers from "maybe-either/Either";
-import { Either, getLeft, getRight, isLeft, mapRight, right } from "maybe-either/Either";
-import * as Booleans from "maybe-either/Boolean";
+import { Maybe } from "maybe-either/Maybe";
+import { Either, getLeft, mapRight, right } from "maybe-either/Either";
 
 export const _Cfg_snowflakeID = 0;
 export const _Cfg_snowflakeCanvasSizePX = 1;
@@ -148,52 +144,42 @@ const cfgUPSCap: CfgFunction<_Cfg_upsCap> = (cfg, state, _oldValue, newValue) =>
     return right(resetUnecessary);
 };
 
-const cfgMaxUpdates: CfgFunction<_Cfg_maxUpdates> = (_cfg, state, oldValue, newValue) => {
-    if (newValue !== oldValue) {
-        state[_State_maxUpdates] = newValue;
-        return right(resetRequred);
-    }
+const cfgMaxUpdates: CfgFunction<_Cfg_maxUpdates> = (_cfg, _state, _oldValue, _newValue) => {
     return right(resetUnecessary);
 };
 
 const cfgPlaying: CfgFunction<_Cfg_playing> = (_cfg, state, oldValue, newValue) => {
     if (newValue !== oldValue) {
-        state[States._State_playing] = newValue;
-        state[States._State_currentMS] = performance.now();
+        state[_State_currentMS] = performance.now();
         scheduleUpdate(state);
     }
     return right(resetUnecessary);
 };
 
-const cfgColorTheme: CfgFunction<_Cfg_colorTheme> = (_cfg, state, oldValue, newValue) => {
+const cfgColorTheme: CfgFunction<_Cfg_colorTheme> = (_cfg, _state, oldValue, newValue) => {
     if (ColorThemes.equals(newValue, oldValue)) {
         return right(resetUnecessary);
     }
-    state[_State_colorTheme] = newValue;
     return right(resetRequred);
 };
 
-const cfgIsLightTheme: CfgFunction<_Cfg_isLightTheme> = (_cfg, state, oldValue, newValue) => {
+const cfgIsLightTheme: CfgFunction<_Cfg_isLightTheme> = (_cfg, _state, oldValue, newValue) => {
     if (newValue === oldValue) {
-        return right(false);
+        return right(resetUnecessary);
     }
-    state[States._State_isLightTheme] = newValue;
-    return right(true);
+    return right(resetRequred);
 };
 
-const cfgFinishedGrowingCallback: CfgFunction<_Cfg_finishedGrowingCallback> = (_cfg, state, _oldValue, newValue) => {
-    state[_State_finishedGrowingCallback] = newValue;
-    return right(false);
+const cfgFinishedGrowingCallback: CfgFunction<_Cfg_finishedGrowingCallback> = (_cfg, _state, _oldValue, _newValue) => {
+    return right(resetUnecessary);
 };
 
-const cfgResetCallback: CfgFunction<_Cfg_resetCallback> = (_cfg, state, _oldValue, newValue) => {
-    state[_State_resetCallback] = newValue;
-    return right(false);
+const cfgResetCallback: CfgFunction<_Cfg_resetCallback> = (_cfg, _state, _oldValue, _newValue) => {
+    return right(resetUnecessary);
 };
 
-const cfgUpdatedCallback: CfgFunction<_Cfg_updatedCallback> = (_cfg, state, _oldValue, newValue) => {
-    state[_State_updatedCallback] = newValue;
-    return right(false);
+const cfgUpdatedCallback: CfgFunction<_Cfg_updatedCallback> = (_cfg, _state, _oldValue, _newValue) => {
+    return right(resetUnecessary);
 };
 
 type CfgFunctions = { [K in keyof Cfg]: CfgFunction<K> };
@@ -223,12 +209,4 @@ export const configure = <K extends keyof Cfg>(
             States.reset(state);
         }
     }));
-};
-
-export const createDefaultState = (): State => {
-    const state = States.zero();
-    cfgKeys.forEach(key => {
-        configure(defaultConfig, state, key, defaultConfig[key]);
-    });
-    return state;
 };

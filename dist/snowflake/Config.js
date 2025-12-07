@@ -1,5 +1,5 @@
-import { parseSnowflakeID } from "../common/Config.js";
-import { _State_colorTheme, _State_finishedGrowingCallback, _State_growthInput, _State_maxUpdates, _State_resetCallback, _State_updatedCallback, scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX } from "./State.js";
+import { parseSnowflakeID, } from "../common/Config.js";
+import { _State_currentMS, _State_growthInput, scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX } from "./State.js";
 import * as States from './State.js';
 import { doNothing } from "../common/Utils.js";
 import * as ColorThemes from "../common/color/Theme.js";
@@ -84,46 +84,36 @@ const cfgUPSCap = (cfg, state, _oldValue, newValue) => {
     setIdealMSBetweenUpdates(state, cfgGetOrDefault(cfg, _Cfg_targetGrowthTimeMS), newValue);
     return right(resetUnecessary);
 };
-const cfgMaxUpdates = (_cfg, state, oldValue, newValue) => {
-    if (newValue !== oldValue) {
-        state[_State_maxUpdates] = newValue;
-        return right(resetRequred);
-    }
+const cfgMaxUpdates = (_cfg, _state, _oldValue, _newValue) => {
     return right(resetUnecessary);
 };
 const cfgPlaying = (_cfg, state, oldValue, newValue) => {
     if (newValue !== oldValue) {
-        state[States._State_playing] = newValue;
-        state[States._State_currentMS] = performance.now();
+        state[_State_currentMS] = performance.now();
         scheduleUpdate(state);
     }
     return right(resetUnecessary);
 };
-const cfgColorTheme = (_cfg, state, oldValue, newValue) => {
+const cfgColorTheme = (_cfg, _state, oldValue, newValue) => {
     if (ColorThemes.equals(newValue, oldValue)) {
         return right(resetUnecessary);
     }
-    state[_State_colorTheme] = newValue;
     return right(resetRequred);
 };
-const cfgIsLightTheme = (_cfg, state, oldValue, newValue) => {
+const cfgIsLightTheme = (_cfg, _state, oldValue, newValue) => {
     if (newValue === oldValue) {
-        return right(false);
+        return right(resetUnecessary);
     }
-    state[States._State_isLightTheme] = newValue;
-    return right(true);
+    return right(resetRequred);
 };
-const cfgFinishedGrowingCallback = (_cfg, state, _oldValue, newValue) => {
-    state[_State_finishedGrowingCallback] = newValue;
-    return right(false);
+const cfgFinishedGrowingCallback = (_cfg, _state, _oldValue, _newValue) => {
+    return right(resetUnecessary);
 };
-const cfgResetCallback = (_cfg, state, _oldValue, newValue) => {
-    state[_State_resetCallback] = newValue;
-    return right(false);
+const cfgResetCallback = (_cfg, _state, _oldValue, _newValue) => {
+    return right(resetUnecessary);
 };
-const cfgUpdatedCallback = (_cfg, state, _oldValue, newValue) => {
-    state[_State_updatedCallback] = newValue;
-    return right(false);
+const cfgUpdatedCallback = (_cfg, _state, _oldValue, _newValue) => {
+    return right(resetUnecessary);
 };
 const cfgFunctions = [
     cfgSnowflakeID,
@@ -145,12 +135,5 @@ export const configure = (oldCfg, state, key, value) => {
             States.reset(state);
         }
     }));
-};
-export const createDefaultState = () => {
-    const state = States.zero();
-    cfgKeys.forEach(key => {
-        configure(defaultConfig, state, key, defaultConfig[key]);
-    });
-    return state;
 };
 //# sourceMappingURL=Config.js.map

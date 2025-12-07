@@ -1,7 +1,7 @@
 import { parseConfigAndDisplayErrors, parseSnowflakeID, randomSnowflakeIDString, sync } from "../common/Config.js";
 import { mapSome, none, some } from "maybe-either/Maybe";
 import * as Maybes from "maybe-either/Maybe";
-import { _State_graphic, initializeGraphic, State } from "./State.js";
+import { _State_cfg, _State_graphic, initializeGraphic, State } from "./State.js";
 import * as Eithers from "maybe-either/Either";
 import * as States from "./State.js";
 import * as Configs from "./Config.js";
@@ -11,19 +11,17 @@ import { _Cfg_snowflakeCanvasSizePX, Cfg } from "./Config.js";
 
 export default class SnowflakeElement extends HTMLElement {
     #state: State;
-    #cfg: Required<Cfg>;
     #shadow: ShadowRoot;
 
     constructor() {
         super();
         this.#shadow = this.attachShadow({ mode: 'open' });
-        this.#state = Configs.createDefaultState();
-        this.#cfg = { ...Configs.defaultConfig } /* create non-frozen copy */;
+        this.#state = States.zero();
     }
 
     connectedCallback() {
         Maybes.map(
-            initializeGraphic(this.#state, this.#cfg[_Cfg_snowflakeCanvasSizePX]),
+            initializeGraphic(this.#state, this.#state[_State_cfg][_Cfg_snowflakeCanvasSizePX]),
             () => { throw new Error("couldn't get canvas 2d context"); },
             g => {
                 this.#shadow.appendChild(g[_graphic_canvas]);
@@ -32,10 +30,11 @@ export default class SnowflakeElement extends HTMLElement {
     }
 
     configure<K extends keyof Required<Cfg>>(key: K, value: Required<Cfg>[K]) {
+        const cfg = this.#state[_State_cfg];
         Maybes.map(
-            Configs.configure(this.#cfg, this.#state, key, value),
+            Configs.configure(cfg, this.#state, key, value),
             () => {
-                this.#cfg[key] = value
+                cfg[key] = value
             },
             error => {
                 console.error(error)
@@ -44,7 +43,7 @@ export default class SnowflakeElement extends HTMLElement {
     };
 
     configuredValue<K extends keyof Required<Cfg>>(key: K): Required<Cfg>[K] {
-        return this.#cfg[key];
+        return this.#state[_State_cfg][key];
     }
 
     reset(): void {

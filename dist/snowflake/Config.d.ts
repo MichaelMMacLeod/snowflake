@@ -40,5 +40,4 @@ export type Cfg = {
 type ErrorMessage = string;
 export declare const defaultConfig: Readonly<Cfg>;
 export declare const configure: <K extends keyof Cfg>(oldCfg: Cfg, state: State, key: K, value: Cfg[K]) => Maybe<ErrorMessage>;
-export declare const createDefaultState: () => State;
 export {};
