@@ -1,7 +1,7 @@
 import { parseSnowflakeID } from "../common/Config.js";
 import { doNothing } from "../common/Utils.js";
 import { _GraphState_graph } from "./State.js";
-import { _SnowflakeGraph_handleMovedCallback, _SnowflakeGraph_snowflakeID, setConstants, syncToPercentGrown, syncToSnowflakeID } from "./Graph.js";
+import { _SnowflakeGraph_handleMovedCallback, _SnowflakeGraph_snowflakeID, setAspectRatio, setIsLightTheme, syncToPercentGrown, syncToSnowflakeID } from "./Graph.js";
 import * as SnowflakeConfigs from "../snowflake/SnowflakeConfig.js";
 import { getLeft, mapRight, right } from "maybe-either/Either";
 import { mapSome } from "maybe-either/Maybe";
@@ -39,35 +39,35 @@ const cfgGetOrDefault = (cfg, key) => {
     }
     return defaultGraphConfig[key];
 };
-const cfgPercentGrown = (_cfg, state, oldValue, newValue) => {
+const cfgPercentGrown = (cfg, state, oldValue, newValue) => {
     if (oldValue !== newValue) {
-        mapSome(state[_GraphState_graph], g => syncToPercentGrown(g, newValue));
+        mapSome(state[_GraphState_graph], g => syncToPercentGrown(g, cfg[_GraphConfig_aspectRatio], newValue));
         return right(resetUnecessary);
     }
     return right(resetUnecessary);
 };
-const cfgSnowflakeID = (_cfg, state, oldValue, newValue) => {
+const cfgSnowflakeID = (cfg, state, oldValue, newValue) => {
     if (oldValue === newValue) {
         return right(resetUnecessary);
     }
     return mapRight(parseSnowflakeID(newValue), r => {
         mapSome(state[_GraphState_graph], g => {
             g[_SnowflakeGraph_snowflakeID] = r;
-            syncToSnowflakeID(g);
+            syncToSnowflakeID(g, cfg[_GraphConfig_aspectRatio]);
         });
         return resetUnecessary;
     });
 };
-const cfgAspectRatio = (cfg, state, oldValue, newValue) => {
+const cfgAspectRatio = (_cfg, state, oldValue, newValue) => {
     if (oldValue !== newValue) {
-        mapSome(state[_GraphState_graph], g => setConstants(g, newValue, cfg[_GraphConfig_isLightTheme]));
+        mapSome(state[_GraphState_graph], g => setAspectRatio(g, newValue));
         return right(resetUnecessary);
     }
     return right(resetUnecessary);
 };
-const cfgIsLightTheme = (cfg, state, oldValue, newValue) => {
+const cfgIsLightTheme = (_cfg, state, oldValue, newValue) => {
     if (oldValue !== newValue) {
-        mapSome(state[_GraphState_graph], g => setConstants(g, cfg[_GraphConfig_aspectRatio], newValue));
+        mapSome(state[_GraphState_graph], g => setIsLightTheme(g, newValue));
         return right(resetUnecessary);
     }
     return right(resetUnecessary);

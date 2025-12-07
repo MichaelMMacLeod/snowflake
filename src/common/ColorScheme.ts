@@ -11,15 +11,19 @@ export const equals = (ct1: ColorScheme, ct2: ColorScheme): boolean => {
         && ct1[_ColorScheme_lightThemeColor] === ct2[_ColorScheme_lightThemeColor];
 }
 
+// Counterintuitively, the 'dark theme color' is light, because
+// 'dark theme' here means 'draw with a dark background'. We're
+// only concerned here with the foreground, which is why the
+// 'dark' color is white and the 'light' color is black.
+export const defaultDarkThemeColor = 'oklab(1 0 0 / 0.2)';
+export const defaultLightThemeColor = 'oklab(0 0 0 / 0.2)';
+
+export const defaultGraphDarkThemeColor = 'oklab(1 0 0)';
+export const defaultGraphLightThemeColor = 'oklab(0 0 0)';
+
 export const zero = (): ColorScheme => {
-    // Counterintuitively, the 'dark theme color' is light, because
-    // 'dark theme' here means 'draw with a dark background'. We're
-    // only concerned here with the foreground, which is why the
-    // 'dark' color is white and the 'light' color is black.
-    const darkThemeColor = 'oklab(1 0 0 / 0.2)';
-    const lightThemeColor = 'oklab(0 0 0 / 0.2)';
     return [
-        darkThemeColor,
-        lightThemeColor,
+        defaultDarkThemeColor,
+        defaultLightThemeColor,
     ];
 }
