@@ -7,8 +7,8 @@ import * as Faces from "./Face.js";
 import { doNothing, fracPart, growthTypeBranching, interpretGrowth } from "../common/Utils.js";
 import { isSome, mapSome, none } from "maybe-either/Maybe";
 import * as Maybes from "maybe-either/Maybe";
-import * as RGBA from "../common/color/Color.js";
-import { _Cfg_colorTheme, _Cfg_finishedGrowingCallback, _Cfg_isLightTheme, _Cfg_maxUpdates, _Cfg_playing, _Cfg_resetCallback, _Cfg_updatedCallback, defaultConfig } from "./Config.js";
+import { _Cfg_colorScheme, _Cfg_finishedGrowingCallback, _Cfg_isLightTheme, _Cfg_maxUpdates, _Cfg_playing, _Cfg_resetCallback, _Cfg_updatedCallback, defaultConfig } from "./Config.js";
+import { _ColorScheme_darkThemeColor, _ColorScheme_lightThemeColor } from "../common/ColorScheme.js";
 export const _State_growthInput = 0;
 export const _State_graphic = 1;
 export const _State_snowflake = 2;
@@ -26,11 +26,11 @@ export const _State_doUpdate = 13;
 export const _State_cfg = 14;
 const currentThemeForegroundRGBAString = (state) => {
     const cfg = state[_State_cfg];
-    const colorTheme = cfg[_Cfg_colorTheme];
+    const colorScheme = cfg[_Cfg_colorScheme];
     if (cfg[_Cfg_isLightTheme]) {
-        return RGBA.toString(colorTheme.light.foreground);
+        return colorScheme[_ColorScheme_lightThemeColor];
     }
-    return RGBA.toString(colorTheme.dark.foreground);
+    return colorScheme[_ColorScheme_darkThemeColor];
 };
 export const reset = (state) => {
     state[_State_needsReset] = true;

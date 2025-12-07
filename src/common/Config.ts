@@ -1,6 +1,3 @@
-import { RGBA } from "./color/Color.js";
-import { ColorScheme } from "./color/Scheme.js";
-import { ColorTheme } from "./color/Theme.js";
 import * as Eithers from "maybe-either/Either";
 import { Either, left, right } from "maybe-either/Either";
 import { Maybe, none, okOrElse, some } from "maybe-either/Maybe";
@@ -79,26 +76,6 @@ const makeObjectParser = <R>(template: ObjectTemplate<R>): ((value: any) => Eith
         return right(result as any);
     };
 }
-
-export const parseRGBA: Parser<RGBA> =
-    makeObjectParser({
-        r: parseRGBComponent,
-        g: parseRGBComponent,
-        b: parseRGBComponent,
-        a: parseAlphaComponent,
-    });
-
-export const parseColorScheme: Parser<ColorScheme> =
-    makeObjectParser({
-        background: parseRGBA,
-        foreground: parseRGBA,
-    });
-
-export const parseColorTheme: Parser<ColorTheme> =
-    makeObjectParser({
-        light: parseColorScheme,
-        dark: parseColorScheme,
-    });
 
 export const parseSnowflakeID = (value: any): Either<string, NonEmptyArray<number>> => {
     if (value.toString === undefined) {

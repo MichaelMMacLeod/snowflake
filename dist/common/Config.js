@@ -59,20 +59,6 @@ const makeObjectParser = (template) => {
         return right(result);
     };
 };
-export const parseRGBA = makeObjectParser({
-    r: parseRGBComponent,
-    g: parseRGBComponent,
-    b: parseRGBComponent,
-    a: parseAlphaComponent,
-});
-export const parseColorScheme = makeObjectParser({
-    background: parseRGBA,
-    foreground: parseRGBA,
-});
-export const parseColorTheme = makeObjectParser({
-    light: parseColorScheme,
-    dark: parseColorScheme,
-});
 export const parseSnowflakeID = (value) => {
     if (value.toString === undefined) {
         return left('integer or string containing digits [1-9]');

@@ -7,9 +7,8 @@ import * as Faces from "./Face.js";
 import { doNothing, fracPart, GrowthType, growthTypeBranching, interpretGrowth, NonEmptyArray } from "../common/Utils.js";
 import { isSome, mapSome, Maybe, none } from "maybe-either/Maybe";
 import * as Maybes from "maybe-either/Maybe";
-import * as RGBA from "../common/color/Color.js";
 import {
-    _Cfg_colorTheme,
+    _Cfg_colorScheme,
     _Cfg_finishedGrowingCallback,
     _Cfg_isLightTheme,
     _Cfg_maxUpdates,
@@ -19,6 +18,7 @@ import {
     Cfg,
     defaultConfig
 } from "./Config.js";
+import { _ColorScheme_darkThemeColor, _ColorScheme_lightThemeColor } from "../common/ColorScheme.js";
 
 export const _State_growthInput = 0;
 export const _State_graphic = 1;
@@ -74,11 +74,11 @@ export type State = {
 
 const currentThemeForegroundRGBAString = (state: State): string => {
     const cfg = state[_State_cfg];
-    const colorTheme = cfg[_Cfg_colorTheme];
+    const colorScheme = cfg[_Cfg_colorScheme];
     if (cfg[_Cfg_isLightTheme]) {
-        return RGBA.toString(colorTheme.light.foreground);
+        return colorScheme[_ColorScheme_lightThemeColor];
     }
-    return RGBA.toString(colorTheme.dark.foreground);
+    return colorScheme[_ColorScheme_darkThemeColor];
 }
 
 export const reset = (state: State): void => {

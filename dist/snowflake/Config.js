@@ -2,7 +2,7 @@ import { parseSnowflakeID, } from "../common/Config.js";
 import { _State_currentMS, _State_growthInput, scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX } from "./State.js";
 import * as States from './State.js';
 import { doNothing } from "../common/Utils.js";
-import * as ColorThemes from "../common/color/Theme.js";
+import * as ColorThemes from "../common/ColorScheme.js";
 import { getLeft, mapRight, right } from "maybe-either/Either";
 export const _Cfg_snowflakeID = 0;
 export const _Cfg_snowflakeCanvasSizePX = 1;
@@ -10,7 +10,7 @@ export const _Cfg_targetGrowthTimeMS = 2;
 export const _Cfg_upsCap = 3;
 export const _Cfg_maxUpdates = 4;
 export const _Cfg_playing = 5;
-export const _Cfg_colorTheme = 6;
+export const _Cfg_colorScheme = 6;
 export const _Cfg_isLightTheme = 7;
 export const _Cfg_finishedGrowingCallback = 8;
 export const _Cfg_resetCallback = 9;
@@ -22,7 +22,7 @@ const cfgKeys = [
     _Cfg_upsCap,
     _Cfg_maxUpdates,
     _Cfg_playing,
-    _Cfg_colorTheme,
+    _Cfg_colorScheme,
     _Cfg_isLightTheme,
     _Cfg_finishedGrowingCallback,
     _Cfg_resetCallback,

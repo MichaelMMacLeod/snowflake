@@ -11,8 +11,8 @@ import {
 } from "./State.js";
 import * as States from './State.js';
 import { doNothing, SnowflakeID } from "../common/Utils.js";
-import * as ColorThemes from "../common/color/Theme.js";
-import { ColorTheme } from "../common/color/Theme.js";
+import * as ColorThemes from "../common/ColorScheme.js";
+import { ColorScheme } from "../common/ColorScheme.js";
 import { Maybe } from "maybe-either/Maybe";
 import { Either, getLeft, mapRight, right } from "maybe-either/Either";
 
@@ -22,7 +22,7 @@ export const _Cfg_targetGrowthTimeMS = 2;
 export const _Cfg_upsCap = 3;
 export const _Cfg_maxUpdates = 4;
 export const _Cfg_playing = 5;
-export const _Cfg_colorTheme = 6;
+export const _Cfg_colorScheme = 6;
 export const _Cfg_isLightTheme = 7;
 export const _Cfg_finishedGrowingCallback = 8;
 export const _Cfg_resetCallback = 9;
@@ -34,7 +34,7 @@ type _Cfg_targetGrowthTimeMS = 2;
 type _Cfg_upsCap = 3;
 type _Cfg_maxUpdates = 4;
 type _Cfg_playing = 5;
-type _Cfg_colorTheme = 6;
+type _Cfg_colorScheme = 6;
 type _Cfg_isLightTheme = 7;
 type _Cfg_finishedGrowingCallback = 8;
 type _Cfg_resetCallback = 9;
@@ -47,7 +47,7 @@ export type Cfg = {
     [_Cfg_upsCap]: number,
     [_Cfg_maxUpdates]: number,
     [_Cfg_playing]: boolean,
-    [_Cfg_colorTheme]: ColorTheme,
+    [_Cfg_colorScheme]: ColorScheme,
     [_Cfg_isLightTheme]: boolean,
     [_Cfg_finishedGrowingCallback]: () => void,
     [_Cfg_resetCallback]: () => void,
@@ -61,7 +61,7 @@ const cfgKeys: Array<keyof Cfg> = [
     _Cfg_upsCap,
     _Cfg_maxUpdates,
     _Cfg_playing,
-    _Cfg_colorTheme,
+    _Cfg_colorScheme,
     _Cfg_isLightTheme,
     _Cfg_finishedGrowingCallback,
     _Cfg_resetCallback,
@@ -156,7 +156,7 @@ const cfgPlaying: CfgFunction<_Cfg_playing> = (_cfg, state, oldValue, newValue) 
     return right(resetUnecessary);
 };
 
-const cfgColorTheme: CfgFunction<_Cfg_colorTheme> = (_cfg, _state, oldValue, newValue) => {
+const cfgColorTheme: CfgFunction<_Cfg_colorScheme> = (_cfg, _state, oldValue, newValue) => {
     if (ColorThemes.equals(newValue, oldValue)) {
         return right(resetUnecessary);
     }

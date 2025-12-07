@@ -1,6 +1,3 @@
-import { RGBA } from "./color/Color.js";
-import { ColorScheme } from "./color/Scheme.js";
-import { ColorTheme } from "./color/Theme.js";
 import * as Eithers from "maybe-either/Either";
 import { Either } from "maybe-either/Either";
 import { Maybe } from "maybe-either/Maybe";
@@ -13,10 +10,6 @@ export declare const isFunction0: (value: any) => value is () => any;
 export declare const isFunction1: (value: any) => value is (a: any) => any;
 export declare const parseRGBComponent: (value: any) => Either<string, number>;
 export declare const parseAlphaComponent: (value: any) => Either<string, number>;
-type Parser<T> = (value: any) => Either<string, T>;
-export declare const parseRGBA: Parser<RGBA>;
-export declare const parseColorScheme: Parser<ColorScheme>;
-export declare const parseColorTheme: Parser<ColorTheme>;
 export declare const parseSnowflakeID: (value: any) => Either<string, NonEmptyArray<number>>;
 export declare const parseNat: (value: any) => Either<string, number>;
 export declare const parseNonnegativeFloat: (value: any) => Either<string, number>;
@@ -43,4 +36,3 @@ export type ConfigSynchronizer<State, Config> = {
     [K in keyof Config]: (c: Config, s: State, newValue: Config[K], oldValue: Maybe<Config[K]>) => boolean;
 };
 export declare const sync: <Config extends Object, State>(configSynchronizer: ConfigSynchronizer<State, Config>, state: State, resetState: () => void, oldConfig: Maybe<Config>, newConfig: Config) => void;
-export {};
