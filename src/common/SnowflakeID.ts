@@ -26,6 +26,10 @@ export type SnowflakeID = ArrayAtLeast2<YChoiceIndex> & { readonly [snowflakeIDT
 
 export const defaultSnowflakeID = [0, 2, 8, 1, 4, 1, 4, 6, 1, 8, 0] as unknown as SnowflakeID;
 
+export const copySnowflakeID = (value: SnowflakeID): SnowflakeID => {
+    return value.slice() as SnowflakeID;
+}
+
 const errMsg = 'string containing digits [1-9]';
 
 export const parseSnowflakeIDString = (value: string): Either<string, SnowflakeID> => {

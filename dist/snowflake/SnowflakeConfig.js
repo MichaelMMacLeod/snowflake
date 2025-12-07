@@ -1,3 +1,4 @@
+import { copySnowflakeID, } from "../common/SnowflakeID.js";
 import { _State_currentMS, _State_growthInput, scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX } from "./State.js";
 import * as States from './State.js';
 import { arraysEqual, doNothing } from "../common/Utils.js";
@@ -62,10 +63,10 @@ const cfgGetOrDefault = (cfg, key) => {
     return defaultConfig[key];
 };
 const cfgSnowflakeID = (_cfg, state, oldValue, newValue) => {
-    if (arraysEqual(oldValue, newValue, (v1, v2) => v1 === v2)) {
+    if (oldValue === newValue || arraysEqual(oldValue, newValue, (v1, v2) => v1 === v2)) {
         return right(resetUnecessary);
     }
-    state[_State_growthInput] = newValue;
+    state[_State_growthInput] = copySnowflakeID(newValue);
     return right(resetRequred);
 };
 const cfgSnowflakeCanvasSizePX = (_cfg, state, oldValue, newValue) => {

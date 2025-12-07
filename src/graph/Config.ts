@@ -1,4 +1,4 @@
-import { SnowflakeID } from "../common/SnowflakeID.js";
+import { copySnowflakeID, SnowflakeID } from "../common/SnowflakeID.js";
 import { arraysEqual, doNothing, NonEmptyArray } from "../common/Utils.js";
 import { _GraphState_graph, GraphState } from "./State.js";
 import {
@@ -100,11 +100,11 @@ const cfgPercentGrown: CfgFunction<_GraphConfig_percentGrown> = (cfg, state, old
 };
 
 const cfgSnowflakeID: CfgFunction<_GraphConfig_snowflakeID> = (cfg, state, oldValue, newValue) => {
-    if (arraysEqual(oldValue, newValue, (v1, v2) => v1 === v2)) {
+    if (oldValue === newValue || arraysEqual(oldValue, newValue, (v1, v2) => v1 === v2)) {
         return resetUnecessary;
     }
     mapSome(state[_GraphState_graph], g => {
-        g[_SnowflakeGraph_snowflakeID] = newValue;
+        g[_SnowflakeGraph_snowflakeID] = copySnowflakeID(newValue);
         syncToSnowflakeID(g, cfg[_GraphConfig_aspectRatio]);
     });
     return resetUnecessary;

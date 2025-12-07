@@ -1,4 +1,5 @@
 import {
+    copySnowflakeID,
     parseSnowflakeIDString,
     SnowflakeID,
 } from "../common/SnowflakeID.js";
@@ -120,10 +121,10 @@ type CfgFunction<K extends keyof SnowflakeConfig> = (
 ) => Either<ErrorMessage, ResetStatus>;
 
 const cfgSnowflakeID: CfgFunction<_SnowflakeConfig_snowflakeID> = (_cfg, state, oldValue, newValue) => {
-    if (arraysEqual(oldValue, newValue, (v1, v2) => v1 === v2)) {
+    if (oldValue === newValue || arraysEqual(oldValue, newValue, (v1, v2) => v1 === v2)) {
         return right(resetUnecessary);
     }
-    state[_State_growthInput] = newValue;
+    state[_State_growthInput] = copySnowflakeID(newValue);
     return right(resetRequred);
 };
 
