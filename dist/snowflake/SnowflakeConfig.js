@@ -136,4 +136,4 @@ export const configure = (oldCfg, state, key, value) => {
         }
     }));
 };
-//# sourceMappingURL=Config.js.map
+//# sourceMappingURL=SnowflakeConfig.js.map

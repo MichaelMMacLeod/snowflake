@@ -7,7 +7,7 @@ import * as Faces from "./Face.js";
 import { doNothing, fracPart, growthTypeBranching, interpretGrowth } from "../common/Utils.js";
 import { isSome, mapSome, none } from "maybe-either/Maybe";
 import * as Maybes from "maybe-either/Maybe";
-import { _Cfg_colorScheme, _Cfg_finishedGrowingCallback, _Cfg_isLightTheme, _Cfg_maxUpdates, _Cfg_playing, _Cfg_resetCallback, _Cfg_updatedCallback, defaultConfig } from "./Config.js";
+import { _SnowflakeConfig_colorScheme, _SnowflakeConfig_finishedGrowingCallback, _SnowflakeConfig_isLightTheme, _SnowflakeConfig_maxUpdates, _SnowflakeConfig_playing, _SnowflakeConfig_resetCallback, _SnowflakeConfig_updatedCallback, defaultConfig } from "./SnowflakeConfig.js";
 import { _ColorScheme_darkThemeColor, _ColorScheme_lightThemeColor } from "../common/ColorScheme.js";
 export const _State_growthInput = 0;
 export const _State_graphic = 1;
@@ -26,8 +26,8 @@ export const _State_doUpdate = 13;
 export const _State_cfg = 14;
 const currentThemeForegroundRGBAString = (state) => {
     const cfg = state[_State_cfg];
-    const colorScheme = cfg[_Cfg_colorScheme];
-    if (cfg[_Cfg_isLightTheme]) {
+    const colorScheme = cfg[_SnowflakeConfig_colorScheme];
+    if (cfg[_SnowflakeConfig_isLightTheme]) {
         return colorScheme[_ColorScheme_lightThemeColor];
     }
     return colorScheme[_ColorScheme_darkThemeColor];
@@ -36,7 +36,7 @@ export const reset = (state) => {
     state[_State_needsReset] = true;
     state[_State_currentMS] = performance.now();
     state[_State_resetStartTime] = performance.now();
-    if (state[_State_cfg][_Cfg_playing]) {
+    if (state[_State_cfg][_SnowflakeConfig_playing]) {
         scheduleUpdate(state);
     }
     else {
@@ -67,7 +67,7 @@ export const scheduleUpdate = (state) => {
     }
     else {
         const cfg = state[_State_cfg];
-        if (state[_State_growing] && cfg[_Cfg_playing] || state[_State_needsReset]) {
+        if (state[_State_growing] && cfg[_SnowflakeConfig_playing] || state[_State_needsReset]) {
             state[_State_hasScheduledUpdate] = true;
             setTimeout(state[_State_updateOnNextFrame], state[_State_idealMSBetweenUpdates]);
         }
@@ -77,7 +77,7 @@ export const scheduleUpdate = (state) => {
     }
 };
 export const setIdealMSBetweenUpdates = (state, targetGrowthTimeMS, upsCap) => {
-    const maxUpdates = state[_State_cfg][_Cfg_maxUpdates];
+    const maxUpdates = state[_State_cfg][_SnowflakeConfig_maxUpdates];
     state[_State_idealMSBetweenUpdates] = Math.max(1000 / upsCap, targetGrowthTimeMS / maxUpdates);
 };
 export const zero = () => {
@@ -123,7 +123,7 @@ export const zero = () => {
     return result;
 };
 export const percentGrown = (state) => {
-    const maxUpdates = state[_State_cfg][_Cfg_maxUpdates];
+    const maxUpdates = state[_State_cfg][_SnowflakeConfig_maxUpdates];
     return state[_State_updateCount] / maxUpdates;
 };
 const doReset = (state) => {
@@ -134,11 +134,11 @@ const doReset = (state) => {
     state[_State_updateBank] = 0;
     state[_State_updateCount] = 0;
     mapSome(state[_State_graphic], g => Graphics.clear(g));
-    state[_State_cfg][_Cfg_resetCallback]();
+    state[_State_cfg][_SnowflakeConfig_resetCallback]();
 };
 export const update = (state) => {
     const cfg = state[_State_cfg];
-    const maxUpdates = cfg[_Cfg_maxUpdates];
+    const maxUpdates = cfg[_SnowflakeConfig_maxUpdates];
     const snowflake = state[_State_snowflake];
     if (state[_State_needsReset]) {
         doReset(state);
@@ -195,10 +195,10 @@ export const update = (state) => {
             break;
         }
     }
-    cfg[_Cfg_updatedCallback]();
+    cfg[_SnowflakeConfig_updatedCallback]();
     if (state[_State_updateCount] >= maxUpdates) {
         state[_State_updateCount] = maxUpdates;
-        cfg[_Cfg_finishedGrowingCallback]();
+        cfg[_SnowflakeConfig_finishedGrowingCallback]();
         state[_State_growing] = false;
     }
 };

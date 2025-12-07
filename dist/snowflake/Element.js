@@ -15,9 +15,9 @@ import * as Maybes from "maybe-either/Maybe";
 import { _State_cfg, _State_graphic, initializeGraphic } from "./State.js";
 import * as Eithers from "maybe-either/Either";
 import * as States from "./State.js";
-import * as Configs from "./Config.js";
+import * as Configs from "./SnowflakeConfig.js";
 import { _graphic_canvas } from "./Graphic.js";
-import { _Cfg_snowflakeCanvasSizePX } from "./Config.js";
+import { _SnowflakeConfig_snowflakeCanvasSizePX } from "./SnowflakeConfig.js";
 class SnowflakeElement extends HTMLElement {
     constructor() {
         super();
@@ -27,7 +27,7 @@ class SnowflakeElement extends HTMLElement {
         __classPrivateFieldSet(this, _SnowflakeElement_state, States.zero(), "f");
     }
     connectedCallback() {
-        Maybes.map(initializeGraphic(__classPrivateFieldGet(this, _SnowflakeElement_state, "f"), __classPrivateFieldGet(this, _SnowflakeElement_state, "f")[_State_cfg][_Cfg_snowflakeCanvasSizePX]), () => { throw new Error("couldn't get canvas 2d context"); }, g => {
+        Maybes.map(initializeGraphic(__classPrivateFieldGet(this, _SnowflakeElement_state, "f"), __classPrivateFieldGet(this, _SnowflakeElement_state, "f")[_State_cfg][_SnowflakeConfig_snowflakeCanvasSizePX]), () => { throw new Error("couldn't get canvas 2d context"); }, g => {
             __classPrivateFieldGet(this, _SnowflakeElement_shadow, "f").appendChild(g[_graphic_canvas]);
         });
     }

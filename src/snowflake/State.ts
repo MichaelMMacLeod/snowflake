@@ -8,16 +8,16 @@ import { doNothing, fracPart, GrowthType, growthTypeBranching, interpretGrowth, 
 import { isSome, mapSome, Maybe, none } from "maybe-either/Maybe";
 import * as Maybes from "maybe-either/Maybe";
 import {
-    _Cfg_colorScheme,
-    _Cfg_finishedGrowingCallback,
-    _Cfg_isLightTheme,
-    _Cfg_maxUpdates,
-    _Cfg_playing,
-    _Cfg_resetCallback,
-    _Cfg_updatedCallback,
-    Cfg,
+    _SnowflakeConfig_colorScheme,
+    _SnowflakeConfig_finishedGrowingCallback,
+    _SnowflakeConfig_isLightTheme,
+    _SnowflakeConfig_maxUpdates,
+    _SnowflakeConfig_playing,
+    _SnowflakeConfig_resetCallback,
+    _SnowflakeConfig_updatedCallback,
+    SnowflakeConfig,
     defaultConfig
-} from "./Config.js";
+} from "./SnowflakeConfig.js";
 import { _ColorScheme_darkThemeColor, _ColorScheme_lightThemeColor } from "../common/ColorScheme.js";
 
 export const _State_growthInput = 0;
@@ -69,13 +69,13 @@ export type State = {
     [_State_needsReset]: boolean,
     [_State_updateOnNextFrame]: () => void,
     [_State_doUpdate]: () => void,
-    [_State_cfg]: Cfg,
+    [_State_cfg]: SnowflakeConfig,
 };
 
 const currentThemeForegroundRGBAString = (state: State): string => {
     const cfg = state[_State_cfg];
-    const colorScheme = cfg[_Cfg_colorScheme];
-    if (cfg[_Cfg_isLightTheme]) {
+    const colorScheme = cfg[_SnowflakeConfig_colorScheme];
+    if (cfg[_SnowflakeConfig_isLightTheme]) {
         return colorScheme[_ColorScheme_lightThemeColor];
     }
     return colorScheme[_ColorScheme_darkThemeColor];
@@ -85,7 +85,7 @@ export const reset = (state: State): void => {
     state[_State_needsReset] = true;
     state[_State_currentMS] = performance.now();
     state[_State_resetStartTime] = performance.now();
-    if (state[_State_cfg][_Cfg_playing]) {
+    if (state[_State_cfg][_SnowflakeConfig_playing]) {
         scheduleUpdate(state);
     } else {
         doReset(state);
@@ -117,7 +117,7 @@ export const scheduleUpdate = (state: State): void => {
         return;
     } else {
         const cfg = state[_State_cfg];
-        if (state[_State_growing] && cfg[_Cfg_playing] || state[_State_needsReset]) {
+        if (state[_State_growing] && cfg[_SnowflakeConfig_playing] || state[_State_needsReset]) {
             state[_State_hasScheduledUpdate] = true;
             setTimeout(state[_State_updateOnNextFrame], state[_State_idealMSBetweenUpdates]);
         } else {
@@ -127,7 +127,7 @@ export const scheduleUpdate = (state: State): void => {
 }
 
 export const setIdealMSBetweenUpdates = (state: State, targetGrowthTimeMS: number, upsCap: number): void => {
-    const maxUpdates = state[_State_cfg][_Cfg_maxUpdates];
+    const maxUpdates = state[_State_cfg][_SnowflakeConfig_maxUpdates];
     state[_State_idealMSBetweenUpdates] = Math.max(1000 / upsCap, targetGrowthTimeMS / maxUpdates);
 }
 
@@ -179,7 +179,7 @@ export const zero = (): State => {
 }
 
 export const percentGrown = (state: State): number => {
-    const maxUpdates = state[_State_cfg][_Cfg_maxUpdates];
+    const maxUpdates = state[_State_cfg][_SnowflakeConfig_maxUpdates];
     return state[_State_updateCount] / maxUpdates;
 }
 
@@ -191,12 +191,12 @@ const doReset = (state: State): void => {
     state[_State_updateBank] = 0;
     state[_State_updateCount] = 0;
     mapSome(state[_State_graphic], g => Graphics.clear(g));
-    state[_State_cfg][_Cfg_resetCallback]();
+    state[_State_cfg][_SnowflakeConfig_resetCallback]();
 }
 
 export const update = (state: State): void => {
     const cfg = state[_State_cfg];
-    const maxUpdates = cfg[_Cfg_maxUpdates];
+    const maxUpdates = cfg[_SnowflakeConfig_maxUpdates];
 
     const snowflake = state[_State_snowflake];
 
@@ -263,11 +263,11 @@ export const update = (state: State): void => {
         }
     }
 
-    cfg[_Cfg_updatedCallback]();
+    cfg[_SnowflakeConfig_updatedCallback]();
 
     if (state[_State_updateCount] >= maxUpdates) {
         state[_State_updateCount] = maxUpdates;
-        cfg[_Cfg_finishedGrowingCallback]();
+        cfg[_SnowflakeConfig_finishedGrowingCallback]();
         state[_State_growing] = false;
     }
 }

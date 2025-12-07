@@ -1,11 +1,11 @@
 import { SnowflakeID } from "../common/Utils.js";
-import { Cfg } from "./Config.js";
+import { SnowflakeConfig } from "./SnowflakeConfig.js";
 export default class SnowflakeElement extends HTMLElement {
     #private;
     constructor();
     connectedCallback(): void;
-    configure<K extends keyof Required<Cfg>>(key: K, value: Required<Cfg>[K]): void;
-    configuredValue<K extends keyof Required<Cfg>>(key: K): Required<Cfg>[K];
+    configure<K extends keyof Required<SnowflakeConfig>>(key: K, value: Required<SnowflakeConfig>[K]): void;
+    configuredValue<K extends keyof Required<SnowflakeConfig>>(key: K): Required<SnowflakeConfig>[K];
     reset(): void;
     isValidSnowflakeId(id: string): id is SnowflakeID;
     randomSnowflakeId(): SnowflakeID;

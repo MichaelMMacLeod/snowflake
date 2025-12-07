@@ -4,10 +4,10 @@ import * as Maybes from "maybe-either/Maybe";
 import { _State_cfg, _State_graphic, initializeGraphic, State } from "./State.js";
 import * as Eithers from "maybe-either/Either";
 import * as States from "./State.js";
-import * as Configs from "./Config.js";
+import * as Configs from "./SnowflakeConfig.js";
 import { SnowflakeID } from "../common/Utils.js";
 import { _graphic_canvas } from "./Graphic.js";
-import { _Cfg_snowflakeCanvasSizePX, Cfg } from "./Config.js";
+import { _SnowflakeConfig_snowflakeCanvasSizePX, SnowflakeConfig } from "./SnowflakeConfig.js";
 
 export default class SnowflakeElement extends HTMLElement {
     #state: State;
@@ -21,7 +21,7 @@ export default class SnowflakeElement extends HTMLElement {
 
     connectedCallback() {
         Maybes.map(
-            initializeGraphic(this.#state, this.#state[_State_cfg][_Cfg_snowflakeCanvasSizePX]),
+            initializeGraphic(this.#state, this.#state[_State_cfg][_SnowflakeConfig_snowflakeCanvasSizePX]),
             () => { throw new Error("couldn't get canvas 2d context"); },
             g => {
                 this.#shadow.appendChild(g[_graphic_canvas]);
@@ -29,7 +29,7 @@ export default class SnowflakeElement extends HTMLElement {
         );
     }
 
-    configure<K extends keyof Required<Cfg>>(key: K, value: Required<Cfg>[K]) {
+    configure<K extends keyof Required<SnowflakeConfig>>(key: K, value: Required<SnowflakeConfig>[K]) {
         const cfg = this.#state[_State_cfg];
         Maybes.map(
             Configs.configure(cfg, this.#state, key, value),
@@ -42,7 +42,7 @@ export default class SnowflakeElement extends HTMLElement {
         );
     };
 
-    configuredValue<K extends keyof Required<Cfg>>(key: K): Required<Cfg>[K] {
+    configuredValue<K extends keyof Required<SnowflakeConfig>>(key: K): Required<SnowflakeConfig>[K] {
         return this.#state[_State_cfg][key];
     }
 

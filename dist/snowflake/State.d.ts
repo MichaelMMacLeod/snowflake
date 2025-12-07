@@ -2,7 +2,7 @@ import { Graphic } from "./Graphic.js";
 import { Snowflake } from "./SnowflakeObject.js";
 import { GrowthType, NonEmptyArray } from "../common/Utils.js";
 import { Maybe } from "maybe-either/Maybe";
-import { Cfg } from "./Config.js";
+import { SnowflakeConfig } from "./SnowflakeConfig.js";
 export declare const _State_growthInput = 0;
 export declare const _State_graphic = 1;
 export declare const _State_snowflake = 2;
@@ -33,7 +33,7 @@ export type State = {
     [_State_needsReset]: boolean;
     [_State_updateOnNextFrame]: () => void;
     [_State_doUpdate]: () => void;
-    [_State_cfg]: Cfg;
+    [_State_cfg]: SnowflakeConfig;
 };
 export declare const reset: (state: State) => void;
 export declare const setSnowflakeCanvasSizePX: (state: State, snowflakeCanvasSizePX: number) => boolean;
