@@ -24,7 +24,7 @@ type _Cfg_isLightTheme = 7;
 type _Cfg_finishedGrowingCallback = 8;
 type _Cfg_resetCallback = 9;
 type _Cfg_updatedCallback = 10;
-export type Cfg = Partial<{
+export type Cfg = {
     [_Cfg_snowflakeID]: SnowflakeID;
     [_Cfg_snowflakeCanvasSizePX]: number;
     [_Cfg_targetGrowthTimeMS]: number;
@@ -36,9 +36,9 @@ export type Cfg = Partial<{
     [_Cfg_finishedGrowingCallback]: () => void;
     [_Cfg_resetCallback]: () => void;
     [_Cfg_updatedCallback]: () => void;
-}>;
+};
 type ErrorMessage = string;
-export declare const defaultConfig: Readonly<Required<Cfg>>;
-export declare const configure: <K extends keyof Cfg>(oldCfg: Cfg, state: State, key: K, value: Required<Cfg>[K]) => Maybe<ErrorMessage>;
+export declare const defaultConfig: Readonly<Cfg>;
+export declare const configure: <K extends keyof Cfg>(oldCfg: Cfg, state: State, key: K, value: Cfg[K]) => Maybe<ErrorMessage>;
 export declare const createDefaultState: () => State;
 export {};

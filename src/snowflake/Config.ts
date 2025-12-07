@@ -44,7 +44,7 @@ type _Cfg_finishedGrowingCallback = 8;
 type _Cfg_resetCallback = 9;
 type _Cfg_updatedCallback = 10;
 
-export type Cfg = Partial<{
+export type Cfg = {
     [_Cfg_snowflakeID]: SnowflakeID,
     [_Cfg_snowflakeCanvasSizePX]: number,
     [_Cfg_targetGrowthTimeMS]: number,
@@ -56,9 +56,9 @@ export type Cfg = Partial<{
     [_Cfg_finishedGrowingCallback]: () => void,
     [_Cfg_resetCallback]: () => void,
     [_Cfg_updatedCallback]: () => void,
-}>;
+};
 
-const cfgKeys: Array<keyof Required<Cfg>> = [
+const cfgKeys: Array<keyof Cfg> = [
     _Cfg_snowflakeID,
     _Cfg_snowflakeCanvasSizePX,
     _Cfg_targetGrowthTimeMS,
@@ -92,7 +92,7 @@ const defaultFinishedGrowingCallback = doNothing;
 const defaultResetCallback = doNothing;
 const defaultUpdatedCallback = doNothing;
 
-export const defaultConfig: Readonly<Required<Cfg>> = Object.freeze([
+export const defaultConfig: Readonly<Cfg> = Object.freeze([
     defaultSnowflakeID,
     defaultSnowflakeCanvasSizePX,
     defaultTargetGrowthTimeMS,
@@ -106,7 +106,7 @@ export const defaultConfig: Readonly<Required<Cfg>> = Object.freeze([
     defaultUpdatedCallback,
 ]);
 
-const cfgGetOrDefault = <K extends keyof Cfg>(cfg: Cfg, key: K): Required<Cfg>[K] => {
+const cfgGetOrDefault = <K extends keyof Cfg>(cfg: Cfg, key: K): Cfg[K] => {
     const value = cfg[key];
     if (value !== undefined) {
         return value;
@@ -117,8 +117,8 @@ const cfgGetOrDefault = <K extends keyof Cfg>(cfg: Cfg, key: K): Required<Cfg>[K
 type CfgFunction<K extends keyof Cfg> = (
     cfg: Cfg,
     state: State,
-    oldValue: Required<Cfg>[K],
-    newValue: Required<Cfg>[K]
+    oldValue: Cfg[K],
+    newValue: Cfg[K]
 ) => Either<ErrorMessage, ResetStatus>;
 
 const cfgSnowflakeID: CfgFunction<_Cfg_snowflakeID> = (_cfg, state, oldValue, newValue) => {
@@ -196,7 +196,7 @@ const cfgUpdatedCallback: CfgFunction<_Cfg_updatedCallback> = (_cfg, state, _old
     return right(false);
 };
 
-type CfgFunctions = { [K in keyof Required<Cfg>]: CfgFunction<K> };
+type CfgFunctions = { [K in keyof Cfg]: CfgFunction<K> };
 const cfgFunctions: CfgFunctions = [
     cfgSnowflakeID,
     cfgSnowflakeCanvasSizePX,
@@ -215,7 +215,7 @@ export const configure = <K extends keyof Cfg>(
     oldCfg: Cfg,
     state: State,
     key: K,
-    value: Required<Cfg>[K],
+    value: Cfg[K],
 ): Maybe<ErrorMessage> => {
     const c = cfgFunctions[key](oldCfg, state, cfgGetOrDefault(oldCfg, key), value);
     return getLeft(mapRight(c, resetStatus => {
