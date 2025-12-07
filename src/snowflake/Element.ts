@@ -1,7 +1,7 @@
 import { parseConfigAndDisplayErrors, parseSnowflakeID, randomSnowflakeIDString, sync } from "../common/Config.js";
 import { mapSome, none, some } from "maybe-either/Maybe";
 import * as Maybes from "maybe-either/Maybe";
-import { initializeGraphic, State } from "./State.js";
+import { _State_graphic, initializeGraphic, State } from "./State.js";
 import * as Eithers from "maybe-either/Either";
 import * as States from "./State.js";
 import * as Configs from "./Config.js";
@@ -69,7 +69,7 @@ export default class SnowflakeElement extends HTMLElement {
 
     canvas(): HTMLCanvasElement {
         return Maybes.unwrapOr(
-            this.#state[States._graphic],
+            this.#state[_State_graphic],
             () => { throw new Error('element not yet inserted into document') },
         )[_graphic_canvas];
     }

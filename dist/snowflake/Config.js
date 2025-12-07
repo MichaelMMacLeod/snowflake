@@ -1,5 +1,5 @@
 import { parseSnowflakeID } from "../common/Config.js";
-import { _colorTheme, _finishedGrowingCallback, _growthInput, _maxUpdates, _resetCallback, _updatedCallback, scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX } from "./State.js";
+import { _State_colorTheme, _State_finishedGrowingCallback, _State_growthInput, _State_maxUpdates, _State_resetCallback, _State_updatedCallback, scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX } from "./State.js";
 import * as States from './State.js';
 import { doNothing } from "../common/Utils.js";
 import * as ColorThemes from "../common/color/Theme.js";
@@ -66,7 +66,7 @@ const cfgSnowflakeID = (_cfg, state, oldValue, newValue) => {
         return right(resetUnecessary);
     }
     return mapRight(parseSnowflakeID(newValue), r => {
-        state[_growthInput] = r;
+        state[_State_growthInput] = r;
         return resetRequred;
     });
 };
@@ -86,15 +86,15 @@ const cfgUPSCap = (cfg, state, _oldValue, newValue) => {
 };
 const cfgMaxUpdates = (_cfg, state, oldValue, newValue) => {
     if (newValue !== oldValue) {
-        state[_maxUpdates] = newValue;
+        state[_State_maxUpdates] = newValue;
         return right(resetRequred);
     }
     return right(resetUnecessary);
 };
 const cfgPlaying = (_cfg, state, oldValue, newValue) => {
     if (newValue !== oldValue) {
-        state[States._playing] = newValue;
-        state[States._currentMS] = performance.now();
+        state[States._State_playing] = newValue;
+        state[States._State_currentMS] = performance.now();
         scheduleUpdate(state);
     }
     return right(resetUnecessary);
@@ -103,26 +103,26 @@ const cfgColorTheme = (_cfg, state, oldValue, newValue) => {
     if (ColorThemes.equals(newValue, oldValue)) {
         return right(resetUnecessary);
     }
-    state[_colorTheme] = newValue;
+    state[_State_colorTheme] = newValue;
     return right(resetRequred);
 };
 const cfgIsLightTheme = (_cfg, state, oldValue, newValue) => {
     if (newValue === oldValue) {
         return right(false);
     }
-    state[States._isLightTheme] = newValue;
+    state[States._State_isLightTheme] = newValue;
     return right(true);
 };
 const cfgFinishedGrowingCallback = (_cfg, state, _oldValue, newValue) => {
-    state[_finishedGrowingCallback] = newValue;
+    state[_State_finishedGrowingCallback] = newValue;
     return right(false);
 };
 const cfgResetCallback = (_cfg, state, _oldValue, newValue) => {
-    state[_resetCallback] = newValue;
+    state[_State_resetCallback] = newValue;
     return right(false);
 };
 const cfgUpdatedCallback = (_cfg, state, _oldValue, newValue) => {
-    state[_updatedCallback] = newValue;
+    state[_State_updatedCallback] = newValue;
     return right(false);
 };
 const cfgFunctions = [

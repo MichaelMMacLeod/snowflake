@@ -12,7 +12,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
 var _SnowflakeElement_state, _SnowflakeElement_cfg, _SnowflakeElement_shadow;
 import { parseSnowflakeID, randomSnowflakeIDString } from "../common/Config.js";
 import * as Maybes from "maybe-either/Maybe";
-import { initializeGraphic } from "./State.js";
+import { _State_graphic, initializeGraphic } from "./State.js";
 import * as Eithers from "maybe-either/Either";
 import * as States from "./State.js";
 import * as Configs from "./Config.js";
@@ -57,7 +57,7 @@ class SnowflakeElement extends HTMLElement {
         return States.percentGrown(__classPrivateFieldGet(this, _SnowflakeElement_state, "f"));
     }
     canvas() {
-        return Maybes.unwrapOr(__classPrivateFieldGet(this, _SnowflakeElement_state, "f")[States._graphic], () => { throw new Error('element not yet inserted into document'); })[_graphic_canvas];
+        return Maybes.unwrapOr(__classPrivateFieldGet(this, _SnowflakeElement_state, "f")[_State_graphic], () => { throw new Error('element not yet inserted into document'); })[_graphic_canvas];
     }
 }
 _SnowflakeElement_state = new WeakMap(), _SnowflakeElement_cfg = new WeakMap(), _SnowflakeElement_shadow = new WeakMap();

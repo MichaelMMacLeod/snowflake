@@ -9,7 +9,7 @@ import {
     parseSnowflakeID,
     randomSnowflakeIDString
 } from "../common/Config.js";
-import { _colorTheme, _finishedGrowingCallback, _growthInput, _maxUpdates, _resetCallback, _updatedCallback, scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX, State } from "./State.js";
+import { _State_colorTheme, _State_finishedGrowingCallback, _State_growthInput, _State_maxUpdates, _State_resetCallback, _State_updatedCallback, scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX, State } from "./State.js";
 import * as States from './State.js';
 import { arraysEqual, doNothing, NonEmptyArray, SnowflakeID } from "../common/Utils.js";
 import * as Maybes from "maybe-either/Maybe";
@@ -126,7 +126,7 @@ const cfgSnowflakeID: CfgFunction<_Cfg_snowflakeID> = (_cfg, state, oldValue, ne
         return right(resetUnecessary);
     }
     return mapRight(parseSnowflakeID(newValue), r => {
-        state[_growthInput] = r;
+        state[_State_growthInput] = r;
         return resetRequred;
     });
 };
@@ -150,7 +150,7 @@ const cfgUPSCap: CfgFunction<_Cfg_upsCap> = (cfg, state, _oldValue, newValue) =>
 
 const cfgMaxUpdates: CfgFunction<_Cfg_maxUpdates> = (_cfg, state, oldValue, newValue) => {
     if (newValue !== oldValue) {
-        state[_maxUpdates] = newValue;
+        state[_State_maxUpdates] = newValue;
         return right(resetRequred);
     }
     return right(resetUnecessary);
@@ -158,8 +158,8 @@ const cfgMaxUpdates: CfgFunction<_Cfg_maxUpdates> = (_cfg, state, oldValue, newV
 
 const cfgPlaying: CfgFunction<_Cfg_playing> = (_cfg, state, oldValue, newValue) => {
     if (newValue !== oldValue) {
-        state[States._playing] = newValue;
-        state[States._currentMS] = performance.now();
+        state[States._State_playing] = newValue;
+        state[States._State_currentMS] = performance.now();
         scheduleUpdate(state);
     }
     return right(resetUnecessary);
@@ -169,7 +169,7 @@ const cfgColorTheme: CfgFunction<_Cfg_colorTheme> = (_cfg, state, oldValue, newV
     if (ColorThemes.equals(newValue, oldValue)) {
         return right(resetUnecessary);
     }
-    state[_colorTheme] = newValue;
+    state[_State_colorTheme] = newValue;
     return right(resetRequred);
 };
 
@@ -177,22 +177,22 @@ const cfgIsLightTheme: CfgFunction<_Cfg_isLightTheme> = (_cfg, state, oldValue, 
     if (newValue === oldValue) {
         return right(false);
     }
-    state[States._isLightTheme] = newValue;
+    state[States._State_isLightTheme] = newValue;
     return right(true);
 };
 
 const cfgFinishedGrowingCallback: CfgFunction<_Cfg_finishedGrowingCallback> = (_cfg, state, _oldValue, newValue) => {
-    state[_finishedGrowingCallback] = newValue;
+    state[_State_finishedGrowingCallback] = newValue;
     return right(false);
 };
 
 const cfgResetCallback: CfgFunction<_Cfg_resetCallback> = (_cfg, state, _oldValue, newValue) => {
-    state[_resetCallback] = newValue;
+    state[_State_resetCallback] = newValue;
     return right(false);
 };
 
 const cfgUpdatedCallback: CfgFunction<_Cfg_updatedCallback> = (_cfg, state, _oldValue, newValue) => {
-    state[_updatedCallback] = newValue;
+    state[_State_updatedCallback] = newValue;
     return right(false);
 };
 
