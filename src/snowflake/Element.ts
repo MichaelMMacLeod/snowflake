@@ -29,20 +29,20 @@ export default class SnowflakeElement extends HTMLElement {
         );
     }
 
-    configure<K extends keyof Required<SnowflakeConfig>>(key: K, value: Required<SnowflakeConfig>[K]) {
+    configure<K extends keyof SnowflakeConfig>(key: K, value: SnowflakeConfig[K]) {
         const cfg = this.#state[_State_cfg];
         Maybes.map(
             Configs.configure(cfg, this.#state, key, value),
             () => {
-                cfg[key] = value
+                cfg[key] = value;
             },
             error => {
-                console.error(error)
+                console.error(error);
             },
         );
-    };
+    }
 
-    configuredValue<K extends keyof Required<SnowflakeConfig>>(key: K): Required<SnowflakeConfig>[K] {
+    configuredValue<K extends keyof SnowflakeConfig>(key: K): SnowflakeConfig[K] {
         return this.#state[_State_cfg][key];
     }
 
