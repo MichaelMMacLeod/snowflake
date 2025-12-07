@@ -33,8 +33,6 @@ class SnowflakeElement extends HTMLElement {
             __classPrivateFieldGet(this, _SnowflakeElement_shadow, "f").appendChild(g[_graphic_canvas]);
         });
     }
-    disconnectedCallback() { }
-    adoptedCallback() { }
     configure(key, value) {
         Maybes.map(Configs.configure(__classPrivateFieldGet(this, _SnowflakeElement_cfg, "f"), __classPrivateFieldGet(this, _SnowflakeElement_state, "f"), key, value), () => {
             __classPrivateFieldGet(this, _SnowflakeElement_cfg, "f")[key] = value;

@@ -31,10 +31,6 @@ export default class SnowflakeElement extends HTMLElement {
         );
     }
 
-    disconnectedCallback() { }
-
-    adoptedCallback() { }
-
     configure<K extends keyof Required<Cfg>>(key: K, value: Required<Cfg>[K]) {
         Maybes.map(
             Configs.configure(this.#cfg, this.#state, key, value),
