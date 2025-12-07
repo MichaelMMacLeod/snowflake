@@ -1,7 +1,7 @@
 import { parseBool, parseConfigAndDisplayErrors, parseFunction1, parseNonnegativeFloat, parsePositiveFloat, parseSnowflakeID, randomSnowflakeIDString } from "../common/Config.js";
 import { arraysEqual } from "../common/Utils.js";
 import * as Maybes from "maybe-either/Maybe";
-import { setAspectRatio, setIsLightTheme, setPercentGrown, setSnowflakeID } from "./State.js";
+import { _graphState_graph, setAspectRatio, setIsLightTheme, setPercentGrown, setSnowflakeID } from "./State.js";
 export const configParser = {
     percentGrown: parseNonnegativeFloat,
     snowflakeID: parseSnowflakeID,
@@ -53,7 +53,7 @@ export const configSynchronizer = {
         return false;
     },
     handleMovedCallback: (_c, s, newValue, oldValue) => {
-        Maybes.mapSome(s.graph, g => g.handleMovedCallback = newValue);
+        Maybes.mapSome(s[_graphState_graph], g => g.handleMovedCallback = newValue);
         return false;
     },
 };

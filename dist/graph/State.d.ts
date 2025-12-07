@@ -1,11 +1,15 @@
 import { Maybe } from "maybe-either/Maybe";
 import { SnowflakeGraph } from "./Graph.js";
 import { NonEmptyArray } from "../common/Utils.js";
+export declare const _graphState_graph = 0;
+export declare const _graphState_percentGrown = 1;
+export declare const _graphState_aspectRatio = 2;
+export declare const _graphState_isLightTheme = 3;
 export type GraphState = {
-    graph: Maybe<SnowflakeGraph>;
-    percentGrown: number;
-    aspectRatio: number;
-    isLightTheme: boolean;
+    [_graphState_graph]: Maybe<SnowflakeGraph>;
+    [_graphState_percentGrown]: number;
+    [_graphState_aspectRatio]: number;
+    [_graphState_isLightTheme]: boolean;
 };
 export declare const zero: () => GraphState;
 export declare const initialize: (state: GraphState) => Node;
