@@ -1,5 +1,6 @@
 import {
-  _face_center,
+  _face_center_x,
+  _face_center_y,
   _face_direction,
   _face_growing,
   _face_growthScale,
@@ -151,9 +152,8 @@ export const addFaceM = (
 ): boolean => {
   if (snowflake[_numFaces] < MAX_FACES) {
     const f = snowflake[_faces][snowflake[_numFaces]];
-    const center = f[_face_center];
-    center.x = centerX;
-    center.y = centerY;
+    f[_face_center_x] = centerX;
+    f[_face_center_y] = centerY;
     f[_face_size] = size;
     f[_face_direction] = direction;
     f[_face_growthScale] = growthScale;
@@ -285,10 +285,9 @@ export const zeroM = (s: Snowflake): void => {
 
 const branchSplittingGrowthScales = [0.5, 0.9, 0.5];
 
-const addBranchesToFace = (snowflake: Snowflake, face: Face, faceIndex: number): void => {
+const addBranchesToFace = (snowflake: Snowflake, f: Face, faceIndex: number): void => {
   const initialFraction = 0.01;
-  const size = face[_face_size];
-  const center = face[_face_center];
+  const size = f[_face_size];
   const sizeOfNewBranches = size * initialFraction;
 
   // This is the offset from the edge of the face that we add to the start of the branch
@@ -297,8 +296,8 @@ const addBranchesToFace = (snowflake: Snowflake, face: Face, faceIndex: number):
   const safetyOffset = 0.001;
 
   const distFromCenter = safetyOffset + 1 * size * (1 - initialFraction);
-  const cx = center.x;
-  const cy = center.y;
+  const cx = f[_face_center_x];
+  const cy = f[_face_center_y];
 
   if (faceIndex === 0) {
     const growthScale = branchSplittingGrowthScales[1];
@@ -316,8 +315,8 @@ const addBranchesToFace = (snowflake: Snowflake, face: Face, faceIndex: number):
     }
   } else {
     for (let k = -1; k < 2; ++k) {
-      const growthScale = face[_face_growthScale] * branchSplittingGrowthScales[k + 1];
-      const i = rem(face[_face_direction] + k, 6);
+      const growthScale = f[_face_growthScale] * branchSplittingGrowthScales[k + 1];
+      const i = rem(f[_face_direction] + k, 6);
       addBranchM(
         snowflake,
         cx + distFromCenter * Directions.cosines[i],

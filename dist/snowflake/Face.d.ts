@@ -1,13 +1,14 @@
-import { Point } from "../common/Point.js";
 import { Direction } from "./Direction.js";
 import { Graphic } from "./Graphic.js";
-export declare const _face_center = 0;
-export declare const _face_size = 1;
-export declare const _face_direction = 2;
-export declare const _face_growthScale = 3;
-export declare const _face_growing = 4;
+export declare const _face_center_x = 0;
+export declare const _face_center_y = 1;
+export declare const _face_size = 2;
+export declare const _face_direction = 3;
+export declare const _face_growthScale = 4;
+export declare const _face_growing = 5;
 export type Face = {
-    [_face_center]: Point;
+    [_face_center_x]: number;
+    [_face_center_y]: number;
     [_face_size]: number;
     [_face_direction]: Direction;
     [_face_growthScale]: number;
@@ -20,4 +21,4 @@ export declare const manualPointNY: (centerY: number, size: number, absoluteDire
 export declare const pointNX: (f: Face, absoluteDirection: number) => number;
 export declare const pointNY: (f: Face, absoluteDirection: number) => number;
 export declare const draw: (g: Graphic, f: Face, faceIndex: number) => boolean;
-export declare const enlarge: (face: Face, faceIndex: number, scale: number) => void;
+export declare const enlarge: (f: Face, faceIndex: number, scale: number) => void;
