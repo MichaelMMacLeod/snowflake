@@ -8,20 +8,22 @@ export const values = [
     4 * oneSixthCircle,
     5 * oneSixthCircle,
 ];
+const cos = Math.cos;
 export const cosines = [
-    Math.cos(values[0]),
-    Math.cos(values[1]),
-    Math.cos(values[2]),
-    Math.cos(values[3]),
-    Math.cos(values[4]),
-    Math.cos(values[5]),
+    cos(values[0]),
+    cos(values[1]),
+    cos(values[2]),
+    cos(values[3]),
+    cos(values[4]),
+    cos(values[5]),
 ];
+const sin = Math.sin;
 export const sines = [
-    Math.sin(values[0]),
-    Math.sin(values[1]),
-    Math.sin(values[2]),
-    Math.sin(values[3]),
-    Math.sin(values[4]),
-    Math.sin(values[5]),
+    sin(values[0]),
+    sin(values[1]),
+    sin(values[2]),
+    sin(values[3]),
+    sin(values[4]),
+    sin(values[5]),
 ];
 //# sourceMappingURL=Direction.js.map
