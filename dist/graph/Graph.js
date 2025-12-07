@@ -1,9 +1,9 @@
-import { snowflakeIDString } from "../common/Config.js";
+import { parseSnowflakeID, snowflakeIDString } from "../common/SnowflakeID.js";
 import { yChoices } from "../common/Constants.js";
 import { clamp } from "../common/Utils.js";
 import { none, some } from "maybe-either/Maybe";
 import * as Maybes from "maybe-either/Maybe";
-import { defaultAspectRatio, defaultIsLightTheme } from "./Config.js";
+import { defaultAspectRatio, defaultIsLightTheme, defaultSnowflakeID } from "./Config.js";
 import { defaultGraphDarkThemeColor, defaultGraphLightThemeColor } from "../common/ColorScheme.js";
 export const _SnowflakeGraph_snowflakeID = 0;
 export const _SnowflakeGraph_root = 1;
@@ -313,7 +313,7 @@ const mouseEventIsInsideElement = (ev, e) => {
         && y >= r.top && y <= r.bottom;
 };
 export const zero = () => {
-    const snowflakeID = [0, 0];
+    const snowflakeID = parseSnowflakeID(defaultSnowflakeID)[1];
     const root = document.createElementNS(SVG_NS, 'svg');
     const style = document.createElement('style');
     const g = document.createElementNS(SVG_NS, 'g');

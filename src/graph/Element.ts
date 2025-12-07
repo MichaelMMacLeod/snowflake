@@ -1,8 +1,6 @@
-import { parseConfigAndDisplayErrors, sync } from "../common/Config.js";
 import { GraphState } from "./State.js";
-import { none, some } from "maybe-either/Maybe";
 import * as GraphStates from "./State.js";
-import { defaultGraphConfig, GraphConfig, UnparsedConfig } from "./Config.js";
+import { defaultGraphConfig, GraphConfig } from "./Config.js";
 import * as GraphConfigs from "./Config.js";
 import * as Maybes from "maybe-either/Maybe";
 

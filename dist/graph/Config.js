@@ -1,4 +1,4 @@
-import { parseSnowflakeID } from "../common/Config.js";
+import { parseSnowflakeID } from "../common/SnowflakeID.js";
 import { doNothing } from "../common/Utils.js";
 import { _GraphState_graph } from "./State.js";
 import { _SnowflakeGraph_handleMovedCallback, _SnowflakeGraph_snowflakeID, setAspectRatio, setIsLightTheme, syncToPercentGrown, syncToSnowflakeID } from "./Graph.js";

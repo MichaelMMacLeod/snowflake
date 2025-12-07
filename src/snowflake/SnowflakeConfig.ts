@@ -1,6 +1,6 @@
 import {
     parseSnowflakeID,
-} from "../common/Config.js";
+} from "../common/SnowflakeID.js";
 import {
     _State_currentMS,
     _State_growthInput,

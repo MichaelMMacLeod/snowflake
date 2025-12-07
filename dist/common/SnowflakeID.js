@@ -1,19 +1,20 @@
 import * as Eithers from "maybe-either/Either";
 import { left, right } from "maybe-either/Either";
 import { randomIntInclusive } from "./Utils.js";
+const errMsg = 'integer or string containing digits [1-9]';
 export const parseSnowflakeID = (value) => {
     if (value.toString === undefined) {
-        return left('integer or string containing digits [1-9]');
+        return left(errMsg);
     }
     const digits = value.toString();
     const result = [];
     for (let i = 0; i < digits.length; ++i) {
         const digit = parseInt(digits[i], 10);
         if (Number.isNaN(digit)) {
-            return left('integer or string containing digits [1-9]');
+            return left(errMsg);
         }
         if (digit === 0) {
-            return left('integer or string containing digits [1-9]');
+            return left(errMsg);
         }
         const parsedDigit = digit - 1;
         result.push(parsedDigit);
@@ -36,4 +37,4 @@ export const randomSnowflakeId = () => {
 export const randomSnowflakeIDString = () => {
     return snowflakeIDString(randomSnowflakeId());
 };
-//# sourceMappingURL=Config.js.map
+//# sourceMappingURL=SnowflakeID.js.map

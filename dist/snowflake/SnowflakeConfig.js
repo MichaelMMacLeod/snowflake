@@ -1,4 +1,4 @@
-import { parseSnowflakeID, } from "../common/Config.js";
+import { parseSnowflakeID, } from "../common/SnowflakeID.js";
 import { _State_currentMS, _State_growthInput, scheduleUpdate, setIdealMSBetweenUpdates, setSnowflakeCanvasSizePX } from "./State.js";
 import * as States from './State.js';
 import { doNothing } from "../common/Utils.js";

@@ -1,4 +1,4 @@
-import { parseSnowflakeID } from "../common/Config.js";
+import { parseSnowflakeID } from "../common/SnowflakeID.js";
 import { doNothing, NonEmptyArray, SnowflakeID } from "../common/Utils.js";
 import { _GraphState_graph, GraphState } from "./State.js";
 import {

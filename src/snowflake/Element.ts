@@ -1,4 +1,4 @@
-import { parseConfigAndDisplayErrors, parseSnowflakeID, randomSnowflakeIDString, sync } from "../common/Config.js";
+import { parseSnowflakeID, randomSnowflakeIDString } from "../common/SnowflakeID.js";
 import { mapSome, none, some } from "maybe-either/Maybe";
 import * as Maybes from "maybe-either/Maybe";
 import { _State_cfg, _State_graphic, initializeGraphic, State } from "./State.js";
