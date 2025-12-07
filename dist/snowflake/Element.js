@@ -39,7 +39,6 @@ class SnowflakeElement extends HTMLElement {
             console.error(error);
         });
     }
-    ;
     configuredValue(key) {
         return __classPrivateFieldGet(this, _SnowflakeElement_state, "f")[_State_cfg][key];
     }

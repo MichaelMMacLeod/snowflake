@@ -4,8 +4,8 @@ export default class SnowflakeElement extends HTMLElement {
     #private;
     constructor();
     connectedCallback(): void;
-    configure<K extends keyof Required<SnowflakeConfig>>(key: K, value: Required<SnowflakeConfig>[K]): void;
-    configuredValue<K extends keyof Required<SnowflakeConfig>>(key: K): Required<SnowflakeConfig>[K];
+    configure<K extends keyof SnowflakeConfig>(key: K, value: SnowflakeConfig[K]): void;
+    configuredValue<K extends keyof SnowflakeConfig>(key: K): SnowflakeConfig[K];
     reset(): void;
     isValidSnowflakeId(id: string): id is SnowflakeID;
     randomSnowflakeId(): SnowflakeID;

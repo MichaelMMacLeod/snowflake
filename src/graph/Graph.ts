@@ -4,6 +4,7 @@ import { clamp, NonEmptyArray, SnowflakeID } from "../common/Utils.js";
 import { Maybe, none, some } from "maybe-either/Maybe";
 import * as Maybes from "maybe-either/Maybe";
 import { Point } from "../common/Point.js";
+import { defaultIsLightTheme } from "./Config.js";
 
 export const _SnowflakeGraph_constants = 0;
 export const _SnowflakeGraph_snowflakeID = 1;
@@ -436,7 +437,7 @@ const mouseEventIsInsideElement = (ev: MouseEvent, e: Element): boolean => {
 }
 
 export const zero = (): SnowflakeGraph => {
-    const constants = makeConstants(0.5, 3, false);
+    const constants = makeConstants(0.5, 3, defaultIsLightTheme);
     const snowflakeID: NonEmptyArray<number> = [0, 0];
     const root = document.createElementNS(SVG_NS, 'svg');
     const style = document.createElement('style');

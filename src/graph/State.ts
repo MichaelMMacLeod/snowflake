@@ -8,6 +8,7 @@ export const _graphState_graph = 0;
 export const _graphState_percentGrown = 1;
 export const _graphState_aspectRatio = 2;
 export const _graphState_isLightTheme = 3;
+
 export type GraphState = {
     [_graphState_graph]: Maybe<SnowflakeGraph>
     [_graphState_percentGrown]: number,
@@ -27,6 +28,8 @@ export const zero = (): GraphState => {
         isLightTheme,
     ];
 }
+
+export const reset = (_g: GraphState) => { }
 
 export const initialize = (state: GraphState): Node => {
     return Maybes.map(

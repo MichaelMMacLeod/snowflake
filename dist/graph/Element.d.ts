@@ -1,9 +1,8 @@
-import { UnparsedConfig } from "./Config.js";
+import { GraphConfig } from "./Config.js";
 export default class SnowflakeGraphElement extends HTMLElement {
     #private;
     constructor();
-    configure(unparsedConfig: UnparsedConfig): void;
     connectedCallback(): void;
-    disconnectedCallback(): void;
-    adoptedCallback(): void;
+    configure<K extends keyof GraphConfig>(key: K, value: GraphConfig[K]): void;
+    configuredValue<K extends keyof GraphConfig>(key: K): GraphConfig[K];
 }

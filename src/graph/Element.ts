@@ -2,38 +2,24 @@ import { parseConfigAndDisplayErrors, sync } from "../common/Config.js";
 import { GraphState } from "./State.js";
 import { none, some } from "maybe-either/Maybe";
 import * as GraphStates from "./State.js";
-import { Config, configParser, configSynchronizer, UnparsedConfig } from "./Config.js";
+import { defaultGraphConfig, GraphConfig, UnparsedConfig } from "./Config.js";
 import * as GraphConfigs from "./Config.js";
+import * as Maybes from "maybe-either/Maybe";
 
 export default class SnowflakeGraphElement extends HTMLElement {
     #shadow: ShadowRoot;
-    #config: Config;
+    #config: GraphConfig;
     #state: GraphState;
 
     constructor() {
         super();
         this.#shadow = this.attachShadow({ mode: 'open' });
-        this.#config = GraphConfigs.zero();
+        this.#config = { ...defaultGraphConfig };
         this.#state = GraphStates.zero();
-        sync(
-            configSynchronizer,
-            this.#state,
-            () => { return; },
-            none,
-            this.#config,
-        )
-    }
 
-    configure(unparsedConfig: UnparsedConfig): void {
-        const config = parseConfigAndDisplayErrors(configParser, unparsedConfig);
-        sync(
-            configSynchronizer,
-            this.#state,
-            () => { return; },
-            some(this.#config),
-            config,
-        );
-        this.#config = config;
+        GraphConfigs.cfgKeys.forEach(key => {
+            GraphConfigs.configure(this.#config, this.#state, key, this.#config[key])
+        });
     }
 
     connectedCallback() {
@@ -41,12 +27,20 @@ export default class SnowflakeGraphElement extends HTMLElement {
         this.#shadow.appendChild(element);
     }
 
-    disconnectedCallback() {
-        console.log('sfg disconnectedCallback');
-
+    configure<K extends keyof GraphConfig>(key: K, value: GraphConfig[K]) {
+        const cfg = this.#config;
+        Maybes.map(
+            GraphConfigs.configure(cfg, this.#state, key, value),
+            () => {
+                cfg[key] = value;
+            },
+            error => {
+                console.error(error);
+            },
+        );
     }
 
-    adoptedCallback() {
-        console.log('sfg adoptedCallback');
+    configuredValue<K extends keyof GraphConfig>(key: K): GraphConfig[K] {
+        return this.#config[key];
     }
 }

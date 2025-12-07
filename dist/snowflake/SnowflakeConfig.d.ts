@@ -1,5 +1,6 @@
 import { State } from "./State.js";
 import { SnowflakeID } from "../common/Utils.js";
+import * as ColorThemes from "../common/ColorScheme.js";
 import { ColorScheme } from "../common/ColorScheme.js";
 import { Maybe } from "maybe-either/Maybe";
 export declare const _SnowflakeConfig_snowflakeID = 0;
@@ -38,6 +39,17 @@ export type SnowflakeConfig = {
     [_SnowflakeConfig_updatedCallback]: () => void;
 };
 type ErrorMessage = string;
+export declare const defaultSnowflakeID: SnowflakeID;
+export declare const defaultSnowflakeCanvasSizePX = 800;
+export declare const defaultTargetGrowthTimeMS = 8000;
+export declare const defaultUpsCap = 100000000;
+export declare const defaultMaxUpdates = 500;
+export declare const defaultPlaying = true;
+export declare const defaultColorTheme: ColorThemes.ColorScheme;
+export declare const defaultIsLightTheme = true;
+export declare const defaultFinishedGrowingCallback: () => void;
+export declare const defaultResetCallback: () => void;
+export declare const defaultUpdatedCallback: () => void;
 export declare const defaultConfig: Readonly<SnowflakeConfig>;
 export declare const configure: <K extends keyof SnowflakeConfig>(oldCfg: SnowflakeConfig, state: State, key: K, value: SnowflakeConfig[K]) => Maybe<ErrorMessage>;
 export {};

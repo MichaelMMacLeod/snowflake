@@ -76,17 +76,17 @@ const resetUnecessary = false;
 
 type ErrorMessage = string;
 
-const defaultSnowflakeID = '13925257291' as SnowflakeID;
-const defaultSnowflakeCanvasSizePX = 800;
-const defaultTargetGrowthTimeMS = 8000;
-const defaultUpsCap = 100000000;
-const defaultMaxUpdates = 500;
-const defaultPlaying = true;
-const defaultColorTheme = ColorThemes.zero();
-const defaultIsLightTheme = true;
-const defaultFinishedGrowingCallback = doNothing;
-const defaultResetCallback = doNothing;
-const defaultUpdatedCallback = doNothing;
+export const defaultSnowflakeID = '13925257291' as SnowflakeID;
+export const defaultSnowflakeCanvasSizePX = 800;
+export const defaultTargetGrowthTimeMS = 8000;
+export const defaultUpsCap = 100000000;
+export const defaultMaxUpdates = 500;
+export const defaultPlaying = true;
+export const defaultColorTheme = ColorThemes.zero();
+export const defaultIsLightTheme = true;
+export const defaultFinishedGrowingCallback = doNothing;
+export const defaultResetCallback = doNothing;
+export const defaultUpdatedCallback = doNothing;
 
 export const defaultConfig: Readonly<SnowflakeConfig> = Object.freeze([
     defaultSnowflakeID,

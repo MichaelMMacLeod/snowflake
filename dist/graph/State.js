@@ -18,6 +18,7 @@ export const zero = () => {
         isLightTheme,
     ];
 };
+export const reset = (_g) => { };
 export const initialize = (state) => {
     return Maybes.map(state[_graphState_graph], () => {
         const g = SnowflakeGraphs.zero();

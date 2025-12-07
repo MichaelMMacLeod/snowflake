@@ -10,11 +10,10 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
 var _SnowflakeGraphElement_shadow, _SnowflakeGraphElement_config, _SnowflakeGraphElement_state;
-import { parseConfigAndDisplayErrors, sync } from "../common/Config.js";
-import { none, some } from "maybe-either/Maybe";
 import * as GraphStates from "./State.js";
-import { configParser, configSynchronizer } from "./Config.js";
+import { defaultGraphConfig } from "./Config.js";
 import * as GraphConfigs from "./Config.js";
+import * as Maybes from "maybe-either/Maybe";
 class SnowflakeGraphElement extends HTMLElement {
     constructor() {
         super();
@@ -22,24 +21,26 @@ class SnowflakeGraphElement extends HTMLElement {
         _SnowflakeGraphElement_config.set(this, void 0);
         _SnowflakeGraphElement_state.set(this, void 0);
         __classPrivateFieldSet(this, _SnowflakeGraphElement_shadow, this.attachShadow({ mode: 'open' }), "f");
-        __classPrivateFieldSet(this, _SnowflakeGraphElement_config, GraphConfigs.zero(), "f");
+        __classPrivateFieldSet(this, _SnowflakeGraphElement_config, Object.assign({}, defaultGraphConfig), "f");
         __classPrivateFieldSet(this, _SnowflakeGraphElement_state, GraphStates.zero(), "f");
-        sync(configSynchronizer, __classPrivateFieldGet(this, _SnowflakeGraphElement_state, "f"), () => { return; }, none, __classPrivateFieldGet(this, _SnowflakeGraphElement_config, "f"));
-    }
-    configure(unparsedConfig) {
-        const config = parseConfigAndDisplayErrors(configParser, unparsedConfig);
-        sync(configSynchronizer, __classPrivateFieldGet(this, _SnowflakeGraphElement_state, "f"), () => { return; }, some(__classPrivateFieldGet(this, _SnowflakeGraphElement_config, "f")), config);
-        __classPrivateFieldSet(this, _SnowflakeGraphElement_config, config, "f");
+        GraphConfigs.cfgKeys.forEach(key => {
+            GraphConfigs.configure(__classPrivateFieldGet(this, _SnowflakeGraphElement_config, "f"), __classPrivateFieldGet(this, _SnowflakeGraphElement_state, "f"), key, __classPrivateFieldGet(this, _SnowflakeGraphElement_config, "f")[key]);
+        });
     }
     connectedCallback() {
         const element = GraphStates.initialize(__classPrivateFieldGet(this, _SnowflakeGraphElement_state, "f"));
         __classPrivateFieldGet(this, _SnowflakeGraphElement_shadow, "f").appendChild(element);
     }
-    disconnectedCallback() {
-        console.log('sfg disconnectedCallback');
+    configure(key, value) {
+        const cfg = __classPrivateFieldGet(this, _SnowflakeGraphElement_config, "f");
+        Maybes.map(GraphConfigs.configure(cfg, __classPrivateFieldGet(this, _SnowflakeGraphElement_state, "f"), key, value), () => {
+            cfg[key] = value;
+        }, error => {
+            console.error(error);
+        });
     }
-    adoptedCallback() {
-        console.log('sfg adoptedCallback');
+    configuredValue(key) {
+        return __classPrivateFieldGet(this, _SnowflakeGraphElement_config, "f")[key];
     }
 }
 _SnowflakeGraphElement_shadow = new WeakMap(), _SnowflakeGraphElement_config = new WeakMap(), _SnowflakeGraphElement_state = new WeakMap();

@@ -12,6 +12,7 @@ export type GraphState = {
     [_graphState_isLightTheme]: boolean;
 };
 export declare const zero: () => GraphState;
+export declare const reset: (_g: GraphState) => void;
 export declare const initialize: (state: GraphState) => Node;
 export declare const setPercentGrown: (state: GraphState, percentGrown: number) => void;
 export declare const setSnowflakeID: (state: GraphState, snowflakeID: NonEmptyArray<number>) => void;

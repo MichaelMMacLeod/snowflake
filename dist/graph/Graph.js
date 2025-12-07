@@ -3,6 +3,7 @@ import { yChoices } from "../common/Constants.js";
 import { clamp } from "../common/Utils.js";
 import { none, some } from "maybe-either/Maybe";
 import * as Maybes from "maybe-either/Maybe";
+import { defaultIsLightTheme } from "./Config.js";
 export const _SnowflakeGraph_constants = 0;
 export const _SnowflakeGraph_snowflakeID = 1;
 export const _SnowflakeGraph_root = 2;
@@ -356,7 +357,7 @@ const mouseEventIsInsideElement = (ev, e) => {
         && y >= r.top && y <= r.bottom;
 };
 export const zero = () => {
-    const constants = makeConstants(0.5, 3, false);
+    const constants = makeConstants(0.5, 3, defaultIsLightTheme);
     const snowflakeID = [0, 0];
     const root = document.createElementNS(SVG_NS, 'svg');
     const style = document.createElement('style');
