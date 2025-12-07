@@ -64,16 +64,3 @@ export const normalizeBranchRelativeSide2DsM = (
     normalizeSide2DBranchM(resultLeft[i], resultRight[i], resultHeight[i], partIndex, branch, i);
   }
 }
-export const overlapDistance = (height1: number, height2: number) => {
-  return height1 - height2;
-}
-
-// Returns 'true' if the line segments l1...r1 and l2...r2 overlap.
-export /*@__INLINE__*/ function overlaps(l1: number, r1: number, l2: number, r2: number): boolean {
-  // s1 ---......
-  // s2       ......---
-  //    and
-  // s1       ......--- 
-  // s2 ---......
-  return l1 < r2 && l2 < r1;
-}
