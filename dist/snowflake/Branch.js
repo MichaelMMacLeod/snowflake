@@ -6,38 +6,50 @@ import { outsideVisibleArea, viewspaceX, viewspaceY } from "./CoordinateSystem.j
 import * as Faces from "./Face.js";
 import { branchLengthGrowthScalar, branchSizeGrowthScalar } from "../common/Constants.js";
 import { rem } from "../common/Utils.js";
+export const _branch_start = 0;
+export const _branch_size = 1;
+export const _branch_length = 2;
+export const _branch_direction = 3;
+export const _branch_growthScale = 4;
+export const _branch_growing = 5;
 export const zero = () => {
-    return {
-        start: Points.zero(),
-        size: 0,
-        length: 0,
-        direction: 0,
-        growthScale: 0,
-        growing: false,
-    };
+    const start = Points.zero();
+    const size = 0;
+    const length = 0;
+    const direction = 0;
+    const growthScale = 0;
+    const growing = false;
+    return [
+        start,
+        size,
+        length,
+        direction,
+        growthScale,
+        growing
+    ];
 };
 export const endCenterX = (branch) => {
-    return branch.start.x + branch.length * Directions.cosines[branch.direction];
+    return branch[_branch_start].x + branch[_branch_length] * Directions.cosines[branch[_branch_direction]];
 };
 export const endCenterY = (branch) => {
-    return branch.start.y + branch.length * Directions.sines[branch.direction];
+    return branch[_branch_start].y + branch[_branch_length] * Directions.sines[branch[_branch_direction]];
 };
 export const pointNX = (branch, absoluteDirection) => {
-    const d = rem(absoluteDirection - branch.direction, Directions.values.length);
+    const d = rem(absoluteDirection - branch[_branch_direction], Directions.values.length);
     if (d === 5 || d === 0 || d === 1) {
-        return Faces.manualPointNX(endCenterX(branch), branch.size, absoluteDirection);
+        return Faces.manualPointNX(endCenterX(branch), branch[_branch_size], absoluteDirection);
     }
-    return Faces.manualPointNX(branch.start.x, branch.size, absoluteDirection);
+    return Faces.manualPointNX(branch[_branch_start].x, branch[_branch_size], absoluteDirection);
 };
 export const pointNY = (branch, absoluteDirection) => {
-    const d = rem(absoluteDirection - branch.direction, Directions.values.length);
+    const d = rem(absoluteDirection - branch[_branch_direction], Directions.values.length);
     if (d === 5 || d === 0 || d === 1) {
-        return Faces.manualPointNY(endCenterY(branch), branch.size, absoluteDirection);
+        return Faces.manualPointNY(endCenterY(branch), branch[_branch_size], absoluteDirection);
     }
-    return Faces.manualPointNY(branch.start.y, branch.size, absoluteDirection);
+    return Faces.manualPointNY(branch[_branch_start].y, branch[_branch_size], absoluteDirection);
 };
 export const draw = (g, branch) => {
-    const d = branch.direction;
+    const d = branch[_branch_direction];
     const p0x = viewspaceX(g, pointNX(branch, (d + 0) % 6));
     const p0y = viewspaceY(g, pointNY(branch, (d + 0) % 6));
     const p1x = viewspaceX(g, pointNX(branch, (d + 1) % 6));
@@ -81,7 +93,7 @@ export const draw = (g, branch) => {
     return false;
 };
 export const enlarge = (branch, scale) => {
-    branch.size += branchSizeGrowthScalar * branch.growthScale;
-    branch.length += branchLengthGrowthScalar * branch.growthScale;
+    branch[_branch_size] += branchSizeGrowthScalar * branch[_branch_growthScale];
+    branch[_branch_length] += branchLengthGrowthScalar * branch[_branch_growthScale];
 };
 //# sourceMappingURL=Branch.js.map

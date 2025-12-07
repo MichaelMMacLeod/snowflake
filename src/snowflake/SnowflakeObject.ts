@@ -7,7 +7,15 @@ import {
   Face
 } from "./Face.js";
 import * as Faces from "./Face.js";
-import { Branch } from "./Branch.js";
+import {
+  _branch_start,
+  _branch_direction,
+  _branch_growing,
+  _branch_growthScale,
+  _branch_length,
+  _branch_size,
+  Branch
+} from "./Branch.js";
 import * as Branches from "./Branch.js";
 import { _graphic_ctx, Graphic } from "./Graphic.js";
 import { Direction, DIRS } from "./Direction.js";
@@ -168,13 +176,13 @@ export const addBranchM = (
 ): boolean => {
   if (snowflake[_numBranches] < MAX_BRANCHES) {
     const b = snowflake[_branches][snowflake[_numBranches]];
-    b.start.x = startX;
-    b.start.y = startY;
-    b.size = size;
-    b.length = length;
-    b.direction = direction;
-    b.growthScale = growthScale;
-    b.growing = growing;
+    b[_branch_start].x = startX;
+    b[_branch_start].y = startY;
+    b[_branch_size] = size;
+    b[_branch_length] = length;
+    b[_branch_direction] = direction;
+    b[_branch_growthScale] = growthScale;
+    b[_branch_growing] = growing;
     snowflake[_numBranches] += 1;
     return false;
   }
@@ -209,7 +217,7 @@ export const forEachGrowingFace = (snowflake: Snowflake, f: (face: Face, index: 
 export const forEachGrowingBranch = (snowflake: Snowflake, f: (branch: Branch, index: number) => void): void => {
   for (let i = snowflake[_numInitialGrownBranches]; i < snowflake[_numBranches]; ++i) {
     const branch = snowflake[_branches][i];
-    if (!branch.growing) {
+    if (!branch[_branch_growing]) {
       snowflake[_numInitialGrownBranches] += oneZeroArray[Math.min(1, i - snowflake[_numInitialGrownBranches])];
       continue;
     }
@@ -336,10 +344,10 @@ const addFaceToBranch = (snowflake: Snowflake, branch: Branch): void => {
     snowflake,
     Branches.endCenterX(branch),
     Branches.endCenterY(branch),
-    branch.size,
+    branch[_branch_size],
     false,
-    branch.direction,
-    branch.growthScale,
+    branch[_branch_direction],
+    branch[_branch_growthScale],
     true
   );
 }
@@ -347,7 +355,7 @@ const addFaceToBranch = (snowflake: Snowflake, branch: Branch): void => {
 export const addFacesToGrowingBranches = (snowflake: Snowflake): void => {
   forEachGrowingBranch(snowflake, (branch, _) => {
     addFaceToBranch(snowflake, branch);
-    branch.growing = false;
+    branch[_branch_growing] = false;
   });
 }
 
@@ -487,12 +495,21 @@ export const killCoveredFaces = (snowflake: Snowflake): void => {
   });
 }
 
+let closure_var_branch = Branches.zero();
+const closure_fn_killBranch = () => {
+  closure_var_branch[_branch_growing] = false;
+};
+const closure_fn_branchIsDead = (): boolean => {
+  return !closure_var_branch[_branch_growing];
+};
+
 export const killCoveredBranches = (snowflake: Snowflake): void => {
   forEachGrowingBranch(snowflake, (b, bi) => {
+    closure_var_branch = b;
     killPartIfCovered(
-      b.direction,
-      () => b.growing = false,
-      () => !b.growing,
+      b[_branch_direction],
+      closure_fn_killBranch,
+      closure_fn_branchIsDead,
       bi,
       snowflake[_sideCaches],
       snowflake[_numFaces],

@@ -1,13 +1,19 @@
 import { Point } from "../common/Point.js";
 import { Direction } from "./Direction.js";
 import { Graphic } from "./Graphic.js";
+export declare const _branch_start = 0;
+export declare const _branch_size = 1;
+export declare const _branch_length = 2;
+export declare const _branch_direction = 3;
+export declare const _branch_growthScale = 4;
+export declare const _branch_growing = 5;
 export type Branch = {
-    start: Point;
-    size: number;
-    length: number;
-    direction: Direction;
-    growthScale: number;
-    growing: boolean;
+    [_branch_start]: Point;
+    [_branch_size]: number;
+    [_branch_length]: number;
+    [_branch_direction]: Direction;
+    [_branch_growthScale]: number;
+    [_branch_growing]: boolean;
 };
 export declare const zero: () => Branch;
 export declare const endCenterX: (branch: Branch) => number;
