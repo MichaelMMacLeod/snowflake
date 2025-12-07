@@ -102,15 +102,17 @@ export const draw = (g: Graphic, branch: Branch): boolean => {
     const p21y = midpointTN(p2y, p1y, 0);
 
     const ctx = g[_graphic_ctx];
-    ctx.moveTo(p5x, p5y);
-    ctx.lineTo(p0x, p0y);
-    ctx.lineTo(p1x, p1y);
-    ctx.moveTo(p45x, p45y);
-    ctx.lineTo(p5x, p5y);
-    ctx.moveTo(p21x, p21y);
-    ctx.lineTo(p1x, p1y);
-    ctx.moveTo(p0x, p0y);
-    ctx.lineTo(p3x, p3y);
+    const moveTo = ctx.moveTo.bind(ctx);
+    const lineTo = ctx.lineTo.bind(ctx);
+    moveTo(p5x, p5y);
+    lineTo(p0x, p0y);
+    lineTo(p1x, p1y);
+    moveTo(p45x, p45y);
+    lineTo(p5x, p5y);
+    moveTo(p21x, p21y);
+    lineTo(p1x, p1y);
+    moveTo(p0x, p0y);
+    lineTo(p3x, p3y);
 
     return false;
 }
