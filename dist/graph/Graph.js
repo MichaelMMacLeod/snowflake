@@ -3,6 +3,18 @@ import { yChoices } from "../common/Constants.js";
 import { clamp } from "../common/Utils.js";
 import { none, some } from "maybe-either/Maybe";
 import * as Maybes from "maybe-either/Maybe";
+export const _SnowflakeGraph_constants = 0;
+export const _SnowflakeGraph_snowflakeID = 1;
+export const _SnowflakeGraph_root = 2;
+export const _SnowflakeGraph_style = 3;
+export const _SnowflakeGraph_g = 4;
+export const _SnowflakeGraph_handles = 5;
+export const _SnowflakeGraph_handleLine = 6;
+export const _SnowflakeGraph_facetingBranchingLine = 7;
+export const _SnowflakeGraph_progress = 8;
+export const _SnowflakeGraph_handleBeingDragged = 9;
+export const _SnowflakeGraph_hoveredHandle = 10;
+export const _SnowflakeGraph_handleMovedCallback = 11;
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const makeConstants = (SIZE_SCALAR, ASPECT_RATIO, isLightTheme) => {
     const VIEWPORT_HEIGHT = 200;
@@ -165,18 +177,18 @@ const setHandleLocation = (handle, x, y) => {
     setSVGAttributes(handle.outside, attrs);
 };
 const moveHandleUpwards = (sfg, h) => {
-    sfg.snowflakeID[h] = Math.max(0, sfg.snowflakeID[h] - 1);
-    sfg.handleMovedCallback(snowflakeIDString(sfg.snowflakeID));
+    sfg[_SnowflakeGraph_snowflakeID][h] = Math.max(0, sfg[_SnowflakeGraph_snowflakeID][h] - 1);
+    sfg[_SnowflakeGraph_handleMovedCallback](snowflakeIDString(sfg[_SnowflakeGraph_snowflakeID]));
     syncToSnowflakeID(sfg);
 };
 const moveHandleDownwards = (sfg, h) => {
-    sfg.snowflakeID[h] = Math.min(8, sfg.snowflakeID[h] + 1);
-    sfg.handleMovedCallback(snowflakeIDString(sfg.snowflakeID));
+    sfg[_SnowflakeGraph_snowflakeID][h] = Math.min(8, sfg[_SnowflakeGraph_snowflakeID][h] + 1);
+    sfg[_SnowflakeGraph_handleMovedCallback](snowflakeIDString(sfg[_SnowflakeGraph_snowflakeID]));
     syncToSnowflakeID(sfg);
 };
 const moveHandleToNth = (sfg, h, nth) => {
-    sfg.snowflakeID[h] = Math.max(0, Math.min(8, Math.floor(nth)));
-    sfg.handleMovedCallback(snowflakeIDString(sfg.snowflakeID));
+    sfg[_SnowflakeGraph_snowflakeID][h] = Math.max(0, Math.min(8, Math.floor(nth)));
+    sfg[_SnowflakeGraph_handleMovedCallback](snowflakeIDString(sfg[_SnowflakeGraph_snowflakeID]));
     syncToSnowflakeID(sfg);
 };
 const addHandle = (cs, g, x, y, sfg, nthHandle) => {
@@ -239,13 +251,13 @@ const fitProgressToGrowth = (cs, progress, percentGrown) => {
     });
 };
 export const syncToSnowflakeID = (g) => {
-    const id = g.snowflakeID;
-    while (g.handles.length < id.length) {
-        const nthHandle = g.handles.length;
-        g.handles.push(addHandle(g.constants, g.g, 0, 0, g, nthHandle));
+    const id = g[_SnowflakeGraph_snowflakeID];
+    while (g[_SnowflakeGraph_handles].length < id.length) {
+        const nthHandle = g[_SnowflakeGraph_handles].length;
+        g[_SnowflakeGraph_handles].push(addHandle(g[_SnowflakeGraph_constants], g[_SnowflakeGraph_g], 0, 0, g, nthHandle));
     }
-    while (g.handles.length > id.length) {
-        const h = g.handles.pop();
+    while (g[_SnowflakeGraph_handles].length > id.length) {
+        const h = g[_SnowflakeGraph_handles].pop();
         if (h !== undefined) {
             h.g.remove();
         }
@@ -253,20 +265,20 @@ export const syncToSnowflakeID = (g) => {
             throw new Error('h undefined');
         }
     }
-    g.handles.forEach((h, i) => {
-        const x0 = g.constants.MARGIN_WIDTH;
-        const y0 = g.constants.MARGIN_HEIGHT;
-        const dx = g.constants.GRAPHABLE_VIEWPORT_WIDTH / (id.length - 1);
-        const dy = g.constants.GRAPHABLE_VIEWPORT_HEIGHT / (yChoices.length - 1);
+    g[_SnowflakeGraph_handles].forEach((h, i) => {
+        const x0 = g[_SnowflakeGraph_constants].MARGIN_WIDTH;
+        const y0 = g[_SnowflakeGraph_constants].MARGIN_HEIGHT;
+        const dx = g[_SnowflakeGraph_constants].GRAPHABLE_VIEWPORT_WIDTH / (id.length - 1);
+        const dy = g[_SnowflakeGraph_constants].GRAPHABLE_VIEWPORT_HEIGHT / (yChoices.length - 1);
         const x = x0 + dx * i;
         const y = y0 + dy * id[i];
         setSVGAttributes(h.inside, { 'cx': x.toString(), 'cy': y.toString() });
         setSVGAttributes(h.outside, { 'cx': x.toString(), 'cy': y.toString() });
     });
-    fitHandleLineToHandles(g.handleLine, g.handles);
+    fitHandleLineToHandles(g[_SnowflakeGraph_handleLine], g[_SnowflakeGraph_handles]);
 };
 export const syncToPercentGrown = (g, percentGrown) => {
-    fitProgressToGrowth(g.constants, g.progress, percentGrown);
+    fitProgressToGrowth(g[_SnowflakeGraph_constants], g[_SnowflakeGraph_progress], percentGrown);
 };
 const graphHandleCenter = (g) => {
     const r = g.getBBox();
@@ -282,7 +294,7 @@ const closestGraphHandle = (g, ev) => {
     const p = viewportToSvgPoint(g, { x: ev.clientX, y: ev.clientY });
     let closest = 0;
     let closestDistance = Infinity;
-    g.handles.forEach((h, i) => {
+    g[_SnowflakeGraph_handles].forEach((h, i) => {
         const d = distanceToGraphHandle(h.outside, p);
         if (d < closestDistance) {
             closest = i;
@@ -293,10 +305,10 @@ const closestGraphHandle = (g, ev) => {
 };
 const viewportToSvgPoint = (g, viewportPoint) => {
     var _a;
-    const svgPoint = g.root.createSVGPoint();
+    const svgPoint = g[_SnowflakeGraph_root].createSVGPoint();
     svgPoint.x = viewportPoint.x;
     svgPoint.y = viewportPoint.y;
-    const ctm = (_a = g.root.getScreenCTM()) === null || _a === void 0 ? void 0 : _a.inverse();
+    const ctm = (_a = g[_SnowflakeGraph_root].getScreenCTM()) === null || _a === void 0 ? void 0 : _a.inverse();
     if (ctm === null) {
         throw new Error('ctm is null');
     }
@@ -304,15 +316,15 @@ const viewportToSvgPoint = (g, viewportPoint) => {
 };
 const closestYChoice = (g, viewportPoint) => {
     const p = viewportToSvgPoint(g, viewportPoint);
-    const y = (p.y - g.constants.MARGIN_HEIGHT) / g.constants.GRAPHABLE_VIEWPORT_HEIGHT;
+    const y = (p.y - g[_SnowflakeGraph_constants].MARGIN_HEIGHT) / g[_SnowflakeGraph_constants].GRAPHABLE_VIEWPORT_HEIGHT;
     const i = Math.round(y * (yChoices.length - 1));
     return clamp(i, 0, yChoices.length - 1);
 };
 const syncToConstants = (g, cs) => {
-    g.constants = cs;
-    g.style.textContent = cs.ROOT_STYLE;
-    setSVGAttributes(g.root, cs.ROOT_ATTRS);
-    setSVGAttributes(g.facetingBranchingLine, cs.FACETING_BRANCHING_LINE_ATTRS);
+    g[_SnowflakeGraph_constants] = cs;
+    g[_SnowflakeGraph_style].textContent = cs.ROOT_STYLE;
+    setSVGAttributes(g[_SnowflakeGraph_root], cs.ROOT_ATTRS);
+    setSVGAttributes(g[_SnowflakeGraph_facetingBranchingLine], cs.FACETING_BRANCHING_LINE_ATTRS);
     syncToSnowflakeID(g);
 };
 const mouseEventIsInsideElement = (ev, e) => {
@@ -323,72 +335,79 @@ const mouseEventIsInsideElement = (ev, e) => {
         && y >= r.top && y <= r.bottom;
 };
 export const zero = () => {
-    const root = document.createElementNS(SVG_NS, 'svg');
     const constants = makeConstants(0.5, 3, false);
-    root.replaceChildren(); // remove all of root's children.
+    const snowflakeID = [0, 0];
+    const root = document.createElementNS(SVG_NS, 'svg');
     const style = document.createElement('style');
-    style.textContent = constants.ROOT_STYLE;
-    root.appendChild(style);
     const g = createSVGElement('g', { 'class': 'sf-graph' });
+    const handles = [];
+    const handleLine = createHandleLine(constants, g);
     const facetingBranchingLine = createFacetingBranchingLine(constants, g);
-    const result = {
+    const progress = createProgress(constants, g);
+    const handleBeingDragged = none;
+    const hoveredHandle = none;
+    const handleMovedCallback = (snowflakeID) => { return; };
+    const result = [
         constants,
-        snowflakeID: [0, 0],
+        snowflakeID,
         root,
         style,
         g,
-        handles: [],
+        handles,
+        handleLine,
         facetingBranchingLine,
-        handleLine: createHandleLine(constants, g),
-        progress: createProgress(constants, g),
-        handleBeingDragged: none,
-        hoveredHandle: none,
-        handleMovedCallback: (snowflakeID) => { return; },
-    };
+        progress,
+        handleBeingDragged,
+        hoveredHandle,
+        handleMovedCallback,
+    ];
+    root.replaceChildren(); // remove all of root's children.
+    style.textContent = constants.ROOT_STYLE;
+    root.appendChild(style);
     const updateHandlePosition = (h, ev) => {
         const p = { x: ev.clientX, y: ev.clientY };
         const yChoice = closestYChoice(result, p);
-        let oldYChoice = result.snowflakeID[h];
+        let oldYChoice = result[_SnowflakeGraph_snowflakeID][h];
         if (oldYChoice === yChoice) {
             return;
         }
-        result.snowflakeID[h] = yChoice;
+        result[_SnowflakeGraph_snowflakeID][h] = yChoice;
         syncToSnowflakeID(result);
-        result.handleMovedCallback(snowflakeIDString(result.snowflakeID));
+        result[_SnowflakeGraph_handleMovedCallback](snowflakeIDString(result[_SnowflakeGraph_snowflakeID]));
     };
     const handleMouseDown = (ev) => {
         const h = closestGraphHandle(result, ev);
-        result.handleBeingDragged = some(h);
+        result[_SnowflakeGraph_handleBeingDragged] = some(h);
         updateHandlePosition(h, ev);
     };
     const handleMouseUp = (ev) => {
-        result.handleBeingDragged = none;
+        result[_SnowflakeGraph_handleBeingDragged] = none;
     };
     const handleMouseMove = (ev) => {
         const hoverClass = 'sf-graph-handle-outside-hover';
         const removeHoverClass = (handleIdx) => {
-            result.handles[handleIdx].outside.classList.remove(hoverClass);
+            result[_SnowflakeGraph_handles][handleIdx].outside.classList.remove(hoverClass);
         };
         const addHoverClass = (handleIdx) => {
-            result.handles[handleIdx].outside.classList.add(hoverClass);
+            result[_SnowflakeGraph_handles][handleIdx].outside.classList.add(hoverClass);
         };
-        Maybes.map(result.handleBeingDragged, () => {
-            if (mouseEventIsInsideElement(ev, result.g)) {
+        Maybes.map(result[_SnowflakeGraph_handleBeingDragged], () => {
+            if (mouseEventIsInsideElement(ev, result[_SnowflakeGraph_g])) {
                 const handleIdx = closestGraphHandle(result, ev);
-                Maybes.map(result.hoveredHandle, () => {
-                    result.hoveredHandle = some(handleIdx);
+                Maybes.map(result[_SnowflakeGraph_hoveredHandle], () => {
+                    result[_SnowflakeGraph_hoveredHandle] = some(handleIdx);
                 }, h => {
                     if (h !== handleIdx) {
                         removeHoverClass(h);
-                        result.hoveredHandle = some(handleIdx);
+                        result[_SnowflakeGraph_hoveredHandle] = some(handleIdx);
                     }
                 });
                 addHoverClass(handleIdx);
             }
             else {
-                Maybes.mapSome(result.hoveredHandle, h => {
+                Maybes.mapSome(result[_SnowflakeGraph_hoveredHandle], h => {
                     removeHoverClass(h);
-                    result.hoveredHandle = none;
+                    result[_SnowflakeGraph_hoveredHandle] = none;
                 });
             }
         }, h => updateHandlePosition(h, ev));
@@ -396,13 +415,13 @@ export const zero = () => {
     root.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mouseup', handleMouseUp);
     window.addEventListener('mousemove', handleMouseMove);
-    result.root.appendChild(result.g);
-    setSVGAttributes(result.root, constants.ROOT_ATTRS);
-    result.handles = [
+    result[_SnowflakeGraph_root].appendChild(result[_SnowflakeGraph_g]);
+    setSVGAttributes(result[_SnowflakeGraph_root], constants.ROOT_ATTRS);
+    result[_SnowflakeGraph_handles] = [
         addHandle(constants, g, 0, 0, result, 0),
         addHandle(constants, g, 0, 0, result, 1),
     ];
-    fitHandleLineToHandles(result.handleLine, result.handles);
+    fitHandleLineToHandles(result[_SnowflakeGraph_handleLine], result[_SnowflakeGraph_handles]);
     syncToSnowflakeID(result);
     return result;
 };

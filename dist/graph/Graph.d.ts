@@ -1,5 +1,31 @@
 import { NonEmptyArray, SnowflakeID } from "../common/Utils.js";
 import { Maybe } from "maybe-either/Maybe";
+export declare const _SnowflakeGraph_constants = 0;
+export declare const _SnowflakeGraph_snowflakeID = 1;
+export declare const _SnowflakeGraph_root = 2;
+export declare const _SnowflakeGraph_style = 3;
+export declare const _SnowflakeGraph_g = 4;
+export declare const _SnowflakeGraph_handles = 5;
+export declare const _SnowflakeGraph_handleLine = 6;
+export declare const _SnowflakeGraph_facetingBranchingLine = 7;
+export declare const _SnowflakeGraph_progress = 8;
+export declare const _SnowflakeGraph_handleBeingDragged = 9;
+export declare const _SnowflakeGraph_hoveredHandle = 10;
+export declare const _SnowflakeGraph_handleMovedCallback = 11;
+export type SnowflakeGraph = {
+    [_SnowflakeGraph_constants]: Constants;
+    [_SnowflakeGraph_snowflakeID]: NonEmptyArray<number>;
+    [_SnowflakeGraph_root]: SVGSVGElement;
+    [_SnowflakeGraph_style]: HTMLStyleElement;
+    [_SnowflakeGraph_g]: SVGElement;
+    [_SnowflakeGraph_handles]: Array<GraphHandle>;
+    [_SnowflakeGraph_handleLine]: SVGElement;
+    [_SnowflakeGraph_facetingBranchingLine]: SVGElement;
+    [_SnowflakeGraph_progress]: SVGElement;
+    [_SnowflakeGraph_handleBeingDragged]: Maybe<number>;
+    [_SnowflakeGraph_hoveredHandle]: Maybe<number>;
+    [_SnowflakeGraph_handleMovedCallback]: (snowflakeID: SnowflakeID) => void;
+};
 type Attributes = {
     [key: string]: string;
 };
@@ -29,20 +55,6 @@ type GraphHandle = {
     g: SVGElement;
     inside: SVGElement;
     outside: SVGElement;
-};
-export type SnowflakeGraph = {
-    constants: Constants;
-    snowflakeID: NonEmptyArray<number>;
-    root: SVGSVGElement;
-    style: HTMLStyleElement;
-    g: SVGElement;
-    handles: Array<GraphHandle>;
-    handleLine: SVGElement;
-    facetingBranchingLine: SVGElement;
-    progress: SVGElement;
-    handleBeingDragged: Maybe<number>;
-    hoveredHandle: Maybe<number>;
-    handleMovedCallback: (snowflakeID: SnowflakeID) => void;
 };
 export declare const syncToSnowflakeID: (g: SnowflakeGraph) => void;
 export declare const syncToPercentGrown: (g: SnowflakeGraph, percentGrown: number) => void;

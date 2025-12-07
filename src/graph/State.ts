@@ -1,5 +1,5 @@
 import { mapSome, Maybe, none, some } from "maybe-either/Maybe";
-import { SnowflakeGraph, syncToPercentGrown, syncToSnowflakeID } from "./Graph.js";
+import { _SnowflakeGraph_root, _SnowflakeGraph_snowflakeID, SnowflakeGraph, syncToPercentGrown, syncToSnowflakeID } from "./Graph.js";
 import * as SnowflakeGraphs from "./Graph.js";
 import { NonEmptyArray } from "../common/Utils.js";
 import * as Maybes from "maybe-either/Maybe";
@@ -34,10 +34,10 @@ export const initialize = (state: GraphState): Node => {
         () => {
             const g = SnowflakeGraphs.zero();
             state[_graphState_graph] = some(g);
-            return g.root;
+            return g[_SnowflakeGraph_root];
         },
         g => {
-            return g.root;
+            return g[_SnowflakeGraph_root];
         });
 }
 
@@ -48,7 +48,7 @@ export const setPercentGrown = (state: GraphState, percentGrown: number): void =
 
 export const setSnowflakeID = (state: GraphState, snowflakeID: NonEmptyArray<number>): void => {
     mapSome(state[_graphState_graph], g => {
-        g.snowflakeID = snowflakeID;
+        g[_SnowflakeGraph_snowflakeID] = snowflakeID;
         syncToSnowflakeID(g);
     });
 }

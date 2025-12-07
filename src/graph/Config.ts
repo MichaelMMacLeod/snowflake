@@ -5,6 +5,7 @@ import {
 import { arraysEqual, NonEmptyArray, SnowflakeID } from "../common/Utils.js";
 import * as Maybes from "maybe-either/Maybe";
 import { _graphState_graph, GraphState, setAspectRatio, setIsLightTheme, setPercentGrown, setSnowflakeID } from "./State.js";
+import { _SnowflakeGraph_handleMovedCallback } from "./Graph.js";
 
 export type UnparsedConfig = Partial<{
     percentGrown: number,
@@ -78,7 +79,7 @@ export const configSynchronizer: ConfigSynchronizer<GraphState, Config> = {
         return false;
     },
     handleMovedCallback: (_c, s, newValue, oldValue) => {
-        Maybes.mapSome(s[_graphState_graph], g => g.handleMovedCallback = newValue);
+        Maybes.mapSome(s[_graphState_graph], g => g[_SnowflakeGraph_handleMovedCallback] = newValue);
         return false;
     },
 };
