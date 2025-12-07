@@ -22,11 +22,11 @@ export type SnowflakeGraph = {
     [_SnowflakeGraph_snowflakeID]: NonEmptyArray<number>,
     [_SnowflakeGraph_root]: SVGSVGElement,
     [_SnowflakeGraph_style]: HTMLStyleElement,
-    [_SnowflakeGraph_g]: SVGElement,
+    [_SnowflakeGraph_g]: SVGGElement,
     [_SnowflakeGraph_handles]: Array<GraphHandle>,
-    [_SnowflakeGraph_handleLine]: SVGElement,
-    [_SnowflakeGraph_facetingBranchingLine]: SVGElement,
-    [_SnowflakeGraph_progress]: SVGElement,
+    [_SnowflakeGraph_handleLine]: SVGPolylineElement,
+    [_SnowflakeGraph_facetingBranchingLine]: SVGLineElement,
+    [_SnowflakeGraph_progress]: SVGRectElement,
     [_SnowflakeGraph_handleBeingDragged]: Maybe<number>,
     [_SnowflakeGraph_hoveredHandle]: Maybe<number>,
     [_SnowflakeGraph_handleMovedCallback]: (snowflakeID: SnowflakeID) => void,
@@ -228,16 +228,19 @@ const setSVGAttributes = (element: SVGElement, attributes: Attributes): void => 
     }
 }
 
-const createSVGElement = (element: string, attributes: Attributes): SVGElement => {
+const createSVGElement = <K extends keyof SVGElementTagNameMap>(
+    element: K,
+    attributes: Attributes
+): SVGElementTagNameMap[K] => {
     const svg = document.createElementNS(SVG_NS, element);
     setSVGAttributes(svg, attributes);
     return svg;
 }
 
 type GraphHandle = {
-    g: SVGElement,
-    inside: SVGElement,
-    outside: SVGElement,
+    g: SVGGElement,
+    inside: SVGCircleElement,
+    outside: SVGCircleElement,
 };
 
 const handleZero = (cs: Constants): GraphHandle => {
@@ -277,7 +280,7 @@ const moveHandleToNth = (sfg: SnowflakeGraph, h: number, nth: number): void => {
     syncToSnowflakeID(sfg);
 }
 
-const addHandle = (cs: Constants, g: SVGElement, x: number, y: number, sfg: SnowflakeGraph, nthHandle: number): GraphHandle => {
+const addHandle = (cs: Constants, g: SVGGElement, x: number, y: number, sfg: SnowflakeGraph, nthHandle: number): GraphHandle => {
     const result = handleZero(cs);
     result.outside.addEventListener('keydown', e => {
         switch (e.key) {
@@ -305,19 +308,19 @@ const addHandle = (cs: Constants, g: SVGElement, x: number, y: number, sfg: Snow
     return result;
 }
 
-const createFacetingBranchingLine = (cs: Constants, g: SVGElement): SVGElement => {
+const createFacetingBranchingLine = (cs: Constants, g: SVGGElement): SVGLineElement => {
     const result = createSVGElement('line', cs[_Constants_facetingBranchingLineAttrs]);;
     g.appendChild(result);
     return result;
 }
 
-const createHandleLine = (cs: Constants, g: SVGElement): SVGElement => {
+const createHandleLine = (cs: Constants, g: SVGGElement): SVGPolylineElement => {
     const result = createSVGElement('polyline', cs[_Constants_handleLineAttrs]);;
     g.appendChild(result);
     return result;
 }
 
-const fitHandleLineToHandles = (line: SVGElement, handles: Array<GraphHandle>): void => {
+const fitHandleLineToHandles = (line: SVGPolylineElement, handles: Array<GraphHandle>): void => {
     const points = handles.map(h => {
         const x = h.inside.getAttribute('cx');
         const y = h.inside.getAttribute('cy');
@@ -326,13 +329,13 @@ const fitHandleLineToHandles = (line: SVGElement, handles: Array<GraphHandle>): 
     setSVGAttributes(line, { 'points': points });
 }
 
-const createProgress = (cs: Constants, g: SVGElement): SVGElement => {
+const createProgress = (cs: Constants, g: SVGGElement): SVGRectElement => {
     const result = createSVGElement('rect', cs[_Constants_progressAttrs]);
     g.appendChild(result);
     return result;
 }
 
-const fitProgressToGrowth = (cs: Constants, progress: SVGElement, percentGrown: number): void => {
+const fitProgressToGrowth = (cs: Constants, progress: SVGRectElement, percentGrown: number): void => {
     const width = cs[_Constants_graphableViewportWidth] * percentGrown;
     setSVGAttributes(progress, {
         'width': width.toString(),
@@ -372,7 +375,7 @@ export const syncToPercentGrown = (g: SnowflakeGraph, percentGrown: number): voi
     fitProgressToGrowth(g[_SnowflakeGraph_constants], g[_SnowflakeGraph_progress], percentGrown);
 }
 
-const graphHandleCenter = (g: SVGElement): Point => {
+const graphHandleCenter = (g: SVGGElement): Point => {
     const r = (g as SVGGraphicsElement).getBBox();
     return {
         x: r.x + r.width * 0.5,
@@ -380,7 +383,7 @@ const graphHandleCenter = (g: SVGElement): Point => {
     }
 }
 
-const distanceToGraphHandle = (g: SVGElement, p: Point): number => {
+const distanceToGraphHandle = (g: SVGGElement, p: Point): number => {
     return Math.abs(graphHandleCenter(g).x - p.x);
 }
 

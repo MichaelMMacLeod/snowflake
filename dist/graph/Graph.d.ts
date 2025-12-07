@@ -17,11 +17,11 @@ export type SnowflakeGraph = {
     [_SnowflakeGraph_snowflakeID]: NonEmptyArray<number>;
     [_SnowflakeGraph_root]: SVGSVGElement;
     [_SnowflakeGraph_style]: HTMLStyleElement;
-    [_SnowflakeGraph_g]: SVGElement;
+    [_SnowflakeGraph_g]: SVGGElement;
     [_SnowflakeGraph_handles]: Array<GraphHandle>;
-    [_SnowflakeGraph_handleLine]: SVGElement;
-    [_SnowflakeGraph_facetingBranchingLine]: SVGElement;
-    [_SnowflakeGraph_progress]: SVGElement;
+    [_SnowflakeGraph_handleLine]: SVGPolylineElement;
+    [_SnowflakeGraph_facetingBranchingLine]: SVGLineElement;
+    [_SnowflakeGraph_progress]: SVGRectElement;
     [_SnowflakeGraph_handleBeingDragged]: Maybe<number>;
     [_SnowflakeGraph_hoveredHandle]: Maybe<number>;
     [_SnowflakeGraph_handleMovedCallback]: (snowflakeID: SnowflakeID) => void;
@@ -72,9 +72,9 @@ type Constants = {
     [_Constants_progressAttrs]: Attributes;
 };
 type GraphHandle = {
-    g: SVGElement;
-    inside: SVGElement;
-    outside: SVGElement;
+    g: SVGGElement;
+    inside: SVGCircleElement;
+    outside: SVGCircleElement;
 };
 export declare const syncToSnowflakeID: (g: SnowflakeGraph) => void;
 export declare const syncToPercentGrown: (g: SnowflakeGraph, percentGrown: number) => void;
