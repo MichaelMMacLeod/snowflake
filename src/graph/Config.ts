@@ -1,4 +1,4 @@
-import { parseSnowflakeIDString, SnowflakeID } from "../common/SnowflakeID.js";
+import { SnowflakeID } from "../common/SnowflakeID.js";
 import { arraysEqual, doNothing, NonEmptyArray } from "../common/Utils.js";
 import { _GraphState_graph, GraphState } from "./State.js";
 import {
@@ -10,8 +10,7 @@ import {
     syncToSnowflakeID
 } from "./Graph.js";
 import * as SnowflakeConfigs from "../snowflake/SnowflakeConfig.js";
-import { Either, getLeft, mapRight, right } from "maybe-either/Either";
-import { mapSome, Maybe } from "maybe-either/Maybe";
+import { mapSome } from "maybe-either/Maybe";
 import * as GraphStates from "./State.js";
 
 export const _GraphConfig_percentGrown = 0;
@@ -48,8 +47,6 @@ type ResetStatus = ResetRequired | ResetUnecessary;
 const resetRequred = true;
 const resetUnecessary = false;
 
-type ErrorMessage = string;
-
 export const defaultPercentGrown = 0;
 export const defaultSnowflakeID = SnowflakeConfigs.defaultSnowflakeID;
 export const defaultAspectRatio = 3;
@@ -77,7 +74,7 @@ type CfgFunction<K extends keyof GraphConfig> = (
     state: GraphState,
     oldValue: GraphConfig[K],
     newValue: GraphConfig[K]
-) => Either<ErrorMessage, ResetStatus>;
+) => ResetStatus;
 
 export type UnparsedConfig = Partial<{
     percentGrown: number,
@@ -98,41 +95,38 @@ export type Config = {
 const cfgPercentGrown: CfgFunction<_GraphConfig_percentGrown> = (cfg, state, oldValue, newValue) => {
     if (oldValue !== newValue) {
         mapSome(state[_GraphState_graph], g => syncToPercentGrown(g, cfg[_GraphConfig_aspectRatio], newValue));
-        return right(resetUnecessary);
     }
-    return right(resetUnecessary);
+    return resetUnecessary;
 };
 
 const cfgSnowflakeID: CfgFunction<_GraphConfig_snowflakeID> = (cfg, state, oldValue, newValue) => {
     if (arraysEqual(oldValue, newValue, (v1, v2) => v1 === v2)) {
-        return right(resetUnecessary);
+        return resetUnecessary;
     }
     mapSome(state[_GraphState_graph], g => {
         g[_SnowflakeGraph_snowflakeID] = newValue;
         syncToSnowflakeID(g, cfg[_GraphConfig_aspectRatio]);
     });
-    return right(resetUnecessary);
+    return resetUnecessary;
 };
 
 const cfgAspectRatio: CfgFunction<_GraphConfig_aspectRatio> = (_cfg, state, oldValue, newValue) => {
     if (oldValue !== newValue) {
         mapSome(state[_GraphState_graph], g => setAspectRatio(g, newValue));
-        return right(resetUnecessary);
     }
-    return right(resetUnecessary);
+    return resetUnecessary;
 };
 
 const cfgIsLightTheme: CfgFunction<_GraphConfig_isLightTheme> = (_cfg, state, oldValue, newValue) => {
     if (oldValue !== newValue) {
         mapSome(state[_GraphState_graph], g => setIsLightTheme(g, newValue));
-        return right(resetUnecessary);
     }
-    return right(resetUnecessary);
+    return resetUnecessary;
 };
 
 const cfgHandleMovedCallback: CfgFunction<_GraphConfig_handleMovedCallback> = (_cfg, state, _oldValue, newValue) => {
     mapSome(state[_GraphState_graph], g => g[_SnowflakeGraph_handleMovedCallback] = newValue);
-    return right(resetUnecessary);
+    return resetUnecessary;
 };
 
 type CfgFunctions = { [K in keyof GraphConfig]: CfgFunction<K> };
@@ -150,11 +144,9 @@ export const configure = <K extends keyof GraphConfig>(
     state: GraphState,
     key: K,
     value: GraphConfig[K],
-): Maybe<ErrorMessage> => {
-    const c = cfgFunctions[key](oldCfg, state, cfgGetOrDefault(oldCfg, key), value);
-    return getLeft(mapRight(c, resetStatus => {
-        if (resetStatus === resetRequred) {
-            GraphStates.reset(state);
-        }
-    }));
+) => {
+    const resetStatus = cfgFunctions[key](oldCfg, state, cfgGetOrDefault(oldCfg, key), value);
+    if (resetStatus === resetRequred) {
+        GraphStates.reset(state);
+    }
 };

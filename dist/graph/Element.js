@@ -13,7 +13,6 @@ var _SnowflakeGraphElement_shadow, _SnowflakeGraphElement_config, _SnowflakeGrap
 import * as GraphStates from "./State.js";
 import { defaultGraphConfig } from "./Config.js";
 import * as GraphConfigs from "./Config.js";
-import * as Maybes from "maybe-either/Maybe";
 class SnowflakeGraphElement extends HTMLElement {
     constructor() {
         super();
@@ -33,11 +32,8 @@ class SnowflakeGraphElement extends HTMLElement {
     }
     configure(key, value) {
         const cfg = __classPrivateFieldGet(this, _SnowflakeGraphElement_config, "f");
-        Maybes.map(GraphConfigs.configure(cfg, __classPrivateFieldGet(this, _SnowflakeGraphElement_state, "f"), key, value), () => {
-            cfg[key] = value;
-        }, error => {
-            console.error(error);
-        });
+        GraphConfigs.configure(cfg, __classPrivateFieldGet(this, _SnowflakeGraphElement_state, "f"), key, value);
+        cfg[key] = value;
     }
     configuredValue(key) {
         return __classPrivateFieldGet(this, _SnowflakeGraphElement_config, "f")[key];

@@ -1,7 +1,6 @@
 import { SnowflakeID } from "../common/SnowflakeID.js";
 import { NonEmptyArray } from "../common/Utils.js";
 import { GraphState } from "./State.js";
-import { Maybe } from "maybe-either/Maybe";
 export declare const _GraphConfig_percentGrown = 0;
 export declare const _GraphConfig_snowflakeID = 1;
 export declare const _GraphConfig_aspectRatio = 2;
@@ -20,7 +19,6 @@ export type GraphConfig = {
     [_GraphConfig_handleMovedCallback]: (snowflakeID: SnowflakeID) => void;
 };
 export declare const cfgKeys: Array<keyof GraphConfig>;
-type ErrorMessage = string;
 export declare const defaultPercentGrown = 0;
 export declare const defaultSnowflakeID: SnowflakeID;
 export declare const defaultAspectRatio = 3;
@@ -41,5 +39,5 @@ export type Config = {
     isLightTheme: boolean;
     handleMovedCallback: (snowflakeID: SnowflakeID) => void;
 };
-export declare const configure: <K extends keyof GraphConfig>(oldCfg: GraphConfig, state: GraphState, key: K, value: GraphConfig[K]) => Maybe<ErrorMessage>;
+export declare const configure: <K extends keyof GraphConfig>(oldCfg: GraphConfig, state: GraphState, key: K, value: GraphConfig[K]) => void;
 export {};

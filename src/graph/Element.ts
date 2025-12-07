@@ -27,15 +27,8 @@ export default class SnowflakeGraphElement extends HTMLElement {
 
     configure<K extends keyof GraphConfig>(key: K, value: GraphConfig[K]) {
         const cfg = this.#config;
-        Maybes.map(
-            GraphConfigs.configure(cfg, this.#state, key, value),
-            () => {
-                cfg[key] = value;
-            },
-            error => {
-                console.error(error);
-            },
-        );
+        GraphConfigs.configure(cfg, this.#state, key, value);
+        cfg[key] = value;
     }
 
     configuredValue<K extends keyof GraphConfig>(key: K): GraphConfig[K] {
