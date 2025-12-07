@@ -246,7 +246,7 @@ export const update = (state: State): void => {
             Snowflakes.forEachGrowingBranch(snowflake, (b, _) => Branches.enlarge(b, growth.scale));
         } else {
             Snowflakes.killCoveredFaces(snowflake);
-            Snowflakes.forEachGrowingFace(snowflake, (f, _) => Faces.enlarge(f, growth.scale));
+            Snowflakes.forEachGrowingFace(snowflake, (f, fi) => Faces.enlarge(f, fi, growth.scale));
         }
 
         mapSome(state[_graphic], g => {

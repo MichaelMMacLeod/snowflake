@@ -183,7 +183,7 @@ export const update = (state) => {
         }
         else {
             Snowflakes.killCoveredFaces(snowflake);
-            Snowflakes.forEachGrowingFace(snowflake, (f, _) => Faces.enlarge(f, growth.scale));
+            Snowflakes.forEachGrowingFace(snowflake, (f, fi) => Faces.enlarge(f, fi, growth.scale));
         }
         mapSome(state[_graphic], g => {
             const foregroundColor = currentThemeForegroundRGBAString(state);

@@ -9,7 +9,6 @@ import { faceSizeGrowthScalar } from "../common/Constants.js";
 export type Face = {
     center: Point,
     size: number,
-    isFirstFace: boolean,
     direction: Direction,
     growthScale: number,
     growing: boolean,
@@ -21,7 +20,6 @@ export const zero = (): Face => {
     return {
         center: Points.zero(),
         size: SIZE_ZERO,
-        isFirstFace: true,
         direction: 0,
         growthScale: 1,
         growing: true,
@@ -31,7 +29,6 @@ export const zero = (): Face => {
 export const zeroM = (face: Face): void => {
     Points.zeroM(face.center);
     face.size = SIZE_ZERO;
-    face.isFirstFace = true;
     face.direction = 0;
     face.growthScale = 1;
     face.growing = true;
@@ -65,7 +62,7 @@ export const setPointNManually = (result: Point, direction: Direction, center: P
     result.y = center.y + size * Directions.sines[d];
 }
 
-export const draw = (g: Graphic, face: Face): boolean => {
+export const draw = (g: Graphic, face: Face, faceIndex: number): boolean => {
     const d = face.direction;
     const p0x = viewspaceX(g, pointNX(face, (d + 0) % 6));
     const p0y = viewspaceY(g, pointNY(face, (d + 0) % 6));
@@ -95,7 +92,7 @@ export const draw = (g: Graphic, face: Face): boolean => {
         return true;
     }
     const ctx = g[_graphic_ctx];
-    if (face.isFirstFace) {
+    if (faceIndex === 0) {
         const cx = viewspaceX(g, face.center.x);
         const cy = viewspaceY(g, face.center.y);
         ctx.moveTo(p0x, p0y);
@@ -146,9 +143,9 @@ export const draw = (g: Graphic, face: Face): boolean => {
     return false;
 }
 
-export const enlarge = (face: Face, scale: number): void => {
+export const enlarge = (face: Face, faceIndex: number, scale: number): void => {
     face.size += scale * faceSizeGrowthScalar * face.growthScale;
-    if (!face.isFirstFace) {
+    if (faceIndex !== 0) {
         const dx = scale * faceSizeGrowthScalar * Math.cos(Directions.values[face.direction]) * face.growthScale;
         const dy = scale * faceSizeGrowthScalar * Math.sin(Directions.values[face.direction]) * face.growthScale;
         face.center.x += dx;

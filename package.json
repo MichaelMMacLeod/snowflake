@@ -29,7 +29,8 @@
   "scripts": {
     "test": "vitest",
     "build": "tsc --project tsconfig.build.json",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "watch": "npm run build -- --watch"
   },
   "author": "",
   "license": "MIT",

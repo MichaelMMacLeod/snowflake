@@ -4,7 +4,6 @@ import { Graphic } from "./Graphic.js";
 export type Face = {
     center: Point;
     size: number;
-    isFirstFace: boolean;
     direction: Direction;
     growthScale: number;
     growing: boolean;
@@ -17,5 +16,5 @@ export declare const pointNX: (face: Face, absoluteDirection: number) => number;
 export declare const pointNY: (face: Face, absoluteDirection: number) => number;
 export declare const setPointN: (result: Point, face: Face, i: number) => void;
 export declare const setPointNManually: (result: Point, direction: Direction, center: Point, size: number, i: number) => void;
-export declare const draw: (g: Graphic, face: Face) => boolean;
-export declare const enlarge: (face: Face, scale: number) => void;
+export declare const draw: (g: Graphic, face: Face, faceIndex: number) => boolean;
+export declare const enlarge: (face: Face, faceIndex: number, scale: number) => void;

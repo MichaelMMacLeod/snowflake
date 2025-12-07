@@ -9,7 +9,6 @@ export const zero = () => {
     return {
         center: Points.zero(),
         size: SIZE_ZERO,
-        isFirstFace: true,
         direction: 0,
         growthScale: 1,
         growing: true,
@@ -18,7 +17,6 @@ export const zero = () => {
 export const zeroM = (face) => {
     Points.zeroM(face.center);
     face.size = SIZE_ZERO;
-    face.isFirstFace = true;
     face.direction = 0;
     face.growthScale = 1;
     face.growing = true;
@@ -45,7 +43,7 @@ export const setPointNManually = (result, direction, center, size, i) => {
     result.x = center.x + size * Directions.cosines[d];
     result.y = center.y + size * Directions.sines[d];
 };
-export const draw = (g, face) => {
+export const draw = (g, face, faceIndex) => {
     const d = face.direction;
     const p0x = viewspaceX(g, pointNX(face, (d + 0) % 6));
     const p0y = viewspaceY(g, pointNY(face, (d + 0) % 6));
@@ -74,7 +72,7 @@ export const draw = (g, face) => {
         return true;
     }
     const ctx = g[_graphic_ctx];
-    if (face.isFirstFace) {
+    if (faceIndex === 0) {
         const cx = viewspaceX(g, face.center.x);
         const cy = viewspaceY(g, face.center.y);
         ctx.moveTo(p0x, p0y);
@@ -124,9 +122,9 @@ export const draw = (g, face) => {
     }
     return false;
 };
-export const enlarge = (face, scale) => {
+export const enlarge = (face, faceIndex, scale) => {
     face.size += scale * faceSizeGrowthScalar * face.growthScale;
-    if (!face.isFirstFace) {
+    if (faceIndex !== 0) {
         const dx = scale * faceSizeGrowthScalar * Math.cos(Directions.values[face.direction]) * face.growthScale;
         const dy = scale * faceSizeGrowthScalar * Math.sin(Directions.values[face.direction]) * face.growthScale;
         face.center.x += dx;

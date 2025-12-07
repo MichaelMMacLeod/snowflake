@@ -15,7 +15,7 @@ import * as Sides from "./Side.js";
 //
 // Determining if two horizontal line segments overlap each other is simple,
 // and is what 'killPartIfCoveredInOneDirection' (specifically, Sides.overlaps())
-// does. This const takes a part and its horizontal side and does a linear 
+// does. This function takes a part and its horizontal side and does a linear 
 // search through the horizontal sides of every other part, using Sides.overlaps()
 // to check if the sides of the given part are below any other sides. It kills
 // the part if its side is below any other side.
@@ -99,7 +99,6 @@ export const addFaceM = (snowflake, centerX, centerY, size, isFirstFace, directi
         f.center.x = centerX;
         f.center.y = centerY;
         f.size = size;
-        f.isFirstFace = isFirstFace;
         f.direction = direction;
         f.growthScale = growthScale;
         f.growing = growing;
@@ -158,7 +157,7 @@ export const draw = (g, snowflake, foregroundColor) => {
     let anyPartOutside = false;
     g[_graphic_ctx].strokeStyle = foregroundColor;
     g[_graphic_ctx].beginPath();
-    forEachGrowingFace(snowflake, (f, _) => anyPartOutside || (anyPartOutside = Faces.draw(g, f)));
+    forEachGrowingFace(snowflake, (f, fi) => anyPartOutside || (anyPartOutside = Faces.draw(g, f, fi)));
     forEachGrowingBranch(snowflake, (b, _) => anyPartOutside || (anyPartOutside = Branches.draw(g, b)));
     g[_graphic_ctx].stroke();
     return anyPartOutside;
@@ -208,7 +207,7 @@ export const zeroM = (s) => {
     s[_numInitialGrownBranches] = 0;
 };
 const branchSplittingGrowthScales = [0.5, 0.9, 0.5];
-const addBranchesToFace = (snowflake, face) => {
+const addBranchesToFace = (snowflake, face, faceIndex) => {
     const initialFraction = 0.01;
     const sizeOfNewBranches = face.size * initialFraction;
     // This is the offset from the edge of the face that we add to the start of the branch
@@ -218,7 +217,7 @@ const addBranchesToFace = (snowflake, face) => {
     const distFromCenter = safetyOffset + 1 * face.size * (1 - initialFraction);
     const cx = face.center.x;
     const cy = face.center.y;
-    if (face.isFirstFace) {
+    if (faceIndex === 0) {
         const growthScale = branchSplittingGrowthScales[1];
         for (let i = 0; i < 6; ++i) {
             addBranchM(snowflake, cx + distFromCenter * Directions.cosines[i], cy + distFromCenter * Directions.sines[i], sizeOfNewBranches, 0, i, growthScale, true);
@@ -233,8 +232,8 @@ const addBranchesToFace = (snowflake, face) => {
     }
 };
 export const addBranchesToGrowingFaces = (snowflake) => {
-    forEachGrowingFace(snowflake, (face, _) => {
-        addBranchesToFace(snowflake, face);
+    forEachGrowingFace(snowflake, (face, fi) => {
+        addBranchesToFace(snowflake, face, fi);
         face.growing = false;
     });
 };

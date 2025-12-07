@@ -133,7 +133,6 @@ export const addFaceM = (
     f.center.x = centerX;
     f.center.y = centerY;
     f.size = size;
-    f.isFirstFace = isFirstFace;
     f.direction = direction;
     f.growthScale = growthScale;
     f.growing = growing;
@@ -208,7 +207,7 @@ export const draw = (g: Graphic, snowflake: Snowflake, foregroundColor: string):
   let anyPartOutside = false;
   g[_graphic_ctx].strokeStyle = foregroundColor;
   g[_graphic_ctx].beginPath();
-  forEachGrowingFace(snowflake, (f, _) => anyPartOutside ||= Faces.draw(g, f));
+  forEachGrowingFace(snowflake, (f, fi) => anyPartOutside ||= Faces.draw(g, f, fi));
   forEachGrowingBranch(snowflake, (b, _) => anyPartOutside ||= Branches.draw(g, b));
   g[_graphic_ctx].stroke();
   return anyPartOutside;
@@ -264,7 +263,7 @@ export const zeroM = (s: Snowflake): void => {
 
 const branchSplittingGrowthScales = [0.5, 0.9, 0.5];
 
-const addBranchesToFace = (snowflake: Snowflake, face: Face): void => {
+const addBranchesToFace = (snowflake: Snowflake, face: Face, faceIndex: number): void => {
   const initialFraction = 0.01;
   const sizeOfNewBranches = face.size * initialFraction;
 
@@ -277,7 +276,7 @@ const addBranchesToFace = (snowflake: Snowflake, face: Face): void => {
   const cx = face.center.x;
   const cy = face.center.y;
 
-  if (face.isFirstFace) {
+  if (faceIndex === 0) {
     const growthScale = branchSplittingGrowthScales[1];
     for (let i = 0; i < 6; ++i) {
       addBranchM(
@@ -310,8 +309,8 @@ const addBranchesToFace = (snowflake: Snowflake, face: Face): void => {
 }
 
 export const addBranchesToGrowingFaces = (snowflake: Snowflake): void => {
-  forEachGrowingFace(snowflake, (face, _) => {
-    addBranchesToFace(snowflake, face);
+  forEachGrowingFace(snowflake, (face, fi) => {
+    addBranchesToFace(snowflake, face, fi);
     face.growing = false;
   })
 }
