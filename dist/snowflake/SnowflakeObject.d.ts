@@ -39,13 +39,9 @@ export declare const zeroM: (s: Snowflake) => void;
 export declare const addBranchesToGrowingFaces: (snowflake: Snowflake) => void;
 export declare const addFacesToGrowingBranches: (snowflake: Snowflake) => void;
 export declare const cacheNormalizedSides: (snowflake: Snowflake) => void;
-type Killable = {
-    direction: Direction;
-    growing: boolean;
-};
-export declare function killPartIfCoveredInOneDirection(part: Killable, partIndex: number, sideLeftCache: SideCacheArray, sideRightCache: SideCacheArray, sideHeightCache: SideCacheArray, otherLeftSideCache: SideCacheArray, otherRightSideCache: SideCacheArray, otherHeightSideCache: SideCacheArray, numOtherSides: number, otherCacheContainsPart: boolean): void;
-export declare function killPartIfCoveredInOneOfTwoDirections(caches: SideCache, numFaces: number, numBranches: number, left: Direction, right: Direction, part: Killable, partIndex: number, partIsFace: boolean): void;
-export declare function killPartIfCovered(part: Killable, partIndex: number, caches: SideCache, numFaces: number, numBranches: number, partIsFace: boolean): void;
+export declare function killPartIfCoveredInOneDirection(killPart: () => void, partIndex: number, sideLeftCache: SideCacheArray, sideRightCache: SideCacheArray, sideHeightCache: SideCacheArray, otherLeftSideCache: SideCacheArray, otherRightSideCache: SideCacheArray, otherHeightSideCache: SideCacheArray, numOtherSides: number, otherCacheContainsPart: boolean): void;
+export declare function killPartIfCoveredInOneOfTwoDirections(caches: SideCache, numFaces: number, numBranches: number, left: Direction, right: Direction, killPart: () => void, partIsDead: () => boolean, partIndex: number, partIsFace: boolean): void;
+export declare function killPartIfCovered(partDirection: Direction, killPart: () => void, partIsDead: () => boolean, partIndex: number, caches: SideCache, numFaces: number, numBranches: number, partIsFace: boolean): void;
 export declare const killCoveredFaces: (snowflake: Snowflake) => void;
 export declare const killCoveredBranches: (snowflake: Snowflake) => void;
 export {};

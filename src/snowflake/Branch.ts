@@ -101,8 +101,6 @@ export const draw = (g: Graphic, branch: Branch): boolean => {
 }
 
 export const enlarge = (branch: Branch, scale: number): void => {
-    // const lengthScalar = -1.5 * scale + 1.5;
-    // const sizeScalar = 1.5 * scale;
     branch.size += branchSizeGrowthScalar * branch.growthScale;
     branch.length += branchLengthGrowthScalar * branch.growthScale;
 }

@@ -81,8 +81,6 @@ export const draw = (g, branch) => {
     return false;
 };
 export const enlarge = (branch, scale) => {
-    // const lengthScalar = -1.5 * scale + 1.5;
-    // const sizeScalar = 1.5 * scale;
     branch.size += branchSizeGrowthScalar * branch.growthScale;
     branch.length += branchLengthGrowthScalar * branch.growthScale;
 };

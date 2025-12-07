@@ -6,32 +6,42 @@ import { _graphic_ctx, Graphic } from "./Graphic.js";
 import { outsideVisibleArea, viewspaceX, viewspaceY } from "./CoordinateSystem.js";
 import { faceSizeGrowthScalar } from "../common/Constants.js";
 
+export const _face_center = 0;
+export const _face_size = 1;
+export const _face_direction = 2;
+export const _face_growthScale = 3;
+export const _face_growing = 4;
 export type Face = {
-    center: Point,
-    size: number,
-    direction: Direction,
-    growthScale: number,
-    growing: boolean,
+    [_face_center]: Point,
+    [_face_size]: number,
+    [_face_direction]: Direction,
+    [_face_growthScale]: number,
+    [_face_growing]: boolean,
 };
 
 const SIZE_ZERO = 0.0025;
 
 export const zero = (): Face => {
-    return {
-        center: Points.zero(),
-        size: SIZE_ZERO,
-        direction: 0,
-        growthScale: 1,
-        growing: true,
-    }
+    const center = Points.zero();
+    const size = SIZE_ZERO;
+    const direction = 0;
+    const growthScale = 1;
+    const growing = true;
+    return [
+        center,
+        size,
+        direction,
+        growthScale,
+        growing,
+    ];
 };
 
-export const zeroM = (face: Face): void => {
-    Points.zeroM(face.center);
-    face.size = SIZE_ZERO;
-    face.direction = 0;
-    face.growthScale = 1;
-    face.growing = true;
+export const zeroM = (f: Face): void => {
+    Points.zeroM(f[_face_center]);
+    f[_face_size] = SIZE_ZERO;
+    f[_face_direction] = 0;
+    f[_face_growthScale] = 1;
+    f[_face_growing] = true;
 }
 
 export const manualPointNX = (centerX: number, size: number, absoluteDirection: number): number => {
@@ -42,40 +52,28 @@ export const manualPointNY = (centerY: number, size: number, absoluteDirection: 
     return centerY + size * Directions.sines[absoluteDirection];
 }
 
-export const pointNX = (face: Face, absoluteDirection: number): number => {
-    return manualPointNX(face.center.x, face.size, absoluteDirection);
+export const pointNX = (f: Face, absoluteDirection: number): number => {
+    return manualPointNX(f[_face_center].x, f[_face_size], absoluteDirection);
 }
 
-export const pointNY = (face: Face, absoluteDirection: number): number => {
-    return manualPointNY(face.center.y, face.size, absoluteDirection);
+export const pointNY = (f: Face, absoluteDirection: number): number => {
+    return manualPointNY(f[_face_center].y, f[_face_size], absoluteDirection);
 }
 
-export const setPointN = (result: Point, face: Face, i: number) => {
-    const d = (face.direction + i) % Directions.values.length;
-    result.x = face.center.x + face.size * Directions.cosines[d];
-    result.y = face.center.y + face.size * Directions.sines[d];
-}
-
-export const setPointNManually = (result: Point, direction: Direction, center: Point, size: number, i: number) => {
-    const d = (direction + i) % Directions.values.length;
-    result.x = center.x + size * Directions.cosines[d];
-    result.y = center.y + size * Directions.sines[d];
-}
-
-export const draw = (g: Graphic, face: Face, faceIndex: number): boolean => {
-    const d = face.direction;
-    const p0x = viewspaceX(g, pointNX(face, (d + 0) % 6));
-    const p0y = viewspaceY(g, pointNY(face, (d + 0) % 6));
-    const p1x = viewspaceX(g, pointNX(face, (d + 1) % 6));
-    const p1y = viewspaceY(g, pointNY(face, (d + 1) % 6));
-    const p2x = viewspaceX(g, pointNX(face, (d + 2) % 6));
-    const p2y = viewspaceY(g, pointNY(face, (d + 2) % 6));
-    const p3x = viewspaceX(g, pointNX(face, (d + 3) % 6));
-    const p3y = viewspaceY(g, pointNY(face, (d + 3) % 6));
-    const p4x = viewspaceX(g, pointNX(face, (d + 4) % 6));
-    const p4y = viewspaceY(g, pointNY(face, (d + 4) % 6));
-    const p5x = viewspaceX(g, pointNX(face, (d + 5) % 6));
-    const p5y = viewspaceY(g, pointNY(face, (d + 5) % 6));
+export const draw = (g: Graphic, f: Face, faceIndex: number): boolean => {
+    const d = f[_face_direction];
+    const p0x = viewspaceX(g, pointNX(f, (d + 0) % 6));
+    const p0y = viewspaceY(g, pointNY(f, (d + 0) % 6));
+    const p1x = viewspaceX(g, pointNX(f, (d + 1) % 6));
+    const p1y = viewspaceY(g, pointNY(f, (d + 1) % 6));
+    const p2x = viewspaceX(g, pointNX(f, (d + 2) % 6));
+    const p2y = viewspaceY(g, pointNY(f, (d + 2) % 6));
+    const p3x = viewspaceX(g, pointNX(f, (d + 3) % 6));
+    const p3y = viewspaceY(g, pointNY(f, (d + 3) % 6));
+    const p4x = viewspaceX(g, pointNX(f, (d + 4) % 6));
+    const p4y = viewspaceY(g, pointNY(f, (d + 4) % 6));
+    const p5x = viewspaceX(g, pointNX(f, (d + 5) % 6));
+    const p5y = viewspaceY(g, pointNY(f, (d + 5) % 6));
     if (outsideVisibleArea(g, p0x)
         || outsideVisibleArea(g, p1x)
         || outsideVisibleArea(g, p2x)
@@ -91,10 +89,11 @@ export const draw = (g: Graphic, face: Face, faceIndex: number): boolean => {
     ) {
         return true;
     }
+    const center = f[_face_center];
     const ctx = g[_graphic_ctx];
     if (faceIndex === 0) {
-        const cx = viewspaceX(g, face.center.x);
-        const cy = viewspaceY(g, face.center.y);
+        const cx = viewspaceX(g, center.x);
+        const cy = viewspaceY(g, center.y);
         ctx.moveTo(p0x, p0y);
         ctx.lineTo(p1x, p1y);
         ctx.lineTo(p2x, p2y);
@@ -144,11 +143,12 @@ export const draw = (g: Graphic, face: Face, faceIndex: number): boolean => {
 }
 
 export const enlarge = (face: Face, faceIndex: number, scale: number): void => {
-    face.size += scale * faceSizeGrowthScalar * face.growthScale;
+    face[_face_size] += scale * faceSizeGrowthScalar * face[_face_growthScale];
     if (faceIndex !== 0) {
-        const dx = scale * faceSizeGrowthScalar * Math.cos(Directions.values[face.direction]) * face.growthScale;
-        const dy = scale * faceSizeGrowthScalar * Math.sin(Directions.values[face.direction]) * face.growthScale;
-        face.center.x += dx;
-        face.center.y += dy;
+        const dx = scale * faceSizeGrowthScalar * Math.cos(Directions.values[face[_face_direction]]) * face[_face_growthScale];
+        const dy = scale * faceSizeGrowthScalar * Math.sin(Directions.values[face[_face_direction]]) * face[_face_growthScale];
+        const center = face[_face_center];
+        center.x += dx;
+        center.y += dy;
     }
 }

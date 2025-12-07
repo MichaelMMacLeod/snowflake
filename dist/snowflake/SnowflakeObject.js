@@ -1,3 +1,4 @@
+import { _face_center, _face_direction, _face_growing, _face_growthScale, _face_size } from "./Face.js";
 import * as Faces from "./Face.js";
 import * as Branches from "./Branch.js";
 import { _graphic_ctx } from "./Graphic.js";
@@ -96,12 +97,13 @@ const _numInitialGrownBranches = 6;
 export const addFaceM = (snowflake, centerX, centerY, size, isFirstFace, direction, growthScale, growing) => {
     if (snowflake[_numFaces] < MAX_FACES) {
         const f = snowflake[_faces][snowflake[_numFaces]];
-        f.center.x = centerX;
-        f.center.y = centerY;
-        f.size = size;
-        f.direction = direction;
-        f.growthScale = growthScale;
-        f.growing = growing;
+        const center = f[_face_center];
+        center.x = centerX;
+        center.y = centerY;
+        f[_face_size] = size;
+        f[_face_direction] = direction;
+        f[_face_growthScale] = growthScale;
+        f[_face_growing] = growing;
         snowflake[_numFaces] += 1;
         return false;
     }
@@ -136,7 +138,7 @@ const oneZeroArray = [1, 0];
 export const forEachGrowingFace = (snowflake, f) => {
     for (let i = snowflake[_numInitialGrownFaces]; i < snowflake[_numFaces]; ++i) {
         const face = snowflake[_faces][i];
-        if (!face.growing) {
+        if (!face[_face_growing]) {
             snowflake[_numInitialGrownFaces] += oneZeroArray[Math.min(1, i - snowflake[_numInitialGrownFaces])];
             continue;
         }
@@ -209,14 +211,16 @@ export const zeroM = (s) => {
 const branchSplittingGrowthScales = [0.5, 0.9, 0.5];
 const addBranchesToFace = (snowflake, face, faceIndex) => {
     const initialFraction = 0.01;
-    const sizeOfNewBranches = face.size * initialFraction;
+    const size = face[_face_size];
+    const center = face[_face_center];
+    const sizeOfNewBranches = size * initialFraction;
     // This is the offset from the edge of the face that we add to the start of the branch
     // so that it does not overlap the face itself when it is first created. Without this,
     // overlap detection immediatelly kills freshly created branches.
     const safetyOffset = 0.001;
-    const distFromCenter = safetyOffset + 1 * face.size * (1 - initialFraction);
-    const cx = face.center.x;
-    const cy = face.center.y;
+    const distFromCenter = safetyOffset + 1 * size * (1 - initialFraction);
+    const cx = center.x;
+    const cy = center.y;
     if (faceIndex === 0) {
         const growthScale = branchSplittingGrowthScales[1];
         for (let i = 0; i < 6; ++i) {
@@ -225,8 +229,8 @@ const addBranchesToFace = (snowflake, face, faceIndex) => {
     }
     else {
         for (let k = -1; k < 2; ++k) {
-            const growthScale = face.growthScale * branchSplittingGrowthScales[k + 1];
-            const i = rem(face.direction + k, 6);
+            const growthScale = face[_face_growthScale] * branchSplittingGrowthScales[k + 1];
+            const i = rem(face[_face_direction] + k, 6);
             addBranchM(snowflake, cx + distFromCenter * Directions.cosines[i], cy + distFromCenter * Directions.sines[i], sizeOfNewBranches, 0, i, growthScale, true);
         }
     }
@@ -234,7 +238,7 @@ const addBranchesToFace = (snowflake, face, faceIndex) => {
 export const addBranchesToGrowingFaces = (snowflake) => {
     forEachGrowingFace(snowflake, (face, fi) => {
         addBranchesToFace(snowflake, face, fi);
-        face.growing = false;
+        face[_face_growing] = false;
     });
 };
 const addFaceToBranch = (snowflake, branch) => {
@@ -254,7 +258,7 @@ export const cacheNormalizedSides = (snowflake) => {
         Sides.normalizeBranchRelativeSide2DsM(snowflake[_sideCaches][BRANCH_LEFT_CACHE], snowflake[_sideCaches][BRANCH_RIGHT_CACHE], snowflake[_sideCaches][BRANCH_HEIGHT_CACHE], bi, b);
     });
 };
-export function killPartIfCoveredInOneDirection(part, partIndex, sideLeftCache, sideRightCache, sideHeightCache, otherLeftSideCache, otherRightSideCache, otherHeightSideCache, numOtherSides, otherCacheContainsPart) {
+export function killPartIfCoveredInOneDirection(killPart, partIndex, sideLeftCache, sideRightCache, sideHeightCache, otherLeftSideCache, otherRightSideCache, otherHeightSideCache, numOtherSides, otherCacheContainsPart) {
     const sl = sideLeftCache[partIndex];
     const sr = sideRightCache[partIndex];
     for (let oi = 0; oi < numOtherSides; ++oi) {
@@ -265,12 +269,12 @@ export function killPartIfCoveredInOneDirection(part, partIndex, sideLeftCache, 
         if (overlaps
             && !(otherCacheContainsPart && oi === partIndex)
             && otherHeightSideCache[oi] - sideHeightCache[partIndex] > 0) {
-            part.growing = false;
+            killPart();
             break;
         }
     }
 }
-export function killPartIfCoveredInOneOfTwoDirections(caches, numFaces, numBranches, left, right, part, partIndex, partIsFace) {
+export function killPartIfCoveredInOneOfTwoDirections(caches, numFaces, numBranches, left, right, killPart, partIsDead, partIndex, partIsFace) {
     const partCache = partIsFace ? 0 : 3;
     const plc = caches[partCache];
     const prc = caches[partCache + 1];
@@ -289,27 +293,35 @@ export function killPartIfCoveredInOneOfTwoDirections(caches, numFaces, numBranc
             const olcd = olc[d];
             const orcd = orc[d];
             const ohcd = ohc[d];
-            killPartIfCoveredInOneDirection(part, partIndex, plcd, prcd, phcd, olcd, orcd, ohcd, numOtherSides, otherCacheContainsPart);
-            if (!part.growing) {
+            killPartIfCoveredInOneDirection(killPart, partIndex, plcd, prcd, phcd, olcd, orcd, ohcd, numOtherSides, otherCacheContainsPart);
+            if (partIsDead()) {
                 return;
             }
         }
     }
 }
-export function killPartIfCovered(part, partIndex, caches, numFaces, numBranches, partIsFace) {
-    const d = part.direction;
+export function killPartIfCovered(partDirection, killPart, partIsDead, partIndex, caches, numFaces, numBranches, partIsFace) {
+    const d = partDirection;
     const leftDirection = d;
     const rightDirection = rem(d - 1, Directions.values.length);
-    killPartIfCoveredInOneOfTwoDirections(caches, numFaces, numBranches, leftDirection, rightDirection, part, partIndex, partIsFace);
+    killPartIfCoveredInOneOfTwoDirections(caches, numFaces, numBranches, leftDirection, rightDirection, killPart, partIsDead, partIndex, partIsFace);
 }
+let closure_var_face = Faces.zero();
+const closure_fn_killFace = () => {
+    closure_var_face[_face_growing] = false;
+};
+const closure_fn_faceIsDead = () => {
+    return !closure_var_face[_face_growing];
+};
 export const killCoveredFaces = (snowflake) => {
     forEachGrowingFace(snowflake, (f, fi) => {
-        killPartIfCovered(f, fi, snowflake[_sideCaches], snowflake[_numFaces], snowflake[_numBranches], true);
+        closure_var_face = f;
+        killPartIfCovered(f[_face_direction], closure_fn_killFace, closure_fn_faceIsDead, fi, snowflake[_sideCaches], snowflake[_numFaces], snowflake[_numBranches], true);
     });
 };
 export const killCoveredBranches = (snowflake) => {
     forEachGrowingBranch(snowflake, (b, bi) => {
-        killPartIfCovered(b, bi, snowflake[_sideCaches], snowflake[_numFaces], snowflake[_numBranches], false);
+        killPartIfCovered(b.direction, () => b.growing = false, () => !b.growing, bi, snowflake[_sideCaches], snowflake[_numFaces], snowflake[_numBranches], false);
     });
 };
 //# sourceMappingURL=SnowflakeObject.js.map
