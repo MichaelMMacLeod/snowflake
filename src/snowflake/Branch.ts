@@ -1,5 +1,4 @@
-import * as Points from "../common/Point.js";
-import { midpointTN, Point } from "../common/Point.js";
+import { midpointTN } from "../common/Point.js";
 import { Direction } from "./Direction.js";
 import * as Directions from "./Direction.js";
 import { _graphic_ctx, Graphic } from "./Graphic.js";
@@ -8,14 +7,16 @@ import * as Faces from "./Face.js";
 import { branchLengthGrowthScalar, branchSizeGrowthScalar } from "../common/Constants.js";
 import { rem } from "../common/Utils.js";
 
-export const _branch_start = 0;
-export const _branch_size = 1;
-export const _branch_length = 2;
-export const _branch_direction = 3;
-export const _branch_growthScale = 4;
-export const _branch_growing = 5;
+export const _branch_startX = 0;
+export const _branch_startY = 1;
+export const _branch_size = 2;
+export const _branch_length = 3;
+export const _branch_direction = 4;
+export const _branch_growthScale = 5;
+export const _branch_growing = 6;
 export type Branch = {
-    [_branch_start]: Point,
+    [_branch_startX]: number,
+    [_branch_startY]: number,
     [_branch_size]: number,
     [_branch_length]: number,
     [_branch_direction]: Direction,
@@ -24,14 +25,16 @@ export type Branch = {
 }
 
 export const zero = (): Branch => {
-    const start = Points.zero();
+    const startX = 0;
+    const startY = 0;
     const size = 0;
     const length = 0;
     const direction = 0;
     const growthScale = 0;
     const growing = false;
     return [
-        start,
+        startX,
+        startY,
         size,
         length,
         direction,
@@ -41,11 +44,11 @@ export const zero = (): Branch => {
 }
 
 export const endCenterX = (branch: Branch): number => {
-    return branch[_branch_start].x + branch[_branch_length] * Directions.cosines[branch[_branch_direction]];
+    return branch[_branch_startX] + branch[_branch_length] * Directions.cosines[branch[_branch_direction]];
 }
 
 export const endCenterY = (branch: Branch): number => {
-    return branch[_branch_start].y + branch[_branch_length] * Directions.sines[branch[_branch_direction]];
+    return branch[_branch_startY] + branch[_branch_length] * Directions.sines[branch[_branch_direction]];
 }
 
 export const pointNX = (branch: Branch, absoluteDirection: number): number => {
@@ -53,7 +56,7 @@ export const pointNX = (branch: Branch, absoluteDirection: number): number => {
     if (d === 5 || d === 0 || d === 1) {
         return Faces.manualPointNX(endCenterX(branch), branch[_branch_size], absoluteDirection);
     }
-    return Faces.manualPointNX(branch[_branch_start].x, branch[_branch_size], absoluteDirection);
+    return Faces.manualPointNX(branch[_branch_startX], branch[_branch_size], absoluteDirection);
 }
 
 export const pointNY = (branch: Branch, absoluteDirection: number): number => {
@@ -61,7 +64,7 @@ export const pointNY = (branch: Branch, absoluteDirection: number): number => {
     if (d === 5 || d === 0 || d === 1) {
         return Faces.manualPointNY(endCenterY(branch), branch[_branch_size], absoluteDirection);
     }
-    return Faces.manualPointNY(branch[_branch_start].y, branch[_branch_size], absoluteDirection);
+    return Faces.manualPointNY(branch[_branch_startY], branch[_branch_size], absoluteDirection);
 }
 
 export const draw = (g: Graphic, branch: Branch): boolean => {

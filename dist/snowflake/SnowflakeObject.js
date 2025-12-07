@@ -1,6 +1,6 @@
-import { _face_center_x, _face_center_y, _face_direction, _face_growing, _face_growthScale, _face_size } from "./Face.js";
+import { _face_centerX, _face_centerY, _face_direction, _face_growing, _face_growthScale, _face_size } from "./Face.js";
 import * as Faces from "./Face.js";
-import { _branch_start, _branch_direction, _branch_growing, _branch_growthScale, _branch_length, _branch_size } from "./Branch.js";
+import { _branch_startX, _branch_startY, _branch_direction, _branch_growing, _branch_growthScale, _branch_length, _branch_size } from "./Branch.js";
 import * as Branches from "./Branch.js";
 import { _graphic_ctx } from "./Graphic.js";
 import * as Directions from "./Direction.js";
@@ -98,8 +98,8 @@ const _numInitialGrownBranches = 6;
 export const addFaceM = (snowflake, centerX, centerY, size, isFirstFace, direction, growthScale, growing) => {
     if (snowflake[_numFaces] < MAX_FACES) {
         const f = snowflake[_faces][snowflake[_numFaces]];
-        f[_face_center_x] = centerX;
-        f[_face_center_y] = centerY;
+        f[_face_centerX] = centerX;
+        f[_face_centerY] = centerY;
         f[_face_size] = size;
         f[_face_direction] = direction;
         f[_face_growthScale] = growthScale;
@@ -112,8 +112,8 @@ export const addFaceM = (snowflake, centerX, centerY, size, isFirstFace, directi
 export const addBranchM = (snowflake, startX, startY, size, length, direction, growthScale, growing) => {
     if (snowflake[_numBranches] < MAX_BRANCHES) {
         const b = snowflake[_branches][snowflake[_numBranches]];
-        b[_branch_start].x = startX;
-        b[_branch_start].y = startY;
+        b[_branch_startX] = startX;
+        b[_branch_startY] = startY;
         b[_branch_size] = size;
         b[_branch_length] = length;
         b[_branch_direction] = direction;
@@ -218,8 +218,8 @@ const addBranchesToFace = (snowflake, f, faceIndex) => {
     // overlap detection immediatelly kills freshly created branches.
     const safetyOffset = 0.001;
     const distFromCenter = safetyOffset + 1 * size * (1 - initialFraction);
-    const cx = f[_face_center_x];
-    const cy = f[_face_center_y];
+    const cx = f[_face_centerX];
+    const cy = f[_face_centerY];
     if (faceIndex === 0) {
         const growthScale = branchSplittingGrowthScales[1];
         for (let i = 0; i < 6; ++i) {

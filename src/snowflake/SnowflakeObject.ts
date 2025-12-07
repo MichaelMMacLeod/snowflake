@@ -1,6 +1,6 @@
 import {
-  _face_center_x,
-  _face_center_y,
+  _face_centerX,
+  _face_centerY,
   _face_direction,
   _face_growing,
   _face_growthScale,
@@ -9,7 +9,8 @@ import {
 } from "./Face.js";
 import * as Faces from "./Face.js";
 import {
-  _branch_start,
+  _branch_startX,
+  _branch_startY,
   _branch_direction,
   _branch_growing,
   _branch_growthScale,
@@ -152,8 +153,8 @@ export const addFaceM = (
 ): boolean => {
   if (snowflake[_numFaces] < MAX_FACES) {
     const f = snowflake[_faces][snowflake[_numFaces]];
-    f[_face_center_x] = centerX;
-    f[_face_center_y] = centerY;
+    f[_face_centerX] = centerX;
+    f[_face_centerY] = centerY;
     f[_face_size] = size;
     f[_face_direction] = direction;
     f[_face_growthScale] = growthScale;
@@ -176,8 +177,8 @@ export const addBranchM = (
 ): boolean => {
   if (snowflake[_numBranches] < MAX_BRANCHES) {
     const b = snowflake[_branches][snowflake[_numBranches]];
-    b[_branch_start].x = startX;
-    b[_branch_start].y = startY;
+    b[_branch_startX] = startX;
+    b[_branch_startY] = startY;
     b[_branch_size] = size;
     b[_branch_length] = length;
     b[_branch_direction] = direction;
@@ -296,8 +297,8 @@ const addBranchesToFace = (snowflake: Snowflake, f: Face, faceIndex: number): vo
   const safetyOffset = 0.001;
 
   const distFromCenter = safetyOffset + 1 * size * (1 - initialFraction);
-  const cx = f[_face_center_x];
-  const cy = f[_face_center_y];
+  const cx = f[_face_centerX];
+  const cy = f[_face_centerY];
 
   if (faceIndex === 0) {
     const growthScale = branchSplittingGrowthScales[1];

@@ -3,23 +3,23 @@ import * as Directions from "./Direction.js";
 import { _graphic_ctx } from "./Graphic.js";
 import { outsideVisibleArea, viewspaceX, viewspaceY } from "./CoordinateSystem.js";
 import { faceSizeGrowthScalar } from "../common/Constants.js";
-export const _face_center_x = 0;
-export const _face_center_y = 1;
+export const _face_centerX = 0;
+export const _face_centerY = 1;
 export const _face_size = 2;
 export const _face_direction = 3;
 export const _face_growthScale = 4;
 export const _face_growing = 5;
 const SIZE_ZERO = 0.0025;
 export const zero = () => {
-    const center_x = 0;
-    const center_y = 0;
+    const centerX = 0;
+    const centerY = 0;
     const size = SIZE_ZERO;
     const direction = 0;
     const growthScale = 1;
     const growing = true;
     return [
-        center_x,
-        center_y,
+        centerX,
+        centerY,
         size,
         direction,
         growthScale,
@@ -27,8 +27,8 @@ export const zero = () => {
     ];
 };
 export const zeroM = (f) => {
-    f[_face_center_x] = 0;
-    f[_face_center_y] = 0;
+    f[_face_centerX] = 0;
+    f[_face_centerY] = 0;
     f[_face_size] = SIZE_ZERO;
     f[_face_direction] = 0;
     f[_face_growthScale] = 1;
@@ -41,10 +41,10 @@ export const manualPointNY = (centerY, size, absoluteDirection) => {
     return centerY + size * Directions.sines[absoluteDirection];
 };
 export const pointNX = (f, absoluteDirection) => {
-    return manualPointNX(f[_face_center_x], f[_face_size], absoluteDirection);
+    return manualPointNX(f[_face_centerX], f[_face_size], absoluteDirection);
 };
 export const pointNY = (f, absoluteDirection) => {
-    return manualPointNY(f[_face_center_y], f[_face_size], absoluteDirection);
+    return manualPointNY(f[_face_centerY], f[_face_size], absoluteDirection);
 };
 export const draw = (g, f, faceIndex) => {
     const d = f[_face_direction];
@@ -76,8 +76,8 @@ export const draw = (g, f, faceIndex) => {
     }
     const ctx = g[_graphic_ctx];
     if (faceIndex === 0) {
-        const cx = viewspaceX(g, f[_face_center_x]);
-        const cy = viewspaceY(g, f[_face_center_y]);
+        const cx = viewspaceX(g, f[_face_centerX]);
+        const cy = viewspaceY(g, f[_face_centerY]);
         ctx.moveTo(p0x, p0y);
         ctx.lineTo(p1x, p1y);
         ctx.lineTo(p2x, p2y);
@@ -130,8 +130,8 @@ export const enlarge = (f, faceIndex, scale) => {
     if (faceIndex !== 0) {
         const dx = scale * faceSizeGrowthScalar * Math.cos(Directions.values[f[_face_direction]]) * f[_face_growthScale];
         const dy = scale * faceSizeGrowthScalar * Math.sin(Directions.values[f[_face_direction]]) * f[_face_growthScale];
-        f[_face_center_x] += dx;
-        f[_face_center_y] += dy;
+        f[_face_centerX] += dx;
+        f[_face_centerY] += dy;
     }
 };
 //# sourceMappingURL=Face.js.map

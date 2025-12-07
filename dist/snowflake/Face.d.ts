@@ -1,14 +1,14 @@
 import { Direction } from "./Direction.js";
 import { Graphic } from "./Graphic.js";
-export declare const _face_center_x = 0;
-export declare const _face_center_y = 1;
+export declare const _face_centerX = 0;
+export declare const _face_centerY = 1;
 export declare const _face_size = 2;
 export declare const _face_direction = 3;
 export declare const _face_growthScale = 4;
 export declare const _face_growing = 5;
 export type Face = {
-    [_face_center_x]: number;
-    [_face_center_y]: number;
+    [_face_centerX]: number;
+    [_face_centerY]: number;
     [_face_size]: number;
     [_face_direction]: Direction;
     [_face_growthScale]: number;
