@@ -305,30 +305,14 @@ export function killPartIfCovered(partDirection, killPart, partIsDead, partIndex
     const rightDirection = rem(d - 1, Directions.NUM_DIRECTIONS);
     killPartIfCoveredInOneOfTwoDirections(caches, numFaces, numBranches, leftDirection, rightDirection, killPart, partIsDead, partIndex, partIsFace);
 }
-let closure_var_face = Faces.zero();
-const closure_fn_killFace = () => {
-    closure_var_face[_face_growing] = false;
-};
-const closure_fn_faceIsDead = () => {
-    return !closure_var_face[_face_growing];
-};
 export const killCoveredFaces = (snowflake) => {
     forEachGrowingFace(snowflake, (f, fi) => {
-        closure_var_face = f;
-        killPartIfCovered(f[_face_direction], closure_fn_killFace, closure_fn_faceIsDead, fi, snowflake[_sideCaches], snowflake[_numFaces], snowflake[_numBranches], true);
+        killPartIfCovered(f[_face_direction], () => f[_face_growing] = false, () => !f[_face_growing], fi, snowflake[_sideCaches], snowflake[_numFaces], snowflake[_numBranches], true);
     });
-};
-let closure_var_branch = Branches.zero();
-const closure_fn_killBranch = () => {
-    closure_var_branch[_branch_growing] = false;
-};
-const closure_fn_branchIsDead = () => {
-    return !closure_var_branch[_branch_growing];
 };
 export const killCoveredBranches = (snowflake) => {
     forEachGrowingBranch(snowflake, (b, bi) => {
-        closure_var_branch = b;
-        killPartIfCovered(b[_branch_direction], closure_fn_killBranch, closure_fn_branchIsDead, bi, snowflake[_sideCaches], snowflake[_numFaces], snowflake[_numBranches], false);
+        killPartIfCovered(b[_branch_direction], () => b[_branch_growing] = false, () => !b[_branch_growing], bi, snowflake[_sideCaches], snowflake[_numFaces], snowflake[_numBranches], false);
     });
 };
 //# sourceMappingURL=SnowflakeObject.js.map
