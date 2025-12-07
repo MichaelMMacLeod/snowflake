@@ -1,30 +1,29 @@
 import { parseConfigAndDisplayErrors, parseSnowflakeID, randomSnowflakeIDString, sync } from "../common/Config.js";
-import { none, some } from "maybe-either/Maybe";
+import { mapSome, none, some } from "maybe-either/Maybe";
 import * as Maybes from "maybe-either/Maybe";
 import { initializeGraphic, State } from "./State.js";
 import * as Eithers from "maybe-either/Either";
 import * as States from "./State.js";
-import { Config, configParser, configSynchronizer, UnparsedConfig } from "./Config.js";
 import * as Configs from "./Config.js";
 import { SnowflakeID } from "../common/Utils.js";
 import { _graphic_canvas } from "./Graphic.js";
+import { _Cfg_snowflakeCanvasSizePX, Cfg } from "./Config.js";
 
 export default class SnowflakeElement extends HTMLElement {
     #state: State;
-    #config: Config;
+    #cfg: Required<Cfg>;
     #shadow: ShadowRoot;
 
     constructor() {
         super();
         this.#shadow = this.attachShadow({ mode: 'open' });
-        this.#state = States.zero();
-        this.#config = Configs.zero();
-        sync(configSynchronizer, this.#state, () => States.reset(this.#state), none, this.#config);
+        this.#state = Configs.createDefaultState();
+        this.#cfg = { ...Configs.defaultConfig } /* create non-frozen copy */;
     }
 
     connectedCallback() {
         Maybes.map(
-            initializeGraphic(this.#state, this.#config.snowflakeCanvasSizePX),
+            initializeGraphic(this.#state, this.#cfg[_Cfg_snowflakeCanvasSizePX]),
             () => { throw new Error("couldn't get canvas 2d context"); },
             g => {
                 this.#shadow.appendChild(g[_graphic_canvas]);
@@ -36,10 +35,20 @@ export default class SnowflakeElement extends HTMLElement {
 
     adoptedCallback() { }
 
-    configure(unparsedConfig: UnparsedConfig): void {
-        const config = parseConfigAndDisplayErrors(configParser, unparsedConfig);
-        sync(configSynchronizer, this.#state, () => States.reset(this.#state), some(this.#config), config);
-        this.#config = config;
+    configure<K extends keyof Required<Cfg>>(key: K, value: Required<Cfg>[K]) {
+        Maybes.map(
+            Configs.configure(this.#cfg, this.#state, key, value),
+            () => {
+                this.#cfg[key] = value
+            },
+            error => {
+                console.error(error)
+            },
+        );
+    };
+
+    configuredValue<K extends keyof Required<Cfg>>(key: K): Required<Cfg>[K] {
+        return this.#cfg[key];
     }
 
     reset(): void {

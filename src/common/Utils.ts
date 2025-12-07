@@ -58,3 +58,5 @@ export const arraysEqual = <T>(a1: Array<T>, a2: Array<T>, eqT: (t1: T, t2: T) =
 
 declare const snowflakeIDTag: unique symbol;
 export type SnowflakeID = string & { readonly [snowflakeIDTag]: 'SnowflakeID' };
+
+export const doNothing = () => { return; };

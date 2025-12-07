@@ -25,4 +25,5 @@ declare const snowflakeIDTag: unique symbol;
 export type SnowflakeID = string & {
     readonly [snowflakeIDTag]: 'SnowflakeID';
 };
+export declare const doNothing: () => void;
 export {};

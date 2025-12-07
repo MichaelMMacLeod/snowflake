@@ -36,4 +36,5 @@ export const arraysEqual = (a1, a2, eqT) => {
     return a1.length === a2.length
         && a1.every((v, i) => eqT(v, a2[i]));
 };
+export const doNothing = () => { return; };
 //# sourceMappingURL=Utils.js.map

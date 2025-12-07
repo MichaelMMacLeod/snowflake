@@ -39,6 +39,6 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "maybe-either": "github:MichaelMMacLeod/maybe-either"
+    "maybe-either": "file:../maybe-either"
   }
 }

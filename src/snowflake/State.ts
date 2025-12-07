@@ -4,7 +4,7 @@ import { addBranchesToGrowingFaces, addFacesToGrowingBranches, Snowflake } from 
 import * as Snowflakes from "./SnowflakeObject.js";
 import * as Branches from "./Branch.js";
 import * as Faces from "./Face.js";
-import { fracPart, GrowthType, growthTypeBranching, interpretGrowth, NonEmptyArray } from "../common/Utils.js";
+import { doNothing, fracPart, GrowthType, growthTypeBranching, interpretGrowth, NonEmptyArray } from "../common/Utils.js";
 import { isSome, mapSome, Maybe, none } from "maybe-either/Maybe";
 import * as Maybes from "maybe-either/Maybe";
 import * as RGBA from "../common/color/Color.js";
@@ -133,8 +133,6 @@ export const zero = (): State => {
     // this state with the default Config. It's the values in the 
     // default Config that matter.
 
-    const doNothing = () => { return; };
-
     const growthInput: NonEmptyArray<number> = [0];
     const graphic: Maybe<Graphic> = none;
     const snowflake = Snowflakes.zero();
@@ -149,12 +147,12 @@ export const zero = (): State => {
     const updateBank = 0;
     const maxUpdates = 500;
     const resetStartTime = performance.now();
-    const playing = false;
-    const finishedGrowingCallback = () => doNothing;
+    const playing = true;
+    const finishedGrowingCallback = doNothing;
     const needsReset = false;
-    const resetCallback = () => doNothing;
-    const updatedCallback = () => doNothing;
-    const updateOnNextFrame = () => doNothing;
+    const resetCallback = doNothing;
+    const updatedCallback = doNothing;
+    const updateOnNextFrame = doNothing;
     const doUpdate = doNothing;
 
     const result: State = [
