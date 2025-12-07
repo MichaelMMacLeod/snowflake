@@ -1,7 +1,6 @@
-import { mapSome, Maybe, none, some } from "maybe-either/Maybe";
+import { Maybe, none, some } from "maybe-either/Maybe";
 import { _SnowflakeGraph_root, _SnowflakeGraph_snowflakeID, SnowflakeGraph, syncToPercentGrown, syncToSnowflakeID } from "./Graph.js";
 import * as SnowflakeGraphs from "./Graph.js";
-import { NonEmptyArray } from "../common/Utils.js";
 import * as Maybes from "maybe-either/Maybe";
 import { defaultGraphConfig, GraphConfig } from "./Config.js";
 

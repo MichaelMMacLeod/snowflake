@@ -5,7 +5,7 @@ import { Maybe, none, some } from "maybe-either/Maybe";
 import * as Maybes from "maybe-either/Maybe";
 import { Point } from "../common/Point.js";
 import { defaultAspectRatio, defaultIsLightTheme, defaultSnowflakeID } from "./Config.js";
-import { defaultDarkThemeColor, defaultGraphDarkThemeColor, defaultGraphLightThemeColor, defaultLightThemeColor } from "../common/ColorScheme.js";
+import { defaultGraphDarkThemeColor, defaultGraphLightThemeColor } from "../common/ColorScheme.js";
 
 export const _SnowflakeGraph_snowflakeID = 0;
 export const _SnowflakeGraph_root = 1;
