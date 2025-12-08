@@ -24,7 +24,7 @@ declare const snowflakeIDTag: unique symbol;
 // between at least two points to figure out how to grow at any given time t.
 export type SnowflakeID = ArrayAtLeast2<YChoiceIndex> & { readonly [snowflakeIDTag]: 'SnowflakeID' };
 
-export const defaultSnowflakeID = [0, 2, 8, 1, 4, 1, 4, 6, 1, 8, 0] as unknown as SnowflakeID;
+export const getDefaultSnowflakeID = () => [...[0, 2, 8, 1, 4, 1, 4, 6, 1, 8, 0]] as unknown as SnowflakeID;
 
 export const copySnowflakeID = (value: SnowflakeID): SnowflakeID => {
     return value.slice() as SnowflakeID;
@@ -68,7 +68,7 @@ export const randomSnowflakeID = (): SnowflakeID => {
         parseSnowflakeIDString(formatAsSnowflakeIDString(id)),
         err => {
             console.error(`randomSnowflakeId generated invalid ID: '${id}'; ${err}`);
-            return defaultSnowflakeID;
+            return getDefaultSnowflakeID();
         },
         id => id
     );
@@ -78,6 +78,6 @@ export const randomSnowflakeIDString = (): string => {
     return formatAsSnowflakeIDString(randomSnowflakeID());
 }
 
-if (Eithers.isLeft(parseSnowflakeIDString(formatAsSnowflakeIDString(defaultSnowflakeID)))) {
+if (Eithers.isLeft(parseSnowflakeIDString(formatAsSnowflakeIDString(getDefaultSnowflakeID())))) {
     console.error('default snowflake ID is not valid');
 }

@@ -1,9 +1,10 @@
 import { Graphic } from "./Graphic.js";
 import { Snowflake } from "./SnowflakeObject.js";
-import { GrowthType, NonEmptyArray } from "../common/Utils.js";
+import { GrowthType } from "../common/Utils.js";
 import { Maybe } from "maybe-either/Maybe";
 import { SnowflakeConfig } from "./SnowflakeConfig.js";
-export declare const _State_growthInput = 0;
+import { SnowflakeID } from "../common/SnowflakeID.js";
+export declare const _State_snowflakeID = 0;
 export declare const _State_graphic = 1;
 export declare const _State_snowflake = 2;
 export declare const _State_currentGrowthType = 3;
@@ -19,7 +20,7 @@ export declare const _State_updateOnNextFrame = 12;
 export declare const _State_doUpdate = 13;
 export declare const _State_cfg = 14;
 export type State = {
-    [_State_growthInput]: NonEmptyArray<number>;
+    [_State_snowflakeID]: SnowflakeID;
     [_State_graphic]: Maybe<Graphic>;
     [_State_snowflake]: Snowflake;
     [_State_currentGrowthType]: GrowthType | undefined;

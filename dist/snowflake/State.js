@@ -9,7 +9,8 @@ import { isSome, mapSome, none } from "maybe-either/Maybe";
 import * as Maybes from "maybe-either/Maybe";
 import { _SnowflakeConfig_colorScheme, _SnowflakeConfig_finishedGrowingCallback, _SnowflakeConfig_isLightTheme, _SnowflakeConfig_maxUpdates, _SnowflakeConfig_playing, _SnowflakeConfig_resetCallback, _SnowflakeConfig_updatedCallback, defaultConfig } from "./SnowflakeConfig.js";
 import { _ColorScheme_darkThemeColor, _ColorScheme_lightThemeColor } from "../common/ColorScheme.js";
-export const _State_growthInput = 0;
+import { getDefaultSnowflakeID } from "../common/SnowflakeID.js";
+export const _State_snowflakeID = 0;
 export const _State_graphic = 1;
 export const _State_snowflake = 2;
 export const _State_currentGrowthType = 3;
@@ -81,7 +82,7 @@ export const setIdealMSBetweenUpdates = (state, targetGrowthTimeMS, upsCap) => {
     state[_State_idealMSBetweenUpdates] = Math.max(1000 / upsCap, targetGrowthTimeMS / maxUpdates);
 };
 export const zero = () => {
-    const growthInput = [0];
+    const growthInput = getDefaultSnowflakeID();
     const graphic = none;
     const snowflake = Snowflakes.zero();
     const currentGrowthType = undefined;
@@ -150,7 +151,7 @@ export const update = (state) => {
     state[_State_updateBank] = fracPart(requiredUpdates);
     requiredUpdates = Math.floor(requiredUpdates);
     function doUpdate() {
-        const growth = interpretGrowth(state[_State_growthInput], percentGrown(state));
+        const growth = interpretGrowth(state[_State_snowflakeID], percentGrown(state));
         if (state[_State_currentGrowthType] === undefined) {
             state[_State_currentGrowthType] = growth.growthType;
         }

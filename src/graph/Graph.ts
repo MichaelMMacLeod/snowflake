@@ -1,4 +1,4 @@
-import { parseSnowflakeIDString, formatAsSnowflakeIDString, yChoices, SnowflakeID, nextSmallestYChoiceIndex, nextLargestYChoiceIndex, nthYChoiceIndex, YChoiceIndex } from "../common/SnowflakeID.js";
+import { parseSnowflakeIDString, formatAsSnowflakeIDString, yChoices, SnowflakeID, nextSmallestYChoiceIndex, nextLargestYChoiceIndex, nthYChoiceIndex, YChoiceIndex, getDefaultSnowflakeID } from "../common/SnowflakeID.js";
 import { clamp, NonEmptyArray } from "../common/Utils.js";
 import { Maybe, none, some } from "maybe-either/Maybe";
 import * as Maybes from "maybe-either/Maybe";
@@ -378,7 +378,7 @@ const mouseEventIsInsideElement = (ev: MouseEvent, e: Element): boolean => {
 }
 
 export const zero = (): SnowflakeGraph => {
-    const snowflakeID = defaultSnowflakeID;
+    const snowflakeID = getDefaultSnowflakeID();
     const root = document.createElementNS(SVG_NS, 'svg');
     const style = document.createElement('style');
     const g = document.createElementNS(SVG_NS, 'g');

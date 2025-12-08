@@ -1,7 +1,7 @@
-import { yChoices, nextSmallestYChoiceIndex, nextLargestYChoiceIndex, nthYChoiceIndex } from "../common/SnowflakeID.js";
+import { yChoices, nextSmallestYChoiceIndex, nextLargestYChoiceIndex, nthYChoiceIndex, getDefaultSnowflakeID } from "../common/SnowflakeID.js";
 import { none, some } from "maybe-either/Maybe";
 import * as Maybes from "maybe-either/Maybe";
-import { defaultAspectRatio, defaultIsLightTheme, defaultSnowflakeID } from "./Config.js";
+import { defaultAspectRatio, defaultIsLightTheme } from "./Config.js";
 import { defaultGraphDarkThemeColor, defaultGraphLightThemeColor } from "../common/ColorScheme.js";
 export const _SnowflakeGraph_snowflakeID = 0;
 export const _SnowflakeGraph_root = 1;
@@ -310,7 +310,7 @@ const mouseEventIsInsideElement = (ev, e) => {
         && y >= r.top && y <= r.bottom;
 };
 export const zero = () => {
-    const snowflakeID = defaultSnowflakeID;
+    const snowflakeID = getDefaultSnowflakeID();
     const root = document.createElementNS(SVG_NS, 'svg');
     const style = document.createElement('style');
     const g = document.createElementNS(SVG_NS, 'g');

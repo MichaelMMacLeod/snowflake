@@ -11,7 +11,7 @@ export const nextSmallestYChoiceIndex = (y) => {
 export const nthYChoiceIndex = (n) => {
     return Math.min(8, Math.max(0, Math.floor(n)));
 };
-export const defaultSnowflakeID = [0, 2, 8, 1, 4, 1, 4, 6, 1, 8, 0];
+export const getDefaultSnowflakeID = () => [...[0, 2, 8, 1, 4, 1, 4, 6, 1, 8, 0]];
 export const copySnowflakeID = (value) => {
     return value.slice();
 };
@@ -48,13 +48,13 @@ export const randomSnowflakeID = () => {
     }
     return Eithers.map(parseSnowflakeIDString(formatAsSnowflakeIDString(id)), err => {
         console.error(`randomSnowflakeId generated invalid ID: '${id}'; ${err}`);
-        return defaultSnowflakeID;
+        return getDefaultSnowflakeID();
     }, id => id);
 };
 export const randomSnowflakeIDString = () => {
     return formatAsSnowflakeIDString(randomSnowflakeID());
 };
-if (Eithers.isLeft(parseSnowflakeIDString(formatAsSnowflakeIDString(defaultSnowflakeID)))) {
+if (Eithers.isLeft(parseSnowflakeIDString(formatAsSnowflakeIDString(getDefaultSnowflakeID())))) {
     console.error('default snowflake ID is not valid');
 }
 //# sourceMappingURL=SnowflakeID.js.map

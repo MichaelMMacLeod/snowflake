@@ -5,7 +5,7 @@ import {
 } from "../common/SnowflakeID.js";
 import {
     _State_currentMS,
-    _State_growthInput,
+    _State_snowflakeID,
     scheduleUpdate,
     setIdealMSBetweenUpdates,
     setSnowflakeCanvasSizePX,
@@ -79,7 +79,7 @@ const resetUnecessary = false;
 
 type ErrorMessage = string;
 
-export const defaultSnowflakeID = SnowflakeIDs.defaultSnowflakeID;
+export const defaultSnowflakeID = SnowflakeIDs.getDefaultSnowflakeID();
 export const defaultSnowflakeCanvasSizePX = 800;
 export const defaultTargetGrowthTimeMS = 8000;
 export const defaultUpsCap = 100000000;
@@ -124,7 +124,7 @@ const cfgSnowflakeID: CfgFunction<_SnowflakeConfig_snowflakeID> = (_cfg, state, 
     if (oldValue === newValue || arraysEqual(oldValue, newValue, (v1, v2) => v1 === v2)) {
         return right(resetUnecessary);
     }
-    state[_State_growthInput] = copySnowflakeID(newValue);
+    state[_State_snowflakeID] = copySnowflakeID(newValue);
     return right(resetRequred);
 };
 
