@@ -15,9 +15,9 @@ import * as SnowflakeIDs from "../common/SnowflakeID.js";
 import * as Maybes from "maybe-either/Maybe";
 import { _State_cfg, _State_graphic, initializeGraphic } from "./State.js";
 import * as States from "./State.js";
-import * as Configs from "./SnowflakeConfig.js";
+import * as Configs from "../common/Config.js";
 import { _graphic_canvas } from "./Graphic.js";
-import { _SnowflakeConfig_snowflakeCanvasSizePX, _SnowflakeConfig_snowflakeID } from "./SnowflakeConfig.js";
+import { _SnowflakeConfig_snowflakeCanvasSizePX, _SnowflakeConfig_snowflakeID, snowflakeCfgFunctions, snowflakeDefaultConfig } from "./SnowflakeConfig.js";
 class SnowflakeElement extends HTMLElement {
     constructor() {
         super();
@@ -33,11 +33,8 @@ class SnowflakeElement extends HTMLElement {
     }
     configure(key, value) {
         const cfg = __classPrivateFieldGet(this, _SnowflakeElement_state, "f")[_State_cfg];
-        Maybes.map(Configs.configure(cfg, __classPrivateFieldGet(this, _SnowflakeElement_state, "f"), key, value), () => {
-            cfg[key] = value;
-        }, error => {
-            console.error(error);
-        });
+        Configs.configure(snowflakeCfgFunctions, cfg, __classPrivateFieldGet(this, _SnowflakeElement_state, "f"), key, value, snowflakeDefaultConfig, States.reset);
+        cfg[key] = value;
     }
     configuredValue(key) {
         return __classPrivateFieldGet(this, _SnowflakeElement_state, "f")[_State_cfg][key];

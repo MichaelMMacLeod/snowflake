@@ -1,9 +1,9 @@
 import {
     copySnowflakeID,
-    parseSnowflakeIDString,
     SnowflakeID,
 } from "../common/SnowflakeID.js";
 import {
+    _State_cfg,
     _State_currentMS,
     _State_snowflakeID,
     scheduleUpdate,
@@ -11,13 +11,11 @@ import {
     setSnowflakeCanvasSizePX,
     State
 } from "./State.js";
-import * as States from './State.js';
 import { arraysEqual, doNothing } from "../common/Utils.js";
 import * as ColorThemes from "../common/ColorScheme.js";
 import { ColorScheme } from "../common/ColorScheme.js";
-import { Maybe } from "maybe-either/Maybe";
-import { Either, getLeft, mapRight, right } from "maybe-either/Either";
 import * as SnowflakeIDs from "../common/SnowflakeID.js";
+import { CfgFunction, CfgFunctionArray } from "../common/Config.js";
 
 export const _SnowflakeConfig_snowflakeID = 0;
 export const _SnowflakeConfig_snowflakeCanvasSizePX = 1;
@@ -91,7 +89,7 @@ export const defaultFinishedGrowingCallback = doNothing;
 export const defaultResetCallback = doNothing;
 export const defaultUpdatedCallback = doNothing;
 
-export const defaultConfig: Readonly<SnowflakeConfig> = Object.freeze([
+export const snowflakeDefaultConfig: Readonly<SnowflakeConfig> = Object.freeze([
     defaultSnowflakeID,
     defaultSnowflakeCanvasSizePX,
     defaultTargetGrowthTimeMS,
@@ -110,81 +108,76 @@ const cfgGetOrDefault = <K extends keyof SnowflakeConfig>(cfg: SnowflakeConfig, 
     if (value !== undefined) {
         return value;
     }
-    return defaultConfig[key];
+    return snowflakeDefaultConfig[key];
 }
 
-type CfgFunction<K extends keyof SnowflakeConfig> = (
-    cfg: SnowflakeConfig,
-    state: State,
-    oldValue: SnowflakeConfig[K],
-    newValue: SnowflakeConfig[K]
-) => Either<ErrorMessage, ResetStatus>;
+type SnowflakeCfgFunction<K extends keyof SnowflakeConfig> = CfgFunction<State, SnowflakeConfig, K>;
 
-const cfgSnowflakeID: CfgFunction<_SnowflakeConfig_snowflakeID> = (_cfg, state, oldValue, newValue) => {
+const cfgSnowflakeID: SnowflakeCfgFunction<_SnowflakeConfig_snowflakeID> = (_cfg, state, oldValue, newValue) => {
     if (oldValue === newValue || arraysEqual(oldValue, newValue, (v1, v2) => v1 === v2)) {
-        return right(resetUnecessary);
+        return resetUnecessary;
     }
     state[_State_snowflakeID] = copySnowflakeID(newValue);
-    return right(resetRequred);
+    return resetRequred;
 };
 
-const cfgSnowflakeCanvasSizePX: CfgFunction<_SnowflakeConfig_snowflakeCanvasSizePX> = (_cfg, state, oldValue, newValue) => {
+const cfgSnowflakeCanvasSizePX: SnowflakeCfgFunction<_SnowflakeConfig_snowflakeCanvasSizePX> = (_cfg, state, oldValue, newValue) => {
     if (newValue !== oldValue) {
-        return right(setSnowflakeCanvasSizePX(state, newValue));
+        return setSnowflakeCanvasSizePX(state, newValue);
     }
-    return right(resetUnecessary);
+    return resetUnecessary;
 };
 
-const cfgTargetGrowthTimeMS: CfgFunction<_SnowflakeConfig_targetGrowthTimeMS> = (cfg, state, _oldValue, newValue) => {
+const cfgTargetGrowthTimeMS: SnowflakeCfgFunction<_SnowflakeConfig_targetGrowthTimeMS> = (cfg, state, _oldValue, newValue) => {
     setIdealMSBetweenUpdates(state, newValue, cfgGetOrDefault(cfg, _SnowflakeConfig_upsCap));
-    return right(resetUnecessary);
+    return resetUnecessary;
 };
 
-const cfgUPSCap: CfgFunction<_SnowflakeConfig_upsCap> = (cfg, state, _oldValue, newValue) => {
+const cfgUPSCap: SnowflakeCfgFunction<_SnowflakeConfig_upsCap> = (cfg, state, _oldValue, newValue) => {
     setIdealMSBetweenUpdates(state, cfgGetOrDefault(cfg, _SnowflakeConfig_targetGrowthTimeMS), newValue);
-    return right(resetUnecessary);
+    return resetUnecessary;
 };
 
-const cfgMaxUpdates: CfgFunction<_SnowflakeConfig_maxUpdates> = (_cfg, _state, _oldValue, _newValue) => {
-    return right(resetUnecessary);
+const cfgMaxUpdates: SnowflakeCfgFunction<_SnowflakeConfig_maxUpdates> = (_cfg, _state, _oldValue, _newValue) => {
+    return resetUnecessary;
 };
 
-const cfgPlaying: CfgFunction<_SnowflakeConfig_playing> = (_cfg, state, oldValue, newValue) => {
+const cfgPlaying: SnowflakeCfgFunction<_SnowflakeConfig_playing> = (_cfg, state, oldValue, newValue) => {
     if (newValue !== oldValue) {
         state[_State_currentMS] = performance.now();
+        state[_State_cfg][_SnowflakeConfig_playing] = newValue;
         scheduleUpdate(state);
     }
-    return right(resetUnecessary);
+    return resetUnecessary;
 };
 
-const cfgColorTheme: CfgFunction<_SnowflakeConfig_colorScheme> = (_cfg, _state, oldValue, newValue) => {
+const cfgColorTheme: SnowflakeCfgFunction<_SnowflakeConfig_colorScheme> = (_cfg, _state, oldValue, newValue) => {
     if (ColorThemes.equals(newValue, oldValue)) {
-        return right(resetUnecessary);
+        return resetUnecessary;
     }
-    return right(resetRequred);
+    return resetRequred;
 };
 
-const cfgIsLightTheme: CfgFunction<_SnowflakeConfig_isLightTheme> = (_cfg, _state, oldValue, newValue) => {
+const cfgIsLightTheme: SnowflakeCfgFunction<_SnowflakeConfig_isLightTheme> = (_cfg, _state, oldValue, newValue) => {
     if (newValue === oldValue) {
-        return right(resetUnecessary);
+        return resetUnecessary;
     }
-    return right(resetRequred);
+    return resetRequred;
 };
 
-const cfgFinishedGrowingCallback: CfgFunction<_SnowflakeConfig_finishedGrowingCallback> = (_cfg, _state, _oldValue, _newValue) => {
-    return right(resetUnecessary);
+const cfgFinishedGrowingCallback: SnowflakeCfgFunction<_SnowflakeConfig_finishedGrowingCallback> = (_cfg, _state, _oldValue, _newValue) => {
+    return resetUnecessary;
 };
 
-const cfgResetCallback: CfgFunction<_SnowflakeConfig_resetCallback> = (_cfg, _state, _oldValue, _newValue) => {
-    return right(resetUnecessary);
+const cfgResetCallback: SnowflakeCfgFunction<_SnowflakeConfig_resetCallback> = (_cfg, _state, _oldValue, _newValue) => {
+    return resetUnecessary;
 };
 
-const cfgUpdatedCallback: CfgFunction<_SnowflakeConfig_updatedCallback> = (_cfg, _state, _oldValue, _newValue) => {
-    return right(resetUnecessary);
+const cfgUpdatedCallback: SnowflakeCfgFunction<_SnowflakeConfig_updatedCallback> = (_cfg, _state, _oldValue, _newValue) => {
+    return resetUnecessary;
 };
 
-type CfgFunctions = { [K in keyof SnowflakeConfig]: CfgFunction<K> };
-const cfgFunctions: CfgFunctions = [
+export const snowflakeCfgFunctions: CfgFunctionArray<State, SnowflakeConfig> = [
     cfgSnowflakeID,
     cfgSnowflakeCanvasSizePX,
     cfgTargetGrowthTimeMS,
@@ -197,17 +190,3 @@ const cfgFunctions: CfgFunctions = [
     cfgResetCallback,
     cfgUpdatedCallback,
 ];
-
-export const configure = <K extends keyof SnowflakeConfig>(
-    oldCfg: SnowflakeConfig,
-    state: State,
-    key: K,
-    value: SnowflakeConfig[K],
-): Maybe<ErrorMessage> => {
-    const c = cfgFunctions[key](oldCfg, state, cfgGetOrDefault(oldCfg, key), value);
-    return getLeft(mapRight(c, resetStatus => {
-        if (resetStatus === resetRequred) {
-            States.reset(state);
-        }
-    }));
-};

@@ -1,8 +1,8 @@
 import { GraphState } from "./State.js";
 import * as GraphStates from "./State.js";
-import { defaultGraphConfig, GraphConfig } from "./GraphConfig.js";
+import { graphDefaultConfig, graphCfgFunctions, GraphConfig } from "./GraphConfig.js";
 import * as GraphConfigs from "./GraphConfig.js";
-import * as Maybes from "maybe-either/Maybe";
+import * as Configs from "../common/Config.js";
 
 export default class SnowflakeGraphElement extends HTMLElement {
     #shadow: ShadowRoot;
@@ -12,11 +12,19 @@ export default class SnowflakeGraphElement extends HTMLElement {
     constructor() {
         super();
         this.#shadow = this.attachShadow({ mode: 'open' });
-        this.#config = { ...defaultGraphConfig };
+        this.#config = { ...graphDefaultConfig };
         this.#state = GraphStates.zero();
 
         GraphConfigs.cfgKeys.forEach(key => {
-            GraphConfigs.configure(this.#config, this.#state, key, this.#config[key])
+            Configs.configure(
+                graphCfgFunctions,
+                this.#config,
+                this.#state,
+                key,
+                this.#config[key],
+                graphDefaultConfig,
+                (_state) => { return; }
+            )
         });
     }
 
@@ -27,7 +35,15 @@ export default class SnowflakeGraphElement extends HTMLElement {
 
     configure<K extends keyof GraphConfig>(key: K, value: GraphConfig[K]) {
         const cfg = this.#config;
-        GraphConfigs.configure(cfg, this.#state, key, value);
+        Configs.configure(
+            graphCfgFunctions,
+            cfg,
+            this.#state,
+            key,
+            value,
+            graphDefaultConfig,
+            (_state) => { return; }
+        )
         cfg[key] = value;
     }
 

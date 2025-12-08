@@ -2,12 +2,12 @@ import { none, some } from "maybe-either/Maybe";
 import { _SnowflakeGraph_root } from "./Graph.js";
 import * as SnowflakeGraphs from "./Graph.js";
 import * as Maybes from "maybe-either/Maybe";
-import { defaultGraphConfig } from "./GraphConfig.js";
+import { graphDefaultConfig } from "./GraphConfig.js";
 export const _GraphState_graph = 0;
 export const _GraphState_cfg = 1;
 export const zero = () => {
     const graph = none;
-    const cfg = Object.assign({}, defaultGraphConfig) /* create non-frozen copy */;
+    const cfg = Object.assign({}, graphDefaultConfig) /* create non-frozen copy */;
     return [
         graph,
         cfg,

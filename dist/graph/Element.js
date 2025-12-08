@@ -11,8 +11,9 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
 };
 var _SnowflakeGraphElement_shadow, _SnowflakeGraphElement_config, _SnowflakeGraphElement_state;
 import * as GraphStates from "./State.js";
-import { defaultGraphConfig } from "./GraphConfig.js";
+import { graphDefaultConfig, graphCfgFunctions } from "./GraphConfig.js";
 import * as GraphConfigs from "./GraphConfig.js";
+import * as Configs from "../common/Config.js";
 class SnowflakeGraphElement extends HTMLElement {
     constructor() {
         super();
@@ -20,10 +21,10 @@ class SnowflakeGraphElement extends HTMLElement {
         _SnowflakeGraphElement_config.set(this, void 0);
         _SnowflakeGraphElement_state.set(this, void 0);
         __classPrivateFieldSet(this, _SnowflakeGraphElement_shadow, this.attachShadow({ mode: 'open' }), "f");
-        __classPrivateFieldSet(this, _SnowflakeGraphElement_config, Object.assign({}, defaultGraphConfig), "f");
+        __classPrivateFieldSet(this, _SnowflakeGraphElement_config, Object.assign({}, graphDefaultConfig), "f");
         __classPrivateFieldSet(this, _SnowflakeGraphElement_state, GraphStates.zero(), "f");
         GraphConfigs.cfgKeys.forEach(key => {
-            GraphConfigs.configure(__classPrivateFieldGet(this, _SnowflakeGraphElement_config, "f"), __classPrivateFieldGet(this, _SnowflakeGraphElement_state, "f"), key, __classPrivateFieldGet(this, _SnowflakeGraphElement_config, "f")[key]);
+            Configs.configure(graphCfgFunctions, __classPrivateFieldGet(this, _SnowflakeGraphElement_config, "f"), __classPrivateFieldGet(this, _SnowflakeGraphElement_state, "f"), key, __classPrivateFieldGet(this, _SnowflakeGraphElement_config, "f")[key], graphDefaultConfig, (_state) => { return; });
         });
     }
     connectedCallback() {
@@ -32,7 +33,7 @@ class SnowflakeGraphElement extends HTMLElement {
     }
     configure(key, value) {
         const cfg = __classPrivateFieldGet(this, _SnowflakeGraphElement_config, "f");
-        GraphConfigs.configure(cfg, __classPrivateFieldGet(this, _SnowflakeGraphElement_state, "f"), key, value);
+        Configs.configure(graphCfgFunctions, cfg, __classPrivateFieldGet(this, _SnowflakeGraphElement_state, "f"), key, value, graphDefaultConfig, (_state) => { return; });
         cfg[key] = value;
     }
     configuredValue(key) {

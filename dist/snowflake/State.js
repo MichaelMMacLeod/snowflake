@@ -7,7 +7,7 @@ import * as Faces from "./Face.js";
 import { doNothing, fracPart, growthTypeBranching, interpretGrowth } from "../common/Utils.js";
 import { isSome, mapSome, none } from "maybe-either/Maybe";
 import * as Maybes from "maybe-either/Maybe";
-import { _SnowflakeConfig_colorScheme, _SnowflakeConfig_finishedGrowingCallback, _SnowflakeConfig_isLightTheme, _SnowflakeConfig_maxUpdates, _SnowflakeConfig_playing, _SnowflakeConfig_resetCallback, _SnowflakeConfig_updatedCallback, defaultConfig } from "./SnowflakeConfig.js";
+import { _SnowflakeConfig_colorScheme, _SnowflakeConfig_finishedGrowingCallback, _SnowflakeConfig_isLightTheme, _SnowflakeConfig_maxUpdates, _SnowflakeConfig_playing, _SnowflakeConfig_resetCallback, _SnowflakeConfig_updatedCallback, snowflakeDefaultConfig, } from "./SnowflakeConfig.js";
 import { _ColorScheme_darkThemeColor, _ColorScheme_lightThemeColor } from "../common/ColorScheme.js";
 import { getDefaultSnowflakeID } from "../common/SnowflakeID.js";
 export const _State_snowflakeID = 0;
@@ -96,7 +96,7 @@ export const zero = () => {
     const needsReset = false;
     const updateOnNextFrame = doNothing;
     const doUpdate = doNothing;
-    const cfg = Object.assign({}, defaultConfig) /* create non-frozen copy */;
+    const cfg = Object.assign({}, snowflakeDefaultConfig) /* create non-frozen copy */;
     const result = [
         growthInput,
         graphic,

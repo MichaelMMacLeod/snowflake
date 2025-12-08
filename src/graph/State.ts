@@ -2,7 +2,7 @@ import { Maybe, none, some } from "maybe-either/Maybe";
 import { _SnowflakeGraph_root, _SnowflakeGraph_snowflakeID, SnowflakeGraph, syncToPercentGrown, syncToSnowflakeID } from "./Graph.js";
 import * as SnowflakeGraphs from "./Graph.js";
 import * as Maybes from "maybe-either/Maybe";
-import { defaultGraphConfig, GraphConfig } from "./GraphConfig.js";
+import { graphDefaultConfig, GraphConfig } from "./GraphConfig.js";
 
 export const _GraphState_graph = 0;
 export const _GraphState_cfg = 1;
@@ -14,7 +14,7 @@ export type GraphState = {
 
 export const zero = (): GraphState => {
     const graph = none;
-    const cfg = { ...defaultGraphConfig } /* create non-frozen copy */;
+    const cfg = { ...graphDefaultConfig } /* create non-frozen copy */;
     return [
         graph,
         cfg,

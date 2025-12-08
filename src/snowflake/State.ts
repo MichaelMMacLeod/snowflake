@@ -16,7 +16,7 @@ import {
     _SnowflakeConfig_resetCallback,
     _SnowflakeConfig_updatedCallback,
     SnowflakeConfig,
-    defaultConfig
+    snowflakeDefaultConfig,
 } from "./SnowflakeConfig.js";
 import { _ColorScheme_darkThemeColor, _ColorScheme_lightThemeColor } from "../common/ColorScheme.js";
 import { getDefaultSnowflakeID, SnowflakeID } from "../common/SnowflakeID.js";
@@ -147,7 +147,7 @@ export const zero = (): State => {
     const needsReset = false;
     const updateOnNextFrame = doNothing;
     const doUpdate = doNothing;
-    const cfg = { ...defaultConfig } /* create non-frozen copy */;
+    const cfg = { ...snowflakeDefaultConfig } /* create non-frozen copy */;
 
     const result: State = [
         growthInput,

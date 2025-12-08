@@ -3,9 +3,15 @@ import * as SnowflakeIDs from "../common/SnowflakeID.js";
 import * as Maybes from "maybe-either/Maybe";
 import { _State_cfg, _State_graphic, initializeGraphic, State } from "./State.js";
 import * as States from "./State.js";
-import * as Configs from "./SnowflakeConfig.js";
+import * as Configs from "../common/Config.js";
 import { _graphic_canvas } from "./Graphic.js";
-import { _SnowflakeConfig_snowflakeCanvasSizePX, _SnowflakeConfig_snowflakeID, SnowflakeConfig } from "./SnowflakeConfig.js";
+import {
+    _SnowflakeConfig_snowflakeCanvasSizePX,
+    _SnowflakeConfig_snowflakeID,
+    snowflakeCfgFunctions,
+    SnowflakeConfig,
+    snowflakeDefaultConfig
+} from "./SnowflakeConfig.js";
 import { Either } from "maybe-either/Either";
 
 export default class SnowflakeElement extends HTMLElement {
@@ -30,15 +36,16 @@ export default class SnowflakeElement extends HTMLElement {
 
     configure<K extends keyof SnowflakeConfig>(key: K, value: SnowflakeConfig[K]) {
         const cfg = this.#state[_State_cfg];
-        Maybes.map(
-            Configs.configure(cfg, this.#state, key, value),
-            () => {
-                cfg[key] = value;
-            },
-            error => {
-                console.error(error);
-            },
-        );
+        Configs.configure(
+            snowflakeCfgFunctions,
+            cfg,
+            this.#state,
+            key,
+            value,
+            snowflakeDefaultConfig,
+            States.reset
+        )
+        cfg[key] = value;
     }
 
     configuredValue<K extends keyof SnowflakeConfig>(key: K): SnowflakeConfig[K] {
