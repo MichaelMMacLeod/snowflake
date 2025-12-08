@@ -1,7 +1,7 @@
 import { yChoices, nextSmallestYChoiceIndex, nextLargestYChoiceIndex, nthYChoiceIndex, getDefaultSnowflakeID } from "../common/SnowflakeID.js";
 import { none, some } from "maybe-either/Maybe";
 import * as Maybes from "maybe-either/Maybe";
-import { defaultAspectRatio, defaultIsLightTheme } from "./Config.js";
+import { defaultAspectRatio, defaultIsLightTheme } from "./GraphConfig.js";
 import { defaultGraphDarkThemeColor, defaultGraphLightThemeColor } from "../common/ColorScheme.js";
 export const _SnowflakeGraph_snowflakeID = 0;
 export const _SnowflakeGraph_root = 1;

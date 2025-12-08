@@ -1,7 +1,7 @@
 import { GraphState } from "./State.js";
 import * as GraphStates from "./State.js";
-import { defaultGraphConfig, GraphConfig } from "./Config.js";
-import * as GraphConfigs from "./Config.js";
+import { defaultGraphConfig, GraphConfig } from "./GraphConfig.js";
+import * as GraphConfigs from "./GraphConfig.js";
 import * as Maybes from "maybe-either/Maybe";
 
 export default class SnowflakeGraphElement extends HTMLElement {

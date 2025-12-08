@@ -18,12 +18,12 @@
       "types": "./dist/common/Utils.d.ts"
     },
     "./Config/Graph": {
-      "import": "./dist/graph/Config.js",
-      "types": "./dist/graph/Config.d.ts"
+      "import": "./dist/graph/GraphConfig.js",
+      "types": "./dist/graph/GraphConfig.d.ts"
     },
     "./Config/Snowflake": {
-      "import": "./dist/snowflake/Config.js",
-      "types": "./dist/snowflake/Config.d.ts"
+      "import": "./dist/snowflake/SnowflakeConfig.js",
+      "types": "./dist/snowflake/SnowflakeConfig.d.ts"
     }
   },
   "scripts": {

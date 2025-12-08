@@ -11,8 +11,8 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
 };
 var _SnowflakeGraphElement_shadow, _SnowflakeGraphElement_config, _SnowflakeGraphElement_state;
 import * as GraphStates from "./State.js";
-import { defaultGraphConfig } from "./Config.js";
-import * as GraphConfigs from "./Config.js";
+import { defaultGraphConfig } from "./GraphConfig.js";
+import * as GraphConfigs from "./GraphConfig.js";
 class SnowflakeGraphElement extends HTMLElement {
     constructor() {
         super();

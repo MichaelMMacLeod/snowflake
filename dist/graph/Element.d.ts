@@ -1,4 +1,4 @@
-import { GraphConfig } from "./Config.js";
+import { GraphConfig } from "./GraphConfig.js";
 export default class SnowflakeGraphElement extends HTMLElement {
     #private;
     constructor();

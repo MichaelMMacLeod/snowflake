@@ -1,0 +1,43 @@
+import { SnowflakeID } from "../common/SnowflakeID.js";
+import { NonEmptyArray } from "../common/Utils.js";
+import { GraphState } from "./State.js";
+export declare const _GraphConfig_percentGrown = 0;
+export declare const _GraphConfig_snowflakeID = 1;
+export declare const _GraphConfig_aspectRatio = 2;
+export declare const _GraphConfig_isLightTheme = 3;
+export declare const _GraphConfig_handleMovedCallback = 4;
+type _GraphConfig_percentGrown = 0;
+type _GraphConfig_snowflakeID = 1;
+type _GraphConfig_aspectRatio = 2;
+type _GraphConfig_isLightTheme = 3;
+type _GraphConfig_handleMovedCallback = 4;
+export type GraphConfig = {
+    [_GraphConfig_percentGrown]: number;
+    [_GraphConfig_snowflakeID]: SnowflakeID;
+    [_GraphConfig_aspectRatio]: number;
+    [_GraphConfig_isLightTheme]: boolean;
+    [_GraphConfig_handleMovedCallback]: (snowflakeID: SnowflakeID) => void;
+};
+export declare const cfgKeys: Array<keyof GraphConfig>;
+export declare const defaultPercentGrown = 0;
+export declare const defaultSnowflakeID: SnowflakeID;
+export declare const defaultAspectRatio = 3;
+export declare const defaultIsLightTheme = true;
+export declare const defaultHandleMovedCallback: () => void;
+export declare const defaultGraphConfig: Readonly<GraphConfig>;
+export type UnparsedConfig = Partial<{
+    percentGrown: number;
+    snowflakeID: string;
+    aspectRatio: number;
+    isLightTheme: boolean;
+    handleMovedCallback: (snowflakeID: SnowflakeID) => void;
+}>;
+export type Config = {
+    percentGrown: number;
+    snowflakeID: NonEmptyArray<number>;
+    aspectRatio: number;
+    isLightTheme: boolean;
+    handleMovedCallback: (snowflakeID: SnowflakeID) => void;
+};
+export declare const configure: <K extends keyof GraphConfig>(oldCfg: GraphConfig, state: GraphState, key: K, value: GraphConfig[K]) => void;
+export {};

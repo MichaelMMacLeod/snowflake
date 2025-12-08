@@ -2,7 +2,7 @@ import { none, some } from "maybe-either/Maybe";
 import { _SnowflakeGraph_root } from "./Graph.js";
 import * as SnowflakeGraphs from "./Graph.js";
 import * as Maybes from "maybe-either/Maybe";
-import { defaultGraphConfig } from "./Config.js";
+import { defaultGraphConfig } from "./GraphConfig.js";
 export const _GraphState_graph = 0;
 export const _GraphState_cfg = 1;
 export const zero = () => {

@@ -1,6 +1,6 @@
 import { Maybe } from "maybe-either/Maybe";
 import { SnowflakeGraph } from "./Graph.js";
-import { GraphConfig } from "./Config.js";
+import { GraphConfig } from "./GraphConfig.js";
 export declare const _GraphState_graph = 0;
 export declare const _GraphState_cfg = 1;
 export type GraphState = {
