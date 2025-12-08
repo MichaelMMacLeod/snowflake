@@ -50,7 +50,7 @@ export const pointNY = (branch, absoluteDirection) => {
     }
     return Faces.manualPointNY(branch[_branch_startY], branch[_branch_size], absoluteDirection);
 };
-export const draw = (g, branch) => {
+export const draw = (g, branch, drawBranchSides) => {
     const d = branch[_branch_direction];
     const p0x = viewspaceX(g, pointNX(branch, (d + 0) % 6));
     const p0y = viewspaceY(g, pointNY(branch, (d + 0) % 6));
@@ -88,10 +88,12 @@ export const draw = (g, branch) => {
     moveTo(p5x, p5y);
     lineTo(p0x, p0y);
     lineTo(p1x, p1y);
-    moveTo(p45x, p45y);
-    lineTo(p5x, p5y);
-    moveTo(p21x, p21y);
-    lineTo(p1x, p1y);
+    if (drawBranchSides) {
+        moveTo(p45x, p45y);
+        lineTo(p5x, p5y);
+        moveTo(p21x, p21y);
+        lineTo(p1x, p1y);
+    }
     moveTo(p0x, p0y);
     lineTo(p3x, p3y);
     return false;

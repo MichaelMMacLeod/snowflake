@@ -151,12 +151,12 @@ export const forEachGrowingBranch = (snowflake: Snowflake, f: (branch: Branch, i
   }
 }
 
-export const draw = (g: Graphic, snowflake: Snowflake, foregroundColor: string): boolean => {
+export const draw = (g: Graphic, snowflake: Snowflake, foregroundColor: string, drawBranchSides: boolean): boolean => {
   let anyPartOutside = false;
   g[_graphic_ctx].strokeStyle = foregroundColor;
   g[_graphic_ctx].beginPath();
   forEachGrowingFace(snowflake, (f, fi) => anyPartOutside ||= Faces.draw(g, f, fi));
-  forEachGrowingBranch(snowflake, (b, _) => anyPartOutside ||= Branches.draw(g, b));
+  forEachGrowingBranch(snowflake, (b, _) => anyPartOutside ||= Branches.draw(g, b, drawBranchSides));
   g[_graphic_ctx].stroke();
   return anyPartOutside;
 }

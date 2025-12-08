@@ -1,3 +1,4 @@
+import { overallScale } from "./Constants.js";
 export const _ColorScheme_darkThemeColor = 0;
 export const _ColorScheme_lightThemeColor = 1;
 export const equals = (ct1, ct2) => {
@@ -8,8 +9,9 @@ export const equals = (ct1, ct2) => {
 // 'dark theme' here means 'draw with a dark background'. We're
 // only concerned here with the foreground, which is why the
 // 'dark' color is white and the 'light' color is black.
-export const defaultDarkThemeColor = 'oklab(1 0 0 / 0.2)';
-export const defaultLightThemeColor = 'oklab(0 0 0 / 0.2)';
+const p = 0.2 * overallScale;
+export const defaultDarkThemeColor = `oklab(1 0 0 / ${p})`;
+export const defaultLightThemeColor = `oklab(0 0 0 / ${p})`;
 export const defaultGraphDarkThemeColor = 'oklab(1 0 0)';
 export const defaultGraphLightThemeColor = 'oklab(0 0 0)';
 export const zero = () => {

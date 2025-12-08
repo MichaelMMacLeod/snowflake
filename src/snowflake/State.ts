@@ -240,7 +240,7 @@ export const update = (state: State): void => {
 
         mapSome(state[_State_graphic], g => {
             const foregroundColor = currentThemeForegroundRGBAString(state);
-            if (Snowflakes.draw(g, snowflake, foregroundColor)) {
+            if (Snowflakes.draw(g, snowflake, foregroundColor, state[_State_updateCount] % 5 === 0)) {
                 state[_State_updateCount] = maxUpdates;
                 state[_State_updateBank] = 0;
             }
