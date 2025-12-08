@@ -28,9 +28,7 @@ class SnowflakeGraphElement extends HTMLElement {
         __classPrivateFieldGet(this, _SnowflakeGraphElement_shadow, "f").appendChild(element);
     }
     configure(key, value) {
-        const cfg = __classPrivateFieldGet(this, _SnowflakeGraphElement_config, "f");
-        Configs.configure(graphCfgFunctions, cfg, __classPrivateFieldGet(this, _SnowflakeGraphElement_state, "f"), key, value, graphDefaultConfig, (_state) => { return; });
-        cfg[key] = value;
+        Configs.configure(graphCfgFunctions, __classPrivateFieldGet(this, _SnowflakeGraphElement_config, "f"), __classPrivateFieldGet(this, _SnowflakeGraphElement_state, "f"), key, value, graphDefaultConfig, (_state) => { return; });
     }
     configuredValue(key) {
         return __classPrivateFieldGet(this, _SnowflakeGraphElement_config, "f")[key];

@@ -34,7 +34,6 @@ class SnowflakeElement extends HTMLElement {
     configure(key, value) {
         const cfg = __classPrivateFieldGet(this, _SnowflakeElement_state, "f")[_State_cfg];
         Configs.configure(snowflakeCfgFunctions, cfg, __classPrivateFieldGet(this, _SnowflakeElement_state, "f"), key, value, snowflakeDefaultConfig, States.reset);
-        cfg[key] = value;
     }
     configuredValue(key) {
         return __classPrivateFieldGet(this, _SnowflakeElement_state, "f")[_State_cfg][key];

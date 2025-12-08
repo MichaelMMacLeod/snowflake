@@ -3,7 +3,7 @@ import { _State_cfg, _State_currentMS, _State_snowflakeID, scheduleUpdate, setId
 import { arraysEqual, doNothing } from "../common/Utils.js";
 import * as ColorThemes from "../common/ColorScheme.js";
 import * as SnowflakeIDs from "../common/SnowflakeID.js";
-import { resetRequred, resetUnecessary } from "../common/Config.js";
+import { getOrDefault, resetRequred, resetUnecessary } from "../common/Config.js";
 export const _SnowflakeConfig_snowflakeID = 0;
 export const _SnowflakeConfig_snowflakeCanvasSizePX = 1;
 export const _SnowflakeConfig_targetGrowthTimeMS = 2;
@@ -52,13 +52,6 @@ export const snowflakeDefaultConfig = Object.freeze([
     defaultResetCallback,
     defaultUpdatedCallback,
 ]);
-const cfgGetOrDefault = (cfg, key) => {
-    const value = cfg[key];
-    if (value !== undefined) {
-        return value;
-    }
-    return snowflakeDefaultConfig[key];
-};
 const cfgSnowflakeID = (_cfg, state, oldValue, newValue) => {
     if (oldValue === newValue || arraysEqual(oldValue, newValue, (v1, v2) => v1 === v2)) {
         return resetUnecessary;
@@ -73,11 +66,11 @@ const cfgSnowflakeCanvasSizePX = (_cfg, state, oldValue, newValue) => {
     return resetUnecessary;
 };
 const cfgTargetGrowthTimeMS = (cfg, state, _oldValue, newValue) => {
-    setIdealMSBetweenUpdates(state, newValue, cfgGetOrDefault(cfg, _SnowflakeConfig_upsCap));
+    setIdealMSBetweenUpdates(state, newValue, getOrDefault(snowflakeDefaultConfig, cfg, _SnowflakeConfig_upsCap));
     return resetUnecessary;
 };
 const cfgUPSCap = (cfg, state, _oldValue, newValue) => {
-    setIdealMSBetweenUpdates(state, cfgGetOrDefault(cfg, _SnowflakeConfig_targetGrowthTimeMS), newValue);
+    setIdealMSBetweenUpdates(state, getOrDefault(snowflakeDefaultConfig, cfg, _SnowflakeConfig_targetGrowthTimeMS), newValue);
     return resetUnecessary;
 };
 const cfgMaxUpdates = (_cfg, _state, _oldValue, _newValue) => {

@@ -15,7 +15,7 @@ import { arraysEqual, doNothing } from "../common/Utils.js";
 import * as ColorThemes from "../common/ColorScheme.js";
 import { ColorScheme } from "../common/ColorScheme.js";
 import * as SnowflakeIDs from "../common/SnowflakeID.js";
-import { CfgFunction, CfgFunctionArray, resetRequred, resetUnecessary } from "../common/Config.js";
+import { CfgFunction, CfgFunctionArray, getOrDefault, resetRequred, resetUnecessary } from "../common/Config.js";
 
 export const _SnowflakeConfig_snowflakeID = 0;
 export const _SnowflakeConfig_snowflakeCanvasSizePX = 1;
@@ -95,14 +95,6 @@ export const snowflakeDefaultConfig: Readonly<SnowflakeConfig> = Object.freeze([
     defaultUpdatedCallback,
 ]);
 
-const cfgGetOrDefault = <K extends keyof SnowflakeConfig>(cfg: SnowflakeConfig, key: K): SnowflakeConfig[K] => {
-    const value = cfg[key];
-    if (value !== undefined) {
-        return value;
-    }
-    return snowflakeDefaultConfig[key];
-}
-
 type SnowflakeCfgFunction<K extends keyof SnowflakeConfig> = CfgFunction<State, SnowflakeConfig, K>;
 
 const cfgSnowflakeID: SnowflakeCfgFunction<_SnowflakeConfig_snowflakeID> = (_cfg, state, oldValue, newValue) => {
@@ -121,12 +113,12 @@ const cfgSnowflakeCanvasSizePX: SnowflakeCfgFunction<_SnowflakeConfig_snowflakeC
 };
 
 const cfgTargetGrowthTimeMS: SnowflakeCfgFunction<_SnowflakeConfig_targetGrowthTimeMS> = (cfg, state, _oldValue, newValue) => {
-    setIdealMSBetweenUpdates(state, newValue, cfgGetOrDefault(cfg, _SnowflakeConfig_upsCap));
+    setIdealMSBetweenUpdates(state, newValue, getOrDefault(snowflakeDefaultConfig, cfg, _SnowflakeConfig_upsCap));
     return resetUnecessary;
 };
 
 const cfgUPSCap: SnowflakeCfgFunction<_SnowflakeConfig_upsCap> = (cfg, state, _oldValue, newValue) => {
-    setIdealMSBetweenUpdates(state, cfgGetOrDefault(cfg, _SnowflakeConfig_targetGrowthTimeMS), newValue);
+    setIdealMSBetweenUpdates(state, getOrDefault(snowflakeDefaultConfig, cfg, _SnowflakeConfig_targetGrowthTimeMS), newValue);
     return resetUnecessary;
 };
 

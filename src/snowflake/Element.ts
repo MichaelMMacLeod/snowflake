@@ -45,7 +45,6 @@ export default class SnowflakeElement extends HTMLElement {
             snowflakeDefaultConfig,
             States.reset
         )
-        cfg[key] = value;
     }
 
     configuredValue<K extends keyof SnowflakeConfig>(key: K): SnowflakeConfig[K] {

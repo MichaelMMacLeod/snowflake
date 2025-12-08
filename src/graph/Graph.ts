@@ -1,5 +1,13 @@
-import { parseSnowflakeIDString, formatAsSnowflakeIDString, yChoices, SnowflakeID, nextSmallestYChoiceIndex, nextLargestYChoiceIndex, nthYChoiceIndex, YChoiceIndex, getDefaultSnowflakeID } from "../common/SnowflakeID.js";
-import { clamp, NonEmptyArray } from "../common/Utils.js";
+import {
+    yChoices,
+    SnowflakeID,
+    nextSmallestYChoiceIndex,
+    nextLargestYChoiceIndex,
+    nthYChoiceIndex,
+    YChoiceIndex,
+    getDefaultSnowflakeID,
+    copySnowflakeID
+} from "../common/SnowflakeID.js";
 import { Maybe, none, some } from "maybe-either/Maybe";
 import * as Maybes from "maybe-either/Maybe";
 import { Point } from "../common/Point.js";
@@ -210,21 +218,27 @@ const setHandleLocation = (handle: GraphHandle, x: number, y: number): void => {
     setSVGAttributes(handle.outside, attrs);
 };
 
+const runHandleMovedCallback = (sfg: SnowflakeGraph) => {
+    // Make sure that they can't modify our snowflake ID
+    const id = copySnowflakeID(sfg[_SnowflakeGraph_snowflakeID]);
+    sfg[_SnowflakeGraph_handleMovedCallback](id);
+};
+
 const moveHandleUpwards = (sfg: SnowflakeGraph, h: number, aspectRatio: number): void => {
     sfg[_SnowflakeGraph_snowflakeID][h] = nextSmallestYChoiceIndex(sfg[_SnowflakeGraph_snowflakeID][h]);
-    sfg[_SnowflakeGraph_handleMovedCallback](sfg[_SnowflakeGraph_snowflakeID]);
+    runHandleMovedCallback(sfg);
     syncToSnowflakeID(sfg, aspectRatio);
 };
 
 const moveHandleDownwards = (sfg: SnowflakeGraph, h: number, aspectRatio: number): void => {
     sfg[_SnowflakeGraph_snowflakeID][h] = nextLargestYChoiceIndex(sfg[_SnowflakeGraph_snowflakeID][h]);
-    sfg[_SnowflakeGraph_handleMovedCallback](sfg[_SnowflakeGraph_snowflakeID]);
+    runHandleMovedCallback(sfg);
     syncToSnowflakeID(sfg, aspectRatio);
 };
 
 const moveHandleToNth = (sfg: SnowflakeGraph, h: number, nth: number, aspectRatio: number): void => {
     sfg[_SnowflakeGraph_snowflakeID][h] = nthYChoiceIndex(nth);
-    sfg[_SnowflakeGraph_handleMovedCallback](sfg[_SnowflakeGraph_snowflakeID]);
+    runHandleMovedCallback(sfg);
     syncToSnowflakeID(sfg, aspectRatio);
 };
 
@@ -417,8 +431,8 @@ export const zero = (): SnowflakeGraph => {
             return;
         }
         result[_SnowflakeGraph_snowflakeID][h] = yChoice;
+        runHandleMovedCallback(result);
         syncToSnowflakeID(result, defaultAspectRatio);
-        result[_SnowflakeGraph_handleMovedCallback](result[_SnowflakeGraph_snowflakeID]);
     }
     const handleMouseDown = (ev: MouseEvent): void => {
         const h = closestGraphHandle(result, ev);

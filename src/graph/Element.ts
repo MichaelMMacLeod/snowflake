@@ -22,17 +22,15 @@ export default class SnowflakeGraphElement extends HTMLElement {
     }
 
     configure<K extends keyof GraphConfig>(key: K, value: GraphConfig[K]) {
-        const cfg = this.#config;
         Configs.configure(
             graphCfgFunctions,
-            cfg,
+            this.#config,
             this.#state,
             key,
             value,
             graphDefaultConfig,
             (_state) => { return; }
         )
-        cfg[key] = value;
     }
 
     configuredValue<K extends keyof GraphConfig>(key: K): GraphConfig[K] {

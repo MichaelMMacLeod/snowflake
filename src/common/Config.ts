@@ -31,6 +31,7 @@ export const configure = <S, C, K extends keyof C>(
     resetState: (state: S) => void,
 ) => {
     const oldValue = getOrDefault(defaultConfig, oldCfg, key);
+    oldCfg[key] = value;
     const resetStatus = cfgFunctions[key](oldCfg, state, oldValue, value);
     if (resetStatus === resetRequred) {
         resetState(state);
