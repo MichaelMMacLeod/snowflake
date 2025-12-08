@@ -3,6 +3,7 @@ import { _State_cfg, _State_currentMS, _State_snowflakeID, scheduleUpdate, setId
 import { arraysEqual, doNothing } from "../common/Utils.js";
 import * as ColorThemes from "../common/ColorScheme.js";
 import * as SnowflakeIDs from "../common/SnowflakeID.js";
+import { resetRequred, resetUnecessary } from "../common/Config.js";
 export const _SnowflakeConfig_snowflakeID = 0;
 export const _SnowflakeConfig_snowflakeCanvasSizePX = 1;
 export const _SnowflakeConfig_targetGrowthTimeMS = 2;
@@ -27,8 +28,6 @@ const cfgKeys = [
     _SnowflakeConfig_resetCallback,
     _SnowflakeConfig_updatedCallback,
 ];
-const resetRequred = true;
-const resetUnecessary = false;
 export const defaultSnowflakeID = SnowflakeIDs.getDefaultSnowflakeID();
 export const defaultSnowflakeCanvasSizePX = 800;
 export const defaultTargetGrowthTimeMS = 8000;

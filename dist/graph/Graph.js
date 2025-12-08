@@ -49,7 +49,6 @@ const classGraphHandleOutside = '.' + classNameGraphHandleOutside;
 const classGraphHandleOutsideHover = '.' + classNameGraphHandleOutsideHover;
 const classGraphLine = '.' + classNameGraphLine;
 const classGraphProgress = '.' + classNameGraphProgress;
-const varColorBackground = 'var(' + propertyColorBackground + ')';
 const varColorForeground = 'var(' + propertyColorForeground + ')';
 const buildColorStyles = (isLightTheme) => {
     let background = defaultGraphDarkThemeColor;
@@ -106,7 +105,6 @@ const facetingBranchingLineY = `${marginHeight + graphableViewportHeight / 2}`;
 export const calculateGraphableViewportWidth = (aspectRatio) => {
     return (aspectRatio * viewportHeight) - marginWidth * 2;
 };
-const defaultGraphableViewportWidth = (defaultAspectRatio * viewportHeight) - marginWidth * 2;
 const buildFacetingBranchingLineX2Value = (aspectRatio) => {
     return (marginWidth + calculateGraphableViewportWidth(aspectRatio)).toString();
 };

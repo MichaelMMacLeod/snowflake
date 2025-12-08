@@ -14,18 +14,6 @@ export default class SnowflakeGraphElement extends HTMLElement {
         this.#shadow = this.attachShadow({ mode: 'open' });
         this.#config = { ...graphDefaultConfig };
         this.#state = GraphStates.zero();
-
-        GraphConfigs.cfgKeys.forEach(key => {
-            Configs.configure(
-                graphCfgFunctions,
-                this.#config,
-                this.#state,
-                key,
-                this.#config[key],
-                graphDefaultConfig,
-                (_state) => { return; }
-            )
-        });
     }
 
     connectedCallback() {

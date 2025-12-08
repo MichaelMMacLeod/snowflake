@@ -12,7 +12,6 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
 var _SnowflakeGraphElement_shadow, _SnowflakeGraphElement_config, _SnowflakeGraphElement_state;
 import * as GraphStates from "./State.js";
 import { graphDefaultConfig, graphCfgFunctions } from "./GraphConfig.js";
-import * as GraphConfigs from "./GraphConfig.js";
 import * as Configs from "../common/Config.js";
 class SnowflakeGraphElement extends HTMLElement {
     constructor() {
@@ -23,9 +22,6 @@ class SnowflakeGraphElement extends HTMLElement {
         __classPrivateFieldSet(this, _SnowflakeGraphElement_shadow, this.attachShadow({ mode: 'open' }), "f");
         __classPrivateFieldSet(this, _SnowflakeGraphElement_config, Object.assign({}, graphDefaultConfig), "f");
         __classPrivateFieldSet(this, _SnowflakeGraphElement_state, GraphStates.zero(), "f");
-        GraphConfigs.cfgKeys.forEach(key => {
-            Configs.configure(graphCfgFunctions, __classPrivateFieldGet(this, _SnowflakeGraphElement_config, "f"), __classPrivateFieldGet(this, _SnowflakeGraphElement_state, "f"), key, __classPrivateFieldGet(this, _SnowflakeGraphElement_config, "f")[key], graphDefaultConfig, (_state) => { return; });
-        });
     }
     connectedCallback() {
         const element = GraphStates.initialize(__classPrivateFieldGet(this, _SnowflakeGraphElement_state, "f"));
