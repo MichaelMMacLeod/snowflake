@@ -1,39 +1,22 @@
-var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
-    if (kind === "m") throw new TypeError("Private method is not writable");
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
-    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
-};
-var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
-};
-var _SnowflakeGraphElement_shadow, _SnowflakeGraphElement_config, _SnowflakeGraphElement_state;
+import { _GraphState_cfg } from "./State.js";
 import * as GraphStates from "./State.js";
 import { graphDefaultConfig, graphCfgFunctions } from "./GraphConfig.js";
 import * as Configs from "../common/Config.js";
-class SnowflakeGraphElement extends HTMLElement {
+export default class SnowflakeGraphElement extends HTMLElement {
     constructor() {
         super();
-        _SnowflakeGraphElement_shadow.set(this, void 0);
-        _SnowflakeGraphElement_config.set(this, void 0);
-        _SnowflakeGraphElement_state.set(this, void 0);
-        __classPrivateFieldSet(this, _SnowflakeGraphElement_shadow, this.attachShadow({ mode: 'open' }), "f");
-        __classPrivateFieldSet(this, _SnowflakeGraphElement_config, Object.assign({}, graphDefaultConfig), "f");
-        __classPrivateFieldSet(this, _SnowflakeGraphElement_state, GraphStates.zero(), "f");
+        this.shadow = this.attachShadow({ mode: 'open' });
+        this.state = GraphStates.zero();
     }
     connectedCallback() {
-        const element = GraphStates.initialize(__classPrivateFieldGet(this, _SnowflakeGraphElement_state, "f"));
-        __classPrivateFieldGet(this, _SnowflakeGraphElement_shadow, "f").appendChild(element);
+        const element = GraphStates.initialize(this.state);
+        this.shadow.appendChild(element);
     }
     configure(key, value) {
-        Configs.configure(graphCfgFunctions, __classPrivateFieldGet(this, _SnowflakeGraphElement_config, "f"), __classPrivateFieldGet(this, _SnowflakeGraphElement_state, "f"), key, value, graphDefaultConfig, (_state) => { return; });
+        Configs.configure(graphCfgFunctions, this.state[_GraphState_cfg], this.state, key, value, graphDefaultConfig, (_state) => { return; });
     }
     configuredValue(key) {
-        return __classPrivateFieldGet(this, _SnowflakeGraphElement_config, "f")[key];
+        return this.state[_GraphState_cfg][key];
     }
 }
-_SnowflakeGraphElement_shadow = new WeakMap(), _SnowflakeGraphElement_config = new WeakMap(), _SnowflakeGraphElement_state = new WeakMap();
-export default SnowflakeGraphElement;
 //# sourceMappingURL=Element.js.map

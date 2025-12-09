@@ -15,31 +15,31 @@ import {
 import { Either } from "maybe-either/Either";
 
 export default class SnowflakeElement extends HTMLElement {
-    #state: State;
-    #shadow: ShadowRoot;
+    state: State;
+    shadow: ShadowRoot;
 
     constructor() {
         super();
-        this.#shadow = this.attachShadow({ mode: 'open' });
-        this.#state = States.zero();
+        this.shadow = this.attachShadow({ mode: 'open' });
+        this.state = States.zero();
     }
 
     connectedCallback() {
         Maybes.map(
-            initializeGraphic(this.#state, this.#state[_State_cfg][_SnowflakeConfig_snowflakeCanvasSizePX]),
+            initializeGraphic(this.state, this.state[_State_cfg][_SnowflakeConfig_snowflakeCanvasSizePX]),
             () => { throw new Error("couldn't get canvas 2d context"); },
             g => {
-                this.#shadow.appendChild(g[_graphic_canvas]);
+                this.shadow.appendChild(g[_graphic_canvas]);
             },
         );
     }
 
     configure<K extends keyof SnowflakeConfig>(key: K, value: SnowflakeConfig[K]) {
-        const cfg = this.#state[_State_cfg];
+        const cfg = this.state[_State_cfg];
         Configs.configure(
             snowflakeCfgFunctions,
             cfg,
-            this.#state,
+            this.state,
             key,
             value,
             snowflakeDefaultConfig,
@@ -48,11 +48,11 @@ export default class SnowflakeElement extends HTMLElement {
     }
 
     configuredValue<K extends keyof SnowflakeConfig>(key: K): SnowflakeConfig[K] {
-        return this.#state[_State_cfg][key];
+        return this.state[_State_cfg][key];
     }
 
     reset(): void {
-        States.reset(this.#state);
+        States.reset(this.state);
     }
 
     parseSnowflakeID(id: string): Either<string, SnowflakeID> {
@@ -64,16 +64,16 @@ export default class SnowflakeElement extends HTMLElement {
     }
 
     snowflakeIDString(): string {
-        return SnowflakeIDs.formatAsSnowflakeIDString(this.#state[_State_cfg][_SnowflakeConfig_snowflakeID]);
+        return SnowflakeIDs.formatAsSnowflakeIDString(this.state[_State_cfg][_SnowflakeConfig_snowflakeID]);
     }
 
     percentGrown(): number {
-        return States.percentGrown(this.#state);
+        return States.percentGrown(this.state);
     }
 
     canvas(): HTMLCanvasElement {
         return Maybes.unwrapOr(
-            this.#state[_State_graphic],
+            this.state[_State_graphic],
             () => { throw new Error('element not yet inserted into document') },
         )[_graphic_canvas];
     }

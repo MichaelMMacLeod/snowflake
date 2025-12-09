@@ -1,6 +1,8 @@
+import { GraphState } from "./State.js";
 import { GraphConfig } from "./GraphConfig.js";
 export default class SnowflakeGraphElement extends HTMLElement {
-    #private;
+    shadow: ShadowRoot;
+    state: GraphState;
     constructor();
     connectedCallback(): void;
     configure<K extends keyof GraphConfig>(key: K, value: GraphConfig[K]): void;
