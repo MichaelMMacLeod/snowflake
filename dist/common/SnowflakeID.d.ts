@@ -1,7 +1,7 @@
 import { Either } from "maybe-either/Either";
 import { ArrayAtLeast2 } from "./Utils.js";
 export declare const yChoices: Array<number>;
-export type YChoiceIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+export type YChoiceIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 export declare const nextLargestYChoiceIndex: (y: YChoiceIndex) => YChoiceIndex;
 export declare const nextSmallestYChoiceIndex: (y: YChoiceIndex) => YChoiceIndex;
 export declare const nthYChoiceIndex: (n: number) => YChoiceIndex;
