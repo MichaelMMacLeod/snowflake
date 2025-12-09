@@ -48,7 +48,7 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 
 const sizeScalar = 0.5;
 const viewportHeight = 200;
-const handleOuterHoverScale = 1.5;
+const handleOuterHoverScale = 2;
 const handleOuterSize = sizeScalar * 15;
 const handleOuterHoveredSize = handleOuterSize * handleOuterHoverScale;
 const handleInnerSize = sizeScalar * 10;
@@ -110,7 +110,8 @@ const styleClassGraphHandleInside = `${classGraphHandleInside}{fill:${varColorFo
 const styleClassGraphHandleOutside = `${classGraphHandleOutside}{stroke:${varColorForeground};scale:1;transition:scale 0.1s;transform-origin:center}`;
 const styleMediaPrefersReducedMotionReduce = `@media (prefers-reduced-motion:reduce){${classGraphHandleOutside}{transition:scale 0s}}`;
 const styleClassGraphHandleOutsideHover = `${classGraphHandleOutsideHover}{scale:${handleOuterHoverScale}}`;
-const styleClassGraphHandleOutsideFocusVisisble = `${classGraphHandleOutside}:focus-visible{scale:${handleOuterHoverScale}}`;
+const styleClassGraphHandleOutsideFocusVisisble = `${classGraphHandleOutside}:focus-visible{outline:none;scale:${handleOuterHoverScale}}`;
+const styleClassGraphHandleOutsideFocusNotFocusVisisble = `${classGraphHandleOutside}:focus:not(:focus-visible){outline:none}`;
 const styleClassGraphLine = `${classGraphLine}{stroke:${varColorForeground}}`;
 const styleClassGraphProgress = `${classGraphProgress}{fill:${varColorForeground};fill-opacity:0.075}`;
 
@@ -121,6 +122,7 @@ const styles = [
     styleMediaPrefersReducedMotionReduce,
     styleClassGraphHandleOutsideHover,
     styleClassGraphHandleOutsideFocusVisisble,
+    styleClassGraphHandleOutsideFocusNotFocusVisisble,
     styleClassGraphLine,
     styleClassGraphProgress,
 ];
