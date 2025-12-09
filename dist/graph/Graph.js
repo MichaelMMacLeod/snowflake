@@ -191,7 +191,7 @@ const addHandle = (g, x, y, sfg, nthHandle, aspectRatio) => {
                 e.preventDefault();
                 break;
             default:
-                const index = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+                const index = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
                     .findIndex((v, i) => v === e.key);
                 if (index !== -1) {
                     moveHandleToNth(sfg, nthHandle, index, aspectRatio);
