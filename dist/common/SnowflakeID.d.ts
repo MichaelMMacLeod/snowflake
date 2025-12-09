@@ -14,5 +14,4 @@ export declare const copySnowflakeID: (value: SnowflakeID) => SnowflakeID;
 export declare const parseSnowflakeIDString: (value: string) => Either<string, SnowflakeID>;
 export declare const formatAsSnowflakeIDString: (id: Array<number>) => string;
 export declare const randomSnowflakeID: () => SnowflakeID;
-export declare const randomSnowflakeIDString: () => string;
 export {};

@@ -29,8 +29,6 @@ export type Snowflake = {
 };
 export declare const addFaceM: (snowflake: Snowflake, centerX: number, centerY: number, size: number, isFirstFace: boolean, direction: Direction, growthScale: number, growing: boolean) => boolean;
 export declare const addBranchM: (snowflake: Snowflake, startX: number, startY: number, size: number, length: number, direction: Direction, growthScale: number, growing: boolean) => boolean;
-export declare const forEachFace: (snowflake: Snowflake, f: (face: Face, index: number) => void) => void;
-export declare const forEachBranch: (snowflake: Snowflake, f: (branch: Branch, index: number) => void) => void;
 export declare const forEachGrowingFace: (snowflake: Snowflake, f: (face: Face, index: number) => void) => void;
 export declare const forEachGrowingBranch: (snowflake: Snowflake, f: (branch: Branch, index: number) => void) => void;
 export declare const draw: (g: Graphic, snowflake: Snowflake, foregroundColor: string, drawBranchSides: boolean) => boolean;

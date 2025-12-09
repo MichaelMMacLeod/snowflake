@@ -60,9 +60,6 @@ export const randomSnowflakeID = () => {
         return getDefaultSnowflakeID();
     }, id => id);
 };
-export const randomSnowflakeIDString = () => {
-    return formatAsSnowflakeIDString(randomSnowflakeID());
-};
 if (Eithers.isLeft(parseSnowflakeIDString(formatAsSnowflakeIDString(getDefaultSnowflakeID())))) {
     console.error('default snowflake ID is not valid');
 }

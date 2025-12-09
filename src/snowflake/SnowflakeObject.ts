@@ -115,18 +115,6 @@ export const addBranchM = (
   return true;
 }
 
-export const forEachFace = (snowflake: Snowflake, f: (face: Face, index: number) => void): void => {
-  for (let i = 0; i < snowflake[_numFaces]; ++i) {
-    f(snowflake[_faces][i], i);
-  }
-}
-
-export const forEachBranch = (snowflake: Snowflake, f: (branch: Branch, index: number) => void): void => {
-  for (let i = 0; i < snowflake[_numBranches]; ++i) {
-    f(snowflake[_branches][i], i);
-  }
-}
-
 const oneZeroArray: [1, 0] = [1, 0];
 
 export const forEachGrowingFace = (snowflake: Snowflake, f: (face: Face, index: number) => void): void => {
